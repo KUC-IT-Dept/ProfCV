@@ -1,0 +1,32 @@
+const express = require('express');
+const router = express.Router();
+const verifyToken = require('../middleware/auth');
+const roleGuard = require('../middleware/roleGuard');
+const {
+  getMyProfile,
+  updateMyProfile,
+  updateVisibility,
+  uploadAttachment,
+  getProfileByUser,
+  getPublicProfile,
+} = require('../controllers/profileController');
+
+// ── Public route (no auth) ────────────────────────────────────────────────────
+router.get('/public/:userId', getPublicProfile);
+
+// ── All routes below require authentication ───────────────────────────────────
+router.use(verifyToken);
+
+router.get('/me', getMyProfile);
+router.put('/me', updateMyProfile);
+router.patch('/me/visibility', updateVisibility);
+router.post('/me/attachment', ...uploadAttachment);
+
+// HOD / VC / SUPERADMIN can view any profile
+router.get(
+  '/:userId',
+  roleGuard('HOD', 'VC', 'SUPERADMIN'),
+  getProfileByUser
+);
+
+module.exports = router;

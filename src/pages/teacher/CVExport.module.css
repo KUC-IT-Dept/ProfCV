@@ -1,0 +1,58 @@
+/* CVExport.module.css — print rules scoped to #cv-export-wrapper ONLY */
+/* This prevents CSS bleed to Directory or any other page when printing */
+
+/* ── Screen styles ── */
+.previewContainer {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: #fff;
+}
+
+.previewHeader {
+  padding: 1rem 1.5rem;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* ── Print styles — scoped ONLY to #cv-export-wrapper ── */
+@media print {
+  /* Hide everything */
+  body * {
+    visibility: hidden;
+    display: none;
+  }
+
+  /* Show only the CV wrapper and all its content */
+  #cv-export-wrapper,
+  #cv-export-wrapper * {
+    visibility: visible !important;
+    display: revert !important;
+  }
+
+  #cv-export-wrapper {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    background: #fff !important;
+    z-index: 9999 !important;
+    padding: 2cm !important;
+    font-family: Georgia, 'Times New Roman', serif !important;
+    font-size: 11pt !important;
+    color: #000 !important;
+    overflow: visible !important;
+  }
+
+  #cv-export-wrapper h1 { font-size: 22pt; margin-bottom: 2px; }
+  #cv-export-wrapper h2 { font-size: 13pt; border-bottom: 1px solid #ccc; padding-bottom: 4px; margin: 14px 0 8px; }
+  #cv-export-wrapper h3 { font-size: 11pt; font-weight: bold; margin-bottom: 2px; }
+  #cv-export-wrapper p, #cv-export-wrapper li { margin-bottom: 4px; }
+  #cv-export-wrapper .cv-meta { font-size: 10pt; color: #555; }
+  #cv-export-wrapper .cv-section { margin-bottom: 16px; }
+  #cv-export-wrapper .cv-entry { margin-bottom: 10px; padding-left: 12px; border-left: 2px solid #ccc; }
+}
+
