@@ -30,7 +30,7 @@ type Visibility = {
 };
 
 type Qualification = { degree: string; institution: string; year: string; grade: string };
-type Publication = { title: string; journal: string; year: string; doi: string; url: string };
+type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
 type CustomDetail = { sectionTitle: string; content: string };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
@@ -308,8 +308,10 @@ function VisibilityPanel({
 export default function ProfileBuilderPage() {
   const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
+  const [savedProfile, setSavedProfile] = useState<Profile>(EMPTY_PROFILE);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [uploadError, setUploadError] = useState('');
+  const [error, setError] = useState('');
   const [showShare, setShowShare] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
@@ -317,7 +319,7 @@ export default function ProfileBuilderPage() {
   useEffect(() => {
     api.get('/profile/me').then((r) => {
       const p = r.data;
-      setProfile({
+      const initialProfile = {
         name: p.user?.name || '', bio: p.bio || '', headline: p.headline || '', subjects: p.subjects || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
         projects: p.projects || [], customDetails: p.customDetails || [], interests: p.interests || [],
@@ -325,21 +327,39 @@ export default function ProfileBuilderPage() {
         visibility: p.visibility || EMPTY_PROFILE.visibility,
         photo: p.photo || '',
         dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
-      });
+      };
+      setProfile(initialProfile);
+      setSavedProfile(initialProfile);
     }).catch(() => { });
   }, []);
 
   const save = useCallback(async () => {
+    // Validation
+    const missingPubs = profile.publications.some(p => !p.title || !p.year || !p.doi || !p.url);
+    const missingProjects = profile.projects.some(p => !p.title || !p.year || !p.url);
+
+    if (missingPubs || missingProjects) {
+      setError('Please fill in all mandatory fields (marked with *) for Publications and Research Projects.');
+      setSaveStatus('error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setSaveStatus('saving');
+    setError('');
     try {
       await api.put('/profile/me', profile);
       // Update AuthContext if name or photo has changed
       if ((profile.name && profile.name !== user?.name) || (profile.photo && profile.photo !== user?.photo)) {
         updateUser({ name: profile.name, photo: profile.photo });
       }
+      setSavedProfile(profile);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
-    } catch { setSaveStatus('error'); }
+    } catch {
+      setSaveStatus('error');
+      setError('An error occurred while saving your profile.');
+    }
   }, [profile, user, updateUser]);
 
   const set = (key: keyof Profile, val: any) => setProfile((p) => ({ ...p, [key]: val }));
@@ -360,7 +380,7 @@ export default function ProfileBuilderPage() {
   };
   const removeQual = (i: number) => set('qualifications', profile.qualifications.filter((_, idx) => idx !== i));
 
-  const addPub = () => set('publications', [...profile.publications, { title: '', journal: '', year: '', doi: '', url: '' }]);
+  const addPub = () => set('publications', [...profile.publications, { title: '', authors: '', journal: '', organisation: '', year: '', volume: '', issue: '', month: '', pages: '', doi: '', url: '' }]);
   const updatePub = (i: number, f: keyof Publication, v: string) => {
     const arr = [...profile.publications]; arr[i] = { ...arr[i], [f]: v }; set('publications', arr);
   };
@@ -452,6 +472,13 @@ export default function ProfileBuilderPage() {
         </div>
       </div>
 
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
+
       {saveStatus === 'saved' && (
         <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
           <CheckCircle size={15} /> Profile saved successfully.
@@ -518,7 +545,7 @@ export default function ProfileBuilderPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Publications ({profile.publications.length})
+              Publications ({savedProfile.publications.length})
             </button>
             <button
               onClick={() => setActiveTab('projects')}
@@ -535,7 +562,7 @@ export default function ProfileBuilderPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Research Projects ({profile.projects.length})
+              Research Projects ({savedProfile.projects.length})
             </button>
             <button
               onClick={() => setActiveTab('custom')}
@@ -552,7 +579,7 @@ export default function ProfileBuilderPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Custom Sections ({profile.customDetails.length})
+              Custom Sections ({savedProfile.customDetails.length})
             </button>
             <button
               onClick={() => setActiveTab('media')}
@@ -666,17 +693,36 @@ export default function ProfileBuilderPage() {
           {activeTab === 'publications' && (
             <div>
               {profile.publications.map((p, i) => (
-                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                <div key={i} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div className="form-group"><label className="form-label">Title</label><input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Paper title…" /></div>
+                    <div className="form-group">
+                      <label className="form-label">Paper Title / Name <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                      <input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Enter paper title…" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Authors List (comma-separated)</label>
+                      <input className="form-input" value={p.authors} onChange={(e) => updatePub(i, 'authors', e.target.value)} placeholder="e.g. John Doe, Jane Smith…" />
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Journal / Conference</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
-                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
-                      <div className="form-group"><label className="form-label">DOI</label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
-                      <div className="form-group"><label className="form-label">URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                      <div className="form-group"><label className="form-label">Journal / Conference Name</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
+                      <div className="form-group"><label className="form-label">Organisation / Publisher</label><input className="form-input" value={p.organisation} onChange={(e) => updatePub(i, 'organisation', e.target.value)} placeholder="e.g. IEEE, Springer…" /></div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Year of Publication <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
+                      <div className="form-group"><label className="form-label">Month (Optional)</label><input className="form-input" value={p.month} onChange={(e) => updatePub(i, 'month', e.target.value)} placeholder="June" /></div>
+                      <div className="form-group"><label className="form-label">DOI <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Volume (Optional)</label><input className="form-input" value={p.volume} onChange={(e) => updatePub(i, 'volume', e.target.value)} placeholder="Vol 12" /></div>
+                      <div className="form-group"><label className="form-label">Issue (Optional)</label><input className="form-input" value={p.issue} onChange={(e) => updatePub(i, 'issue', e.target.value)} placeholder="Issue 4" /></div>
+                      <div className="form-group"><label className="form-label">Page Numbers (Optional)</label><input className="form-input" value={p.pages} onChange={(e) => updatePub(i, 'pages', e.target.value)} placeholder="e.g. 123-145" /></div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Publication URL <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                      <input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" />
                     </div>
                   </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove</button>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove Publication</button>
                 </div>
               ))}
               <button className="btn btn-secondary" onClick={addPub} type="button"><Plus size={14} /> Add Publication</button>
@@ -686,16 +732,19 @@ export default function ProfileBuilderPage() {
           {activeTab === 'projects' && (
             <div>
               {profile.projects.map((p, i) => (
-                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                <div key={i} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Project Title</label><input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Title…" /></div>
-                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2024" /></div>
+                    <div className="form-group">
+                      <label className="form-label">Project Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                      <input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Research project title…" />
                     </div>
-                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Project description…" /></div>
-                    <div className="form-group"><label className="form-label">Project URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://github.com/…" /></div>
+                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Brief project summary…" style={{ minHeight: 80 }} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Year <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2022-2023" /></div>
+                      <div className="form-group"><label className="form-label">Project URL <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                    </div>
                   </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove</button>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove Project</button>
                 </div>
               ))}
               <button className="btn btn-secondary" onClick={addProj} type="button"><Plus size={14} /> Add Project</button>

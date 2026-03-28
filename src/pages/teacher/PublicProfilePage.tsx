@@ -10,7 +10,19 @@ type PublicProfile = {
   subjects?: string[];
   interests?: string[];
   qualifications?: { degree: string; institution: string; year: string; grade: string }[];
-  publications?: { title: string; journal: string; year: string; doi: string; url: string }[];
+  publications?: {
+    title: string;
+    authors: string;
+    journal: string;
+    organisation?: string;
+    year: string;
+    volume?: string;
+    issue?: string;
+    month?: string;
+    pages?: string;
+    doi: string;
+    url: string
+  }[];
   projects?: { title: string; description: string; year: string; url: string }[];
   customDetails?: { sectionTitle: string; content: string }[];
   media?: { attachments: { name: string; url: string; sizeKB: number }[]; videoEmbeds: string[] };
@@ -188,15 +200,26 @@ export default function PublicProfilePage() {
             <Section title={`Publications (${profile.publications.length})`} icon={<BookMarked size={17} />}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                 {profile.publications.map((p, i) => (
-                  <div key={i} style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #BFDBFE' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                  <div key={i} style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #BFDBFE', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '1rem' }}>
                       {p.url ? <a href={p.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{p.title}</a> : p.title}
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-                      {p.journal && <span>{p.journal}</span>}
-                      {p.year && <span> · {p.year}</span>}
+                    {p.authors && <div style={{ fontSize: '0.875rem', color: 'var(--color-text)', fontStyle: 'italic', marginTop: '0.125rem' }}>{p.authors}</div>}
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                      {p.journal && <strong style={{ color: 'var(--color-text)' }}>{p.journal}</strong>}
+                      {p.organisation && <span style={{ color: 'var(--color-text-muted)' }}> ({p.organisation})</span>}
+                      {p.volume && <span>, Vol. {p.volume}</span>}
+                      {p.issue && <span>, Issue {p.issue}</span>}
+                      {(p.month || p.year) && (
+                        <span>
+                          {' · '}
+                          {p.month && `${p.month} `}
+                          {p.year}
+                        </span>
+                      )}
+                      {p.pages && <span>, pp. {p.pages}</span>}
                     </div>
-                    {p.doi && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>DOI: {p.doi}</div>}
+                    {p.doi && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.125rem' }}>DOI: {p.doi}</div>}
                   </div>
                 ))}
               </div>

@@ -8,18 +8,24 @@ const qualificationSchema = new mongoose.Schema({
 });
 
 const publicationSchema = new mongoose.Schema({
-  title: String,
+  title: { type: String, required: true },
+  authors: String,
   journal: String,
-  year: String,
-  doi: String,
-  url: String,
+  organisation: String,
+  volume: String,
+  issue: String,
+  month: String,
+  year: { type: String, required: true },
+  pages: String,
+  doi: { type: String, required: true },
+  url: { type: String, required: true },
 });
 
 const projectSchema = new mongoose.Schema({
-  title: String,
+  title: { type: String, required: true },
   description: String,
-  year: String,
-  url: String,
+  year: { type: String, required: true },
+  url: { type: String, required: true },
 });
 
 const customDetailSchema = new mongoose.Schema({
