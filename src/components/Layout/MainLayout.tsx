@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import Topbar from './Topbar';
-import { Menu } from 'lucide-react';
 
-interface Props { children: React.ReactNode; }
+interface Props { children: ReactNode; }
 
 export default function MainLayout({ children }: Props) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);

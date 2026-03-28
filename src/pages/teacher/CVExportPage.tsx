@@ -123,7 +123,7 @@ export default function CVExportPage() {
     Object.fromEntries(SECTIONS.map((s) => [s.key, true]))
   );
   const [template, setTemplate] = useState('classic');
-  const [showPreview, setShowPreview] = useState(true);
+  const showPreview = true;
 
   // Print reference for react-to-print
   const printRef = useRef<HTMLDivElement>(null);

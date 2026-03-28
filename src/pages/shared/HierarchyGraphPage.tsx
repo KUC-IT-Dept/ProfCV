@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import {
   ReactFlow,
   Background,
@@ -132,8 +132,8 @@ function buildFlowElements(treeData: any): { nodes: Node[]; edges: Edge[] } {
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function HierarchyGraphPage() {
   const { user } = useAuth();
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
