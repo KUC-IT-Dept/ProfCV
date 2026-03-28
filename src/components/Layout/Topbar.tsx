@@ -1,6 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import { Menu } from 'lucide-react';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -11,14 +12,23 @@ const PAGE_TITLES: Record<string, string> = {
   '/hierarchy': 'Org Hierarchy',
 };
 
-export default function Topbar() {
+export default function Topbar({ toggleSidebar }: { toggleSidebar: () => void }) {
   const { user } = useAuth();
   const location = useLocation();
   const title = PAGE_TITLES[location.pathname] ?? 'Prof CV';
 
   return (
     <header className="topbar">
-      <h1 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>{title}</h1>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <button
+          onClick={toggleSidebar}
+          aria-label="Toggle Navigation Sidebar"
+          style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '0.25rem', display: 'flex', alignItems: 'center' }}
+        >
+          <Menu size={24} color="var(--color-text)" />
+        </button>
+        <h1 style={{ fontSize: '1rem', fontWeight: 600, color: 'var(--color-text)' }}>{title}</h1>
+      </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
         <div
           style={{
