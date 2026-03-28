@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/axios';
+import Barchart from '../components/Barchart'; // Import your Barchart component
 
 interface AdminStats {
   totalFaculty: number;
@@ -23,7 +24,6 @@ interface TeacherStats {
   videoEmbeds: number;
   headline: string;
   department: string | null;
-  // derived
   mostPublishedYear: string | null;
   mostActiveProjectYear: string | null;
   distinctJournals: number;
@@ -86,6 +86,8 @@ export default function DashboardPage() {
   const [adminStats, setAdminStats] = useState<AdminStats | null>(null);
   const [teacherStats, setTeacherStats] = useState<TeacherStats | null>(null);
   const [hodStats, setHodStats] = useState<HodStats | null>(null);
+  const [chartData, setChartData] = useState<{ year: string; publications: number }[]>([]); // Added for chart
+
   const isTeacher = user?.role === 'TEACHER';
   const isHod = user?.role === 'HOD';
 
@@ -99,6 +101,16 @@ export default function DashboardPage() {
         const projYears = projs.map((x: any) => x.year).filter(Boolean);
         const journals = [...new Set(pubs.map((x: any) => x.journal).filter(Boolean))];
         const sortedPubs = [...pubs].filter(x => x.year).sort((a, b) => Number(b.year) - Number(a.year));
+
+        // Format data for the Barchart component
+        const yearsMap: Record<string, number> = {};
+        pubs.forEach((pub: any) => {
+          if (pub.year) yearsMap[pub.year] = (yearsMap[pub.year] || 0) + 1;
+        });
+        const formattedChart = Object.entries(yearsMap)
+          .map(([year, count]) => ({ year, publications: count }))
+          .sort((a, b) => Number(a.year) - Number(b.year));
+        setChartData(formattedChart);
 
         setTeacherStats({
           publications: pubs.length,
@@ -116,7 +128,7 @@ export default function DashboardPage() {
         });
       }).catch(() => {});
     } else if (isHod) {
-      // HOD: fetch directory + all profiles in parallel
+      // ... (Keep your existing HOD logic)
       api.get('/directory').then(async (directoryRes) => {
         const teachers: any[] = (directoryRes.data as any[]).filter((u: any) => u.role === 'TEACHER');
         const profiles = await Promise.all(
@@ -125,11 +137,9 @@ export default function DashboardPage() {
           )
         );
         const valid = profiles.filter(Boolean);
-
         const totalPubs = valid.reduce((s, p) => s + (p.publications?.length || 0), 0);
         const totalProjects = valid.reduce((s, p) => s + (p.projects?.length || 0), 0);
         const totalQuals = valid.reduce((s, p) => s + (p.qualifications?.length || 0), 0);
-
         const leaderboard: HodTeacher[] = valid.map(p => {
           const pubs = (p.publications || []) as any[];
           const sorted = [...pubs].filter(x => x.year).sort((a, b) => Number(b.year) - Number(a.year));
@@ -140,17 +150,14 @@ export default function DashboardPage() {
             latestPub: sorted[0]?.title,
           };
         }).sort((a, b) => b.publishCount - a.publishCount);
-
         setHodStats({
-          totalFaculty: teachers.length,
-          totalPubs,
-          totalProjects,
-          totalQuals,
+          totalFaculty: teachers.length, totalPubs, totalProjects, totalQuals,
           avgPubs: teachers.length ? (totalPubs / teachers.length).toFixed(1) : '0',
           leaderboard: leaderboard.slice(0, 5),
         });
       }).catch(() => { });
     } else {
+      // ... (Keep your existing Admin logic)
       api.get('/directory').then((res) => {
         const users: any[] = res.data;
         const depts = new Set(users.map((u: any) => u.department).filter(Boolean));
@@ -173,12 +180,15 @@ export default function DashboardPage() {
       <div className="page-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
           <LayoutDashboard size={20} color="var(--color-primary)" />
-          <h1>{greeting()}, {user?.name?.split(' ')[0]}</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+  <LayoutDashboard size={20} color="var(--color-primary)" />
+  {/* Changed from user?.name?.split(' ')[0] to just user?.name */}
+  <h1>{greeting()}, {user?.name || 'Academic'}</h1>
+</div>
         </div>
         <p>Welcome back to Prof CV — your academic portfolio platform.</p>
       </div>
 
-      {/* ── Admin / VC Stats ─────────────────────────────────────────────── */}
       {!isTeacher && !isHod && adminStats && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           {[
@@ -197,10 +207,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ── HOD Stats & Leaderboard ───────────────────────────────────────── */}
       {isHod && hodStats && (
         <>
-          {/* Aggregate stats */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {[
               { label: 'Faculty in Dept', value: hodStats.totalFaculty, icon: <Users size={20} />, color: '#1D4ED8' },
@@ -219,7 +227,6 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Publication Leaderboard */}
           {hodStats.leaderboard.length > 0 && (
             <div className="card" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -258,7 +265,6 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ── Teacher personal stats ───────────────────────────────────────── */}
       {isTeacher && teacherStats && (
         <>
           {teacherStats.headline && (
@@ -269,7 +275,6 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Primary stat cards */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1rem' }}>
             {[
               { label: 'Publications', value: teacherStats.publications, icon: <BookMarked size={20} />, color: '#4F46E5' },
@@ -289,7 +294,11 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          {/* Derived / insight cards */}
+          {/* BAR CHART INCLUSION */}
+          <div style={{ marginBottom: '1.5rem' }}>
+            <Barchart data={chartData} />
+          </div>
+
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {teacherStats.mostPublishedYear && (
               <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
@@ -331,7 +340,6 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* ── Module tiles ─────────────────────────────────────────────────── */}
       <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Quick Access</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '1rem' }}>
         {modules.map((m) => (
