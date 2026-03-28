@@ -44,6 +44,10 @@ const visibilitySchema = new mongoose.Schema({
   media: { type: Boolean, default: false },
   interests: { type: Boolean, default: true },
   photo: { type: Boolean, default: true },
+  phoneNumber: { type: Boolean, default: false },
+  address: { type: Boolean, default: false },
+  dob: { type: Boolean, default: false },
+  gender: { type: Boolean, default: false },
 }, { _id: false });
 
 const profileSchema = new mongoose.Schema(
@@ -57,6 +61,10 @@ const profileSchema = new mongoose.Schema(
     bio: { type: String, default: '' },
     headline: { type: String, default: '' },
     photo: { type: String, default: '' },
+    dob: { type: String, default: '' },
+    gender: { type: String, default: '' },
+    phoneNumber: { type: String, default: '' },
+    address: { type: String, default: '' },
     subjects: [String],
     qualifications: [qualificationSchema],
     publications: [publicationSchema],

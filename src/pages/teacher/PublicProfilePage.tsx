@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../lib/axios';
-import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User, Lightbulb } from 'lucide-react';
+import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User, Lightbulb, Calendar, Phone, MapPin, User2 } from 'lucide-react';
 
 type PublicProfile = {
   user: { name: string; email: string; role: string; department?: string };
@@ -15,6 +15,10 @@ type PublicProfile = {
   customDetails?: { sectionTitle: string; content: string }[];
   media?: { attachments: { name: string; url: string; sizeKB: number }[]; videoEmbeds: string[] };
   photo?: string;
+  dob?: string;
+  gender?: string;
+  phoneNumber?: string;
+  address?: string;
 };
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
@@ -93,6 +97,42 @@ export default function PublicProfilePage() {
       {/* Content */}
       <div style={{ maxWidth: 760, margin: '-2rem auto 0', position: 'relative' }}>
         <div className="card" style={{ padding: '2rem' }}>
+
+          {/* Personal Info */}
+          {(profile.dob || profile.gender || profile.phoneNumber || profile.address) && (
+            <Section title="Personal Information" icon={<User2 size={17} />}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.5rem' }}>
+                {profile.dob && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <Calendar size={14} color="var(--color-text-muted)" />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Born:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{new Date(profile.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
+                )}
+                {profile.gender && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <User size={14} color="var(--color-text-muted)" />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Gender:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{profile.gender}</span>
+                  </div>
+                )}
+                {profile.phoneNumber && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <Phone size={14} color="var(--color-text-muted)" />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Phone:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{profile.phoneNumber}</span>
+                  </div>
+                )}
+                {profile.address && (
+                  <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem', fontSize: '0.875rem', gridColumn: 'span 2' }}>
+                    <MapPin size={14} color="var(--color-text-muted)" style={{ marginTop: '0.2rem' }} />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Address:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500, whiteSpace: 'pre-wrap' }}>{profile.address}</span>
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
 
           {/* Bio */}
           {profile.bio && (

@@ -49,7 +49,10 @@ const getMyProfile = async (req, res) => {
 
 /** PUT /api/profile/me */
 const updateMyProfile = async (req, res) => {
-  const { name, bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media, interests } = req.body;
+  const {
+    name, bio, headline, photo, subjects, qualifications, publications,
+    projects, customDetails, media, interests, dob, gender, phoneNumber, address
+  } = req.body;
   try {
     // Update User document if name is provided
     if (name || photo) {
@@ -58,7 +61,12 @@ const updateMyProfile = async (req, res) => {
     // Update Profile document
     let profile = await Profile.findOneAndUpdate(
       { user: req.user.id },
-      { $set: { bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media, interests } },
+      {
+        $set: {
+          bio, headline, photo, subjects, qualifications, publications,
+          projects, customDetails, media, interests, dob, gender, phoneNumber, address
+        }
+      },
       { new: true, upsert: true, runValidators: true }
     );
     // Populate with fresh user data to ensure name is latest
@@ -73,7 +81,10 @@ const updateMyProfile = async (req, res) => {
 
 /** PATCH /api/profile/me/visibility */
 const updateVisibility = async (req, res) => {
-  const allowed = ['bio', 'qualifications', 'publications', 'projects', 'subjects', 'customDetails', 'media', 'interests', 'photo'];
+  const allowed = [
+    'bio', 'qualifications', 'publications', 'projects', 'subjects',
+    'customDetails', 'media', 'interests', 'photo', 'dob', 'gender', 'phoneNumber', 'address'
+  ];
   const update = {};
   allowed.forEach((key) => {
     if (typeof req.body[key] === 'boolean') update[`visibility.${key}`] = req.body[key];
@@ -122,32 +133,22 @@ const uploadPhoto = [
   async (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
     const fileUrl = `/uploads/${req.file.filename}`;
-    const filePath = req.file.path;
     try {
-      // Read file and convert to Base64
-      const fileData = fs.readFileSync(filePath);
-      const base64Image = `data:${req.file.mimetype};base64,${fileData.toString('base64')}`;
-
-      await User.findByIdAndUpdate(req.user.id, { photo: base64Image });
+      await User.findByIdAndUpdate(req.user.id, { photo: fileUrl });
       const profile = await Profile.findOneAndUpdate(
         { user: req.user.id },
-        { $set: { photo: base64Image } },
+        { $set: { photo: fileUrl } },
         { new: true, upsert: true }
       );
 
-      // Optionally delete the temporary file after conversion
-      fs.unlinkSync(filePath);
-
       return res.status(200).json({
-        message: 'Photo uploaded and stored in database successfully.',
-        photoUrl: base64Image,
+        message: 'Photo uploaded and URL stored in database successfully.',
+        photoUrl: fileUrl,
         profile,
       });
     } catch (err) {
       console.error('[profileController.uploadPhoto]', err);
-      // Clean up file on error
-      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-      return res.status(500).json({ message: 'Server error during photo processing.' });
+      return res.status(500).json({ message: 'Server error during photo upload.' });
     }
   },
 ];
@@ -187,6 +188,10 @@ const getPublicProfile = async (req, res) => {
       customDetails: vis.customDetails !== false ? profile.customDetails : undefined,
       media: vis.media === true ? profile.media : undefined,
       photo: vis.photo !== false ? profile.photo : undefined,
+      dob: vis.dob === true ? profile.dob : undefined,
+      gender: vis.gender === true ? profile.gender : undefined,
+      phoneNumber: vis.phoneNumber === true ? profile.phoneNumber : undefined,
+      address: vis.address === true ? profile.address : undefined,
       visibility: profile.visibility,
     };
     return res.status(200).json(out);

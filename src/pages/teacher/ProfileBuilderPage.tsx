@@ -2,6 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
   Share2, Copy, Check, Eye, EyeOff, ExternalLink, User,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
@@ -16,12 +17,16 @@ type Profile = {
   media: { attachments: Attachment[]; videoEmbeds: string[] };
   visibility: Visibility;
   photo?: string;
+  dob: string;
+  gender: string;
+  phoneNumber: string;
+  address: string;
 };
 
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
   projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
-  photo: boolean;
+  photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
 type Qualification = { degree: string; institution: string; year: string; grade: string };
@@ -34,11 +39,12 @@ const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
   qualifications: [], publications: [], projects: [],
   customDetails: [], interests: [], photo: '',
+  dob: '', gender: '', phoneNumber: '', address: '',
   media: { attachments: [], videoEmbeds: [] },
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
-    photo: true,
+    photo: true, dob: false, gender: false, phoneNumber: false, address: false,
   },
 };
 
@@ -51,7 +57,6 @@ const VISIBILITY_SECTIONS = [
   { key: 'projects', label: 'Research Projects' },
   { key: 'customDetails', label: 'Custom Sections' },
   { key: 'media', label: 'Attachments & Media' },
-  { key: 'photo', label: 'Profile Photo' },
 ] as const;
 
 
@@ -226,6 +231,17 @@ function VisibilityPanel({
   onToggle: (key: keyof Visibility) => void;
   saving: boolean;
 }) {
+  const [personalOpen, setPersonalOpen] = useState(false);
+
+  const personalKeys = ['photo', 'phoneNumber', 'address', 'dob', 'gender'] as const;
+  const personalLabels: Record<string, string> = {
+    photo: 'Profile Photo',
+    phoneNumber: 'Phone Number',
+    address: 'Address',
+    dob: 'Date of Birth',
+    gender: 'Gender',
+  };
+
   return (
     <div className="card" style={{ padding: '1.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -254,6 +270,35 @@ function VisibilityPanel({
             </label>
           );
         })}
+
+        {/* Personal Info Dropdown */}
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+          <button
+            onClick={() => setPersonalOpen(!personalOpen)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', background: 'var(--color-bg)', border: 'none', cursor: 'pointer' }}
+          >
+            <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>Personal Info</span>
+            {personalOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+          {personalOpen && (
+            <div style={{ padding: '0.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)' }}>
+              {personalKeys.map((key) => {
+                const isOn = visibility[key];
+                return (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.375rem 0.5rem', borderRadius: 'var(--radius-sm)', transition: 'all 0.15s' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text)' }}>{personalLabels[key]}</span>
+                    <input
+                      type="checkbox"
+                      checked={isOn}
+                      onChange={() => onToggle(key)}
+                      style={{ width: 14, height: 14 }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -279,6 +324,7 @@ export default function ProfileBuilderPage() {
         media: p.media || { attachments: [], videoEmbeds: [] },
         visibility: p.visibility || EMPTY_PROFILE.visibility,
         photo: p.photo || '',
+        dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
       });
     }).catch(() => { });
   }, []);
@@ -567,6 +613,30 @@ export default function ProfileBuilderPage() {
                 <div className="form-group">
                   <label className="form-label">Subjects Taught (comma-separated)</label>
                   <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Date of Birth</label>
+                    <input type="date" className="form-input" value={profile.dob} onChange={(e) => set('dob', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Gender</label>
+                    <select className="form-input" value={profile.gender} onChange={(e) => set('gender', e.target.value)}>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phone Number</label>
+                  <input className="form-input" value={profile.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} placeholder="e.g. +1 234 567 890" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Office / Residential Address</label>
+                  <textarea className="form-textarea" value={profile.address} onChange={(e) => set('address', e.target.value)} placeholder="Enter full address…" style={{ minHeight: 80 }} />
                 </div>
                 <div>
                   <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
