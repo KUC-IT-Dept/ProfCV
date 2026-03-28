@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../lib/axios';
-import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User } from 'lucide-react';
+import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User, Lightbulb } from 'lucide-react';
 
 type PublicProfile = {
   user: { name: string; email: string; role: string; department?: string };
   headline?: string;
   bio?: string;
   subjects?: string[];
+  interests?: string[];
   qualifications?: { degree: string; institution: string; year: string; grade: string }[];
   publications?: { title: string; journal: string; year: string; doi: string; url: string }[];
   projects?: { title: string; description: string; year: string; url: string }[];
@@ -102,6 +103,19 @@ export default function PublicProfilePage() {
                 {profile.subjects.map((s, i) => (
                   <span key={i} style={{ padding: '0.25rem 0.75rem', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 99, fontSize: '0.8125rem', fontWeight: 500 }}>
                     {s}
+                  </span>
+                ))}
+              </div>
+            </Section>
+          )}
+
+          {/* Research Interests */}
+          {profile.interests && profile.interests.length > 0 && (
+            <Section title="Research Interests" icon={<Lightbulb size={17} />}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                {profile.interests.map((interest, i) => (
+                  <span key={i} style={{ padding: '0.25rem 0.75rem', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: 99, fontSize: '0.8125rem', fontWeight: 500 }}>
+                    {interest}
                   </span>
                 ))}
               </div>

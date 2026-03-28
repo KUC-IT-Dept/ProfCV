@@ -34,9 +34,10 @@ const upload = multer({
 /** GET /api/profile/me */
 const getMyProfile = async (req, res) => {
   try {
-    let profile = await Profile.findOne({ user: req.user.id });
+    let profile = await Profile.findOne({ user: req.user.id }).populate('user', 'name email role department');
     if (!profile) {
       profile = await Profile.create({ user: req.user.id });
+      profile = await profile.populate('user', 'name email role department');
     }
     return res.status(200).json(profile);
   } catch (err) {
@@ -47,13 +48,20 @@ const getMyProfile = async (req, res) => {
 
 /** PUT /api/profile/me */
 const updateMyProfile = async (req, res) => {
-  const { bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media } = req.body;
+  const { name, bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media, interests } = req.body;
   try {
-    const profile = await Profile.findOneAndUpdate(
+    // Update User document if name is provided
+    if (name) {
+      await User.findByIdAndUpdate(req.user.id, { name }, { runValidators: true, new: true });
+    }
+    // Update Profile document
+    let profile = await Profile.findOneAndUpdate(
       { user: req.user.id },
-      { $set: { bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media } },
+      { $set: { bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media, interests } },
       { new: true, upsert: true, runValidators: true }
     );
+    // Populate with fresh user data to ensure name is latest
+    profile = await profile.populate('user', 'name email role department');
     return res.status(200).json(profile);
   } catch (err) {
     console.error('[profileController.updateMyProfile]', err);
@@ -64,7 +72,7 @@ const updateMyProfile = async (req, res) => {
 
 /** PATCH /api/profile/me/visibility */
 const updateVisibility = async (req, res) => {
-  const allowed = ['bio', 'qualifications', 'publications', 'projects', 'subjects', 'customDetails', 'media'];
+  const allowed = ['bio', 'qualifications', 'publications', 'projects', 'subjects', 'customDetails', 'media', 'interests'];
   const update = {};
   allowed.forEach((key) => {
     if (typeof req.body[key] === 'boolean') update[`visibility.${key}`] = req.body[key];
@@ -135,6 +143,7 @@ const getPublicProfile = async (req, res) => {
       headline: profile.headline,
       bio: vis.bio !== false ? profile.bio : undefined,
       subjects: vis.subjects !== false ? profile.subjects : undefined,
+      interests: vis.interests !== false ? profile.interests : undefined,
       qualifications: vis.qualifications !== false ? profile.qualifications : undefined,
       publications: vis.publications !== false ? profile.publications : undefined,
       projects: vis.projects !== false ? profile.projects : undefined,

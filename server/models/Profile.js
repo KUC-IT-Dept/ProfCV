@@ -42,6 +42,7 @@ const visibilitySchema = new mongoose.Schema({
   subjects:       { type: Boolean, default: true },
   customDetails:  { type: Boolean, default: true },
   media:          { type: Boolean, default: false },
+  interests:      { type: Boolean, default: true },
 }, { _id: false });
 
 const profileSchema = new mongoose.Schema(
@@ -74,6 +75,7 @@ const profileSchema = new mongoose.Schema(
       },
       videoEmbeds: [String],
     },
+    interests: [String],
     visibility: { type: visibilitySchema, default: () => ({}) },
   },
   { timestamps: true }

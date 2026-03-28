@@ -61,10 +61,10 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
 
   return (
     <>
-      <nav 
-        className={`sidebar ${isOpen ? 'open' : 'closed'} ${isMobile ? 'mobile' : 'desktop'}`} 
-        aria-label="Main navigation"
-      >
+      <nav className="sidebar" aria-label="Main navigation">
+ 
+
+ 
         {/* Logo */}
         <div className="sidebar-logo">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', overflow: 'hidden' }}>
@@ -99,23 +99,23 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
         {/* User info + logout */}
         <div className="logout-section">
           <div className="hidden-on-collapse" style={{ flex: 1, overflow: 'hidden' }}>
-            <div style={{ 
-              fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)', 
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+            <div style={{
+              fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-text)',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
             }} title={user?.name}>
               {user?.name}
             </div>
-            <div style={{ 
-              fontSize: '0.75rem', color: 'var(--color-text-muted)', 
-              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' 
+            <div style={{
+              fontSize: '0.75rem', color: 'var(--color-text-muted)',
+              whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
             }}>
               {user ? ROLE_LABELS[user.role] : ''}
               {user?.department ? ` · ${user.department}` : ''}
             </div>
           </div>
-          <button 
-            className="logout-btn" 
-            onClick={() => setShowLogoutModal(true)} 
+          <button
+            className="logout-btn"
+            onClick={() => setShowLogoutModal(true)}
             aria-label="Sign Out"
             title="Sign Out"
           >
@@ -138,13 +138,13 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
             <p>Are you sure you want to sign out?</p>
 
             <div className="modal-actions">
-              <button 
+              <button
                 className="modal-btn modal-cancel-btn"
                 onClick={() => setShowLogoutModal(false)}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className="modal-btn modal-logout-btn"
                 onClick={handleConfirmLogout}
               >

@@ -22,6 +22,7 @@ interface AuthContextValue {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  updateUser: (updates: Partial<AuthUser>) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -65,8 +66,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  const updateUser = useCallback((updates: Partial<AuthUser>) => {
+    setUser((prevUser) => {
+      if (!prevUser) return prevUser;
+      const updatedUser = { ...prevUser, ...updates };
+      localStorage.setItem('profcv_user', JSON.stringify(updatedUser));
+      return updatedUser;
+    });
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
