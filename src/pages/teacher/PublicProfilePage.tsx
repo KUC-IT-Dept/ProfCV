@@ -14,6 +14,7 @@ type PublicProfile = {
   projects?: { title: string; description: string; year: string; url: string }[];
   customDetails?: { sectionTitle: string; content: string }[];
   media?: { attachments: { name: string; url: string; sizeKB: number }[]; videoEmbeds: string[] };
+  photo?: string;
 };
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
@@ -69,8 +70,12 @@ export default function PublicProfilePage() {
       {/* Header band */}
       <div style={{ background: 'linear-gradient(135deg, #8a2be2 0%, #ffa500 100%)', padding: '3rem 1rem 4rem', marginBottom: '0', marginLeft: -16, marginRight: -16 }}>
         <div style={{ maxWidth: 760, margin: '0 auto', color: '#fff' }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-            <User size={36} color="#fff" />
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', overflow: 'hidden' }}>
+            {profile.photo ? (
+              <img src={profile.photo} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User size={36} color="#fff" />
+            )}
           </div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 800, marginBottom: '0.25rem', color: '#fff' }}>{u.name}</h1>
           {profile.headline && <p style={{ fontSize: '1.0625rem', opacity: 0.9, marginBottom: '0.375rem', color: '#fff' }}>{profile.headline}</p>}

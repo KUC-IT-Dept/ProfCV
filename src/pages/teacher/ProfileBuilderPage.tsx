@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
-  Share2, Copy, Check, Eye, EyeOff, ExternalLink,
+  Share2, Copy, Check, Eye, EyeOff, ExternalLink, User,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,11 +15,13 @@ type Profile = {
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
   visibility: Visibility;
+  photo?: string;
 };
 
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
   projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
+  photo: boolean;
 };
 
 type Qualification = { degree: string; institution: string; year: string; grade: string };
@@ -31,11 +33,12 @@ type Attachment = { name: string; url: string; fileType: string; sizeKB: number 
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
   qualifications: [], publications: [], projects: [],
-  customDetails: [], interests: [],
+  customDetails: [], interests: [], photo: '',
   media: { attachments: [], videoEmbeds: [] },
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
+    photo: true,
   },
 };
 
@@ -48,6 +51,7 @@ const VISIBILITY_SECTIONS = [
   { key: 'projects', label: 'Research Projects' },
   { key: 'customDetails', label: 'Custom Sections' },
   { key: 'media', label: 'Attachments & Media' },
+  { key: 'photo', label: 'Profile Photo' },
 ] as const;
 
 
@@ -274,17 +278,18 @@ export default function ProfileBuilderPage() {
         projects: p.projects || [], customDetails: p.customDetails || [], interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
         visibility: p.visibility || EMPTY_PROFILE.visibility,
+        photo: p.photo || '',
       });
-    }).catch(() => {});
+    }).catch(() => { });
   }, []);
 
   const save = useCallback(async () => {
     setSaveStatus('saving');
     try {
       await api.put('/profile/me', profile);
-      // Update AuthContext if name has changed
-      if (profile.name && profile.name !== user?.name) {
-        updateUser({ name: profile.name });
+      // Update AuthContext if name or photo has changed
+      if ((profile.name && profile.name !== user?.name) || (profile.photo && profile.photo !== user?.photo)) {
+        updateUser({ name: profile.name, photo: profile.photo });
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
@@ -350,6 +355,28 @@ export default function ProfileBuilderPage() {
       set('media', { ...profile.media, attachments: [...profile.media.attachments, att] });
     } catch (err: any) {
       setUploadError(err?.response?.data?.message ?? 'Upload failed.');
+    }
+    e.target.value = '';
+  };
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError(`"${file.name}" exceeds the 2 MB limit. Please upload a smaller image.`);
+      e.target.value = '';
+      return;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await api.post('/profile/me/photo', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const photoUrl = res.data.photoUrl;
+      set('photo', photoUrl);
+      updateUser({ photo: photoUrl });
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.message ?? 'Photo upload failed.');
     }
     e.target.value = '';
   };
@@ -504,6 +531,27 @@ export default function ProfileBuilderPage() {
           {activeTab === 'basic' && (
             <div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Profile Photo</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '0.5rem' }}>
+                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {profile.photo ? (
+                        <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <User size={32} color="var(--color-text-light)" />
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="photo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '0.375rem', display: 'inline-flex' }}>
+                        <Upload size={14} /> {profile.photo ? 'Change Photo' : 'Upload Photo'}
+                      </label>
+                      <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+                      <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                        Accepted: JPG, PNG, GIF. Max 2MB.
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <div className="form-group">
                   <label className="form-label">Full Name</label>
                   <input className="form-input" value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Dr. John Smith" />

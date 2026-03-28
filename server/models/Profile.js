@@ -35,14 +35,15 @@ const attachmentSchema = new mongoose.Schema({
 });
 
 const visibilitySchema = new mongoose.Schema({
-  bio:            { type: Boolean, default: true },
+  bio: { type: Boolean, default: true },
   qualifications: { type: Boolean, default: true },
-  publications:   { type: Boolean, default: true },
-  projects:       { type: Boolean, default: true },
-  subjects:       { type: Boolean, default: true },
-  customDetails:  { type: Boolean, default: true },
-  media:          { type: Boolean, default: false },
-  interests:      { type: Boolean, default: true },
+  publications: { type: Boolean, default: true },
+  projects: { type: Boolean, default: true },
+  subjects: { type: Boolean, default: true },
+  customDetails: { type: Boolean, default: true },
+  media: { type: Boolean, default: false },
+  interests: { type: Boolean, default: true },
+  photo: { type: Boolean, default: true },
 }, { _id: false });
 
 const profileSchema = new mongoose.Schema(
