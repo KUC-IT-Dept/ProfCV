@@ -80,6 +80,10 @@ export default function Sidebar() {
           display: 'flex',
           flexDirection: 'column',
           gap: '0.625rem',
+          position: 'sticky',
+          bottom: 0,
+          background: 'var(--color-surface)',
+          zIndex: 10,
         }}
       >
         <div>

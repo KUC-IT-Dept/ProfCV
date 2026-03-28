@@ -1,24 +1,25 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  ChevronDown, ChevronUp, Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
+  Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
   Share2, Copy, Check, Eye, EyeOff, ExternalLink,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 
 type Profile = {
-  bio: string; headline: string; subjects: string[];
+  name: string; bio: string; headline: string; subjects: string[];
   qualifications: Qualification[];
   publications: Publication[];
   projects: Project[];
   customDetails: CustomDetail[];
+  interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
   visibility: Visibility;
 };
 
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
-  projects: boolean; subjects: boolean; customDetails: boolean; media: boolean;
+  projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
 };
 
 type Qualification = { degree: string; institution: string; year: string; grade: string };
@@ -28,19 +29,20 @@ type CustomDetail = { sectionTitle: string; content: string };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
 
 const EMPTY_PROFILE: Profile = {
-  bio: '', headline: '', subjects: [],
+  name: '', bio: '', headline: '', subjects: [],
   qualifications: [], publications: [], projects: [],
-  customDetails: [],
+  customDetails: [], interests: [],
   media: { attachments: [], videoEmbeds: [] },
   visibility: {
     bio: true, qualifications: true, publications: true,
-    projects: true, subjects: true, customDetails: true, media: false,
+    projects: true, subjects: true, customDetails: true, media: false, interests: true,
   },
 };
 
 const VISIBILITY_SECTIONS = [
   { key: 'bio', label: 'Biography & Headline' },
   { key: 'subjects', label: 'Subjects Taught' },
+  { key: 'interests', label: 'Interests' },
   { key: 'qualifications', label: 'Qualifications' },
   { key: 'publications', label: 'Publications' },
   { key: 'projects', label: 'Research Projects' },
@@ -48,15 +50,107 @@ const VISIBILITY_SECTIONS = [
   { key: 'media', label: 'Attachments & Media' },
 ] as const;
 
-function AccordionSection({ title, children }: { title: string; children: React.ReactNode }) {
-  const [open, setOpen] = useState(true);
+
+// ── Interests Tab Component ────────────────────────────────────────────────────
+const DEFAULT_INTERESTS = ['AI', 'ML', 'IoT', 'MERN', 'HCI', 'Embedded Systems', 'Strategic Logic', 'Inclusive Design'];
+
+function InterestsTab({ interests, onAddInterest, onRemoveInterest }: { interests: string[]; onAddInterest: (interest: string) => void; onRemoveInterest: (index: number) => void }) {
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [customValue, setCustomValue] = useState('');
+
+  const filteredInterests = DEFAULT_INTERESTS.filter(
+    (interest) =>
+      interest.toLowerCase().includes(searchTerm.toLowerCase()) &&
+      !interests.includes(interest)
+  );
+
+  const handleAddDefault = (interest: string) => {
+    onAddInterest(interest);
+    setSearchTerm('');
+    setShowDropdown(false);
+  };
+
+  const handleAddCustom = () => {
+    if (customValue.trim() && !interests.includes(customValue.trim())) {
+      onAddInterest(customValue.trim());
+      setCustomValue('');
+      setShowDropdown(false);
+    }
+  };
+
   return (
-    <div className="accordion-item">
-      <button className="accordion-trigger" onClick={() => setOpen(!open)} type="button">
-        {title}
-        {open ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-      </button>
-      {open && <div className="accordion-content">{children}</div>}
+    <div>
+      <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+          <input
+            type="text"
+            placeholder="Search interests..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onFocus={() => setShowDropdown(true)}
+            className="form-input"
+            style={{ flex: 1 }}
+          />
+          <button className="btn btn-primary" onClick={() => setShowDropdown(!showDropdown)} type="button" style={{ flexShrink: 0 }}>
+            <Plus size={14} /> Add
+          </button>
+        </div>
+
+        {showDropdown && (
+          <div style={{ position: 'absolute', top: '3.2rem', left: 0, right: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', zIndex: 10, maxHeight: '300px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+            <div style={{ padding: '0.75rem' }}>
+              {filteredInterests.map((interest) => (
+                <button
+                  key={interest}
+                  onClick={() => handleAddDefault(interest)}
+                  type="button"
+                  style={{ display: 'block', width: '100%', padding: '0.625rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: '0.875rem', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)', transition: 'background-color 0.15s' }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-bg)')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = 'transparent')}
+                >
+                  {interest}
+                </button>
+              ))}
+              <div style={{ borderTop: '1px solid var(--color-border)', marginTop: '0.5rem', paddingTop: '0.75rem' }}>
+                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+                  Custom Interest
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                  <input
+                    type="text"
+                    placeholder="Enter custom interest..."
+                    value={customValue}
+                    onChange={(e) => setCustomValue(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustom()}
+                    className="form-input"
+                    style={{ flex: 1, fontSize: '0.8125rem', padding: '0.5rem 0.625rem' }}
+                  />
+                  <button className="btn btn-primary" onClick={handleAddCustom} type="button" style={{ flexShrink: 0, padding: '0.5rem 0.75rem' }}>
+                    <Plus size={12} />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {interests.length > 0 && (
+        <div>
+          <label className="form-label">Added Interests</label>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            {interests.map((interest, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.8125rem', fontWeight: 500 }}>
+                {interest}
+                <button onClick={() => onRemoveInterest(i)} type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -163,20 +257,21 @@ function VisibilityPanel({
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function ProfileBuilderPage() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [uploadError, setUploadError] = useState('');
   const [showShare, setShowShare] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState<'basic' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
 
   useEffect(() => {
     api.get('/profile/me').then((r) => {
       const p = r.data;
       setProfile({
-        bio: p.bio || '', headline: p.headline || '', subjects: p.subjects || [],
+        name: p.user?.name || '', bio: p.bio || '', headline: p.headline || '', subjects: p.subjects || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
-        projects: p.projects || [], customDetails: p.customDetails || [],
+        projects: p.projects || [], customDetails: p.customDetails || [], interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
         visibility: p.visibility || EMPTY_PROFILE.visibility,
       });
@@ -187,10 +282,14 @@ export default function ProfileBuilderPage() {
     setSaveStatus('saving');
     try {
       await api.put('/profile/me', profile);
+      // Update AuthContext if name has changed
+      if (profile.name && profile.name !== user?.name) {
+        updateUser({ name: profile.name });
+      }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
     } catch { setSaveStatus('error'); }
-  }, [profile]);
+  }, [profile, user, updateUser]);
 
   const set = (key: keyof Profile, val: any) => setProfile((p) => ({ ...p, [key]: val }));
 
@@ -292,90 +391,215 @@ export default function ProfileBuilderPage() {
       )}
 
       {/* Two-column layout: content + visibility sidebar */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 260px', gap: '1.5rem', alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem' }}>
         {/* Main builder content */}
         <div>
-          <AccordionSection title="Basic Information">
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <div className="form-group">
-                <label className="form-label">Professional Headline</label>
-                <input className="form-input" value={profile.headline} onChange={(e) => set('headline', e.target.value)} placeholder="e.g. Associate Professor of Computer Science" />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Biography</label>
-                <textarea className="form-textarea" value={profile.bio} onChange={(e) => set('bio', e.target.value)} placeholder="Brief professional biography…" style={{ minHeight: 120 }} />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Subjects Taught (comma-separated)</label>
-                <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
+          {/* Horizontal Tabs */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', overflowX: 'auto', paddingBottom: '0' }}>
+            <button
+              onClick={() => setActiveTab('basic')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'basic' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Basic Information
+            </button>
+            <button
+              onClick={() => setActiveTab('qualifications')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'qualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'qualifications' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Qualifications ({profile.qualifications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('publications')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'publications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'publications' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Publications ({profile.publications.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('projects')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Research Projects ({profile.projects.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('custom')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'custom' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'custom' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Custom Sections ({profile.customDetails.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('media')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Media & Attachments
+            </button>
+          </div>
+
+          {/* Tab Content */}
+          {activeTab === 'basic' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group">
+                  <label className="form-label">Full Name</label>
+                  <input className="form-input" value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Dr. John Smith" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Professional Headline</label>
+                  <input className="form-input" value={profile.headline} onChange={(e) => set('headline', e.target.value)} placeholder="e.g. Associate Professor of Computer Science" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Biography</label>
+                  <textarea className="form-textarea" value={profile.bio} onChange={(e) => set('bio', e.target.value)} placeholder="Brief professional biography…" style={{ minHeight: 120 }} />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Subjects Taught (comma-separated)</label>
+                  <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
+                </div>
+                <div>
+                  <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
+                  <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
+                </div>
               </div>
             </div>
-          </AccordionSection>
+          )}
 
-          <AccordionSection title={`Qualifications (${profile.qualifications.length})`}>
-            {profile.qualifications.map((q, i) => (
-              <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                  <div className="form-group"><label className="form-label">Degree</label><input className="form-input" value={q.degree} onChange={(e) => updateQual(i, 'degree', e.target.value)} placeholder="Ph.D. Computer Science" /></div>
-                  <div className="form-group"><label className="form-label">Institution</label><input className="form-input" value={q.institution} onChange={(e) => updateQual(i, 'institution', e.target.value)} placeholder="MIT" /></div>
-                  <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={q.year} onChange={(e) => updateQual(i, 'year', e.target.value)} placeholder="2018" /></div>
-                  <div className="form-group"><label className="form-label">Grade / Result</label><input className="form-input" value={q.grade} onChange={(e) => updateQual(i, 'grade', e.target.value)} placeholder="Distinction" /></div>
-                </div>
-                <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeQual(i)} type="button"><Trash2 size={13} /> Remove</button>
-              </div>
-            ))}
-            <button className="btn btn-secondary" onClick={addQual} type="button"><Plus size={14} /> Add Qualification</button>
-          </AccordionSection>
-
-          <AccordionSection title={`Publications (${profile.publications.length})`}>
-            {profile.publications.map((p, i) => (
-              <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div className="form-group"><label className="form-label">Title</label><input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Paper title…" /></div>
+          {activeTab === 'qualifications' && (
+            <div>
+              {profile.qualifications.map((q, i) => (
+                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div className="form-group"><label className="form-label">Journal / Conference</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
-                    <div className="form-group"><label className="form-label">DOI</label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
-                    <div className="form-group"><label className="form-label">URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                    <div className="form-group"><label className="form-label">Degree</label><input className="form-input" value={q.degree} onChange={(e) => updateQual(i, 'degree', e.target.value)} placeholder="Ph.D. Computer Science" /></div>
+                    <div className="form-group"><label className="form-label">Institution</label><input className="form-input" value={q.institution} onChange={(e) => updateQual(i, 'institution', e.target.value)} placeholder="MIT" /></div>
+                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={q.year} onChange={(e) => updateQual(i, 'year', e.target.value)} placeholder="2018" /></div>
+                    <div className="form-group"><label className="form-label">Grade / Result</label><input className="form-input" value={q.grade} onChange={(e) => updateQual(i, 'grade', e.target.value)} placeholder="Distinction" /></div>
                   </div>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeQual(i)} type="button"><Trash2 size={13} /> Remove</button>
                 </div>
-                <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove</button>
-              </div>
-            ))}
-            <button className="btn btn-secondary" onClick={addPub} type="button"><Plus size={14} /> Add Publication</button>
-          </AccordionSection>
+              ))}
+              <button className="btn btn-secondary" onClick={addQual} type="button"><Plus size={14} /> Add Qualification</button>
+            </div>
+          )}
 
-          <AccordionSection title={`Research Projects (${profile.projects.length})`}>
-            {profile.projects.map((p, i) => (
-              <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div className="form-group"><label className="form-label">Project Title</label><input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Title…" /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2024" /></div>
+          {activeTab === 'publications' && (
+            <div>
+              {profile.publications.map((p, i) => (
+                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="form-group"><label className="form-label">Title</label><input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Paper title…" /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Journal / Conference</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
+                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
+                      <div className="form-group"><label className="form-label">DOI</label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
+                      <div className="form-group"><label className="form-label">URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                    </div>
                   </div>
-                  <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Project description…" /></div>
-                  <div className="form-group"><label className="form-label">Project URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://github.com/…" /></div>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove</button>
                 </div>
-                <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove</button>
-              </div>
-            ))}
-            <button className="btn btn-secondary" onClick={addProj} type="button"><Plus size={14} /> Add Project</button>
-          </AccordionSection>
+              ))}
+              <button className="btn btn-secondary" onClick={addPub} type="button"><Plus size={14} /> Add Publication</button>
+            </div>
+          )}
 
-          <AccordionSection title={`Custom Sections (${profile.customDetails.length})`}>
-            {profile.customDetails.map((c, i) => (
-              <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  <div className="form-group"><label className="form-label">Section Title</label><input className="form-input" value={c.sectionTitle} onChange={(e) => updateCustom(i, 'sectionTitle', e.target.value)} placeholder="e.g. Awards, Teaching Philosophy…" /></div>
-                  <div className="form-group"><label className="form-label">Content</label><textarea className="form-textarea" value={c.content} onChange={(e) => updateCustom(i, 'content', e.target.value)} placeholder="Content…" /></div>
+          {activeTab === 'projects' && (
+            <div>
+              {profile.projects.map((p, i) => (
+                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Project Title</label><input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Title…" /></div>
+                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2024" /></div>
+                    </div>
+                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Project description…" /></div>
+                    <div className="form-group"><label className="form-label">Project URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://github.com/…" /></div>
+                  </div>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove</button>
                 </div>
-                <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeCustom(i)} type="button"><Trash2 size={13} /> Remove</button>
-              </div>
-            ))}
-            <button className="btn btn-secondary" onClick={addCustom} type="button"><Plus size={14} /> Add Custom Section</button>
-          </AccordionSection>
+              ))}
+              <button className="btn btn-secondary" onClick={addProj} type="button"><Plus size={14} /> Add Project</button>
+            </div>
+          )}
 
-          <AccordionSection title="Media & Attachments">
+          {activeTab === 'custom' && (
+            <div>
+              {profile.customDetails.map((c, i) => (
+                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div className="form-group"><label className="form-label">Section Title</label><input className="form-input" value={c.sectionTitle} onChange={(e) => updateCustom(i, 'sectionTitle', e.target.value)} placeholder="e.g. Awards, Teaching Philosophy…" /></div>
+                    <div className="form-group"><label className="form-label">Content</label><textarea className="form-textarea" value={c.content} onChange={(e) => updateCustom(i, 'content', e.target.value)} placeholder="Content…" /></div>
+                  </div>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeCustom(i)} type="button"><Trash2 size={13} /> Remove</button>
+                </div>
+              ))}
+              <button className="btn btn-secondary" onClick={addCustom} type="button"><Plus size={14} /> Add Custom Section</button>
+            </div>
+          )}
+
+          {activeTab === 'media' && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
               <div>
                 <label className="form-label" style={{ marginBottom: '0.625rem' }}>Upload Files (PDF / Images — max 5 MB each)</label>
@@ -420,26 +644,16 @@ export default function ProfileBuilderPage() {
                 <button className="btn btn-secondary" onClick={addVideoEmbed} type="button"><Plus size={14} /> Add Video URL</button>
               </div>
             </div>
-          </AccordionSection>
+          )}
         </div>
 
-        {/* Sidebar: Visibility settings */}
-        <div style={{ position: 'sticky', top: '1.5rem' }}>
+        {/* Sidebar: Visibility Settings - Fixed Position */}
+        <div style={{ position: 'fixed', top: '100px', right: '0rem', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
           <VisibilityPanel
             visibility={profile.visibility}
             onToggle={toggleVisibility}
             saving={visSaving}
           />
-          <div style={{ marginTop: '0.75rem' }}>
-            <button
-              className="btn btn-secondary"
-              style={{ width: '100%', justifyContent: 'center' }}
-              onClick={() => setShowShare(true)}
-              id="share-sidebar-btn"
-            >
-              <Share2 size={14} /> Share My Profile Link
-            </button>
-          </div>
         </div>
       </div>
 
