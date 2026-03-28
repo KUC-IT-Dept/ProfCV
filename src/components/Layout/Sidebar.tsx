@@ -40,6 +40,7 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  const sidebarStateClass = `${isMobile ? 'mobile' : 'desktop'} ${isOpen ? 'open' : 'closed'}`;
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -61,7 +62,7 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
 
   return (
     <>
-      <nav className="sidebar" aria-label="Main navigation">
+      <nav className={`sidebar ${sidebarStateClass}`} aria-label="Main navigation">
  
 
  
