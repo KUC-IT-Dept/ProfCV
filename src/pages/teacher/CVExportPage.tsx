@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Printer, Eye } from 'lucide-react';
+import React, { useEffect, useState, useRef } from 'react';
+import { Printer } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 import styles from './CVExport.module.css';
+import { useReactToPrint } from 'react-to-print';
 
 type Profile = any;
 
@@ -124,6 +125,9 @@ export default function CVExportPage() {
   const [template, setTemplate] = useState('classic');
   const [showPreview, setShowPreview] = useState(true);
 
+  // Print reference for react-to-print
+  const printRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     api.get('/profile/me').then((r) => setProfile(r.data)).catch(() => { });
   }, []);
@@ -131,9 +135,11 @@ export default function CVExportPage() {
   const toggleSection = (key: string) =>
     setSelectedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const handlePrint = () => {
-    window.print();
-  };
+  // use react-to-print hook
+  const handlePrint = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: user?.name ? `${user.name}_CV_Export` : 'CV_Export',
+  });
 
   const getTemplateStyles = (): React.CSSProperties => {
     if (template === 'modern') return { fontFamily: "'Inter', system-ui, sans-serif", fontSize: 14 };
@@ -143,12 +149,12 @@ export default function CVExportPage() {
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header no-print">
         <h1>CV Export</h1>
         <p>Select sections and a template, then print or save as PDF.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: '1.5rem', alignItems: 'start' }}>
         {/* Controls Panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div className="card" style={{ padding: '1.25rem' }}>
@@ -183,45 +189,43 @@ export default function CVExportPage() {
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {/* <button className="btn btn-secondary" onClick={() => setShowPreview(showPreview)} id="preview-btn">
-              <Eye size={15} /> {showPreview ? 'Hide' : 'Show'} Preview
-            </button> */}
             <button className="btn btn-primary" onClick={handlePrint} id="print-cv-btn">
               <Printer size={15} /> Print / Save PDF
             </button>
           </div>
         </div>
 
-        {/* ── Always-in-DOM CV wrapper (hidden on screen, visible on print) ── */}
-        {profile && (
-          <>
-            {/* Screen preview (conditional) */}
-            {showPreview && (
-              <div className={styles.previewContainer}>
-                <div className={styles.previewHeader}>
-                  <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>CV Preview — {TEMPLATES.find(t => t.value === template)?.label}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>What you see is what will print</span>
-                </div>
-                <div style={{ padding: '2rem', ...getTemplateStyles() }}>
-                  <CVContent user={user} profile={profile} selectedSections={selectedSections} />
-                </div>
+        {/* Screen preview (conditional) */}
+        <div>
+          {profile && showPreview && (
+            <div className={styles.previewContainer}>
+              <div className={styles.previewHeader}>
+                <span style={{ fontWeight: 600, fontSize: '0.875rem' }}>CV Preview — {TEMPLATES.find(t => t.value === template)?.label}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>What you see is what will print</span>
               </div>
-            )}
-
-            {/* Hidden print target — always in DOM so window.print() captures it */}
-            <div id="cv-export-wrapper" style={{ display: 'none', ...getTemplateStyles() }}>
-              <CVContent user={user} profile={profile} selectedSections={selectedSections} />
+              <div style={{ padding: '2rem', ...getTemplateStyles() }}>
+                <CVContent user={user} profile={profile} selectedSections={selectedSections} />
+              </div>
             </div>
-          </>
-        )}
+          )}
 
-        {showPreview && !profile && (
-          <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
-            <div className="spinner" style={{ margin: '0 auto' }} />
-            <p style={{ marginTop: '1rem' }}>Loading profile data…</p>
-          </div>
-        )}
+          {showPreview && !profile && (
+            <div className="card" style={{ padding: '3rem', textAlign: 'center' }}>
+              <div className="spinner" style={{ margin: '0 auto' }} />
+              <p style={{ marginTop: '1rem' }}>Loading profile data…</p>
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* ── React-to-print target — Hidden via parent style so ref is clean ── */}
+      {profile && (
+        <div style={{ display: 'none' }}>
+          <div ref={printRef} id="cv-export-wrapper" style={{ padding: '2cm', background: '#fff', ...getTemplateStyles() }}>
+            <CVContent user={user} profile={profile} selectedSections={selectedSections} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

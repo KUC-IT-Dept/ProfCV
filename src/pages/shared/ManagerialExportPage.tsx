@@ -1,7 +1,8 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Download, FileSpreadsheet, Printer } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
+import { useReactToPrint } from 'react-to-print';
 
 type FacultyUser = { _id: string; name: string; email: string; department: string | null; role: string };
 
@@ -18,25 +19,6 @@ const COLUMNS = [
   { key: 'customDetails',label: 'Custom Sections'  },
 ];
 
-/** Print CSS injected once into the document head */
-const PRINT_CSS = `
-@media print {
-  body * { visibility: hidden; display: none; }
-  #dept-export-wrapper, #dept-export-wrapper * { visibility: visible !important; display: revert !important; }
-  #dept-export-wrapper {
-    position: fixed !important; inset: 0 !important;
-    width: 100% !important; height: auto !important;
-    background: #fff !important; z-index: 9999 !important;
-    padding: 1.5cm !important; overflow: visible !important;
-    font-family: Arial, sans-serif !important; font-size: 10pt !important; color: #000 !important;
-  }
-  #dept-export-wrapper table { width: 100%; border-collapse: collapse; }
-  #dept-export-wrapper th { background: #1D4ED8; color: #fff; padding: 6px 8px; text-align: left; font-size: 9pt; }
-  #dept-export-wrapper td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9pt; vertical-align: top; }
-  #dept-export-wrapper tr:nth-child(even) td { background: #f8fafc; }
-}
-`;
-
 export default function ManagerialExportPage() {
   const { user } = useAuth();
   const [faculty, setFaculty] = useState<FacultyUser[]>([]);
@@ -46,16 +28,10 @@ export default function ManagerialExportPage() {
   );
   const [isLoading, setIsLoading] = useState(true);
   const [exporting, setExporting] = useState<'csv' | 'excel' | null>(null);
-  const styleInjected = useRef(false);
+
+  const printRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Inject print CSS once
-    if (!styleInjected.current) {
-      const style = document.createElement('style');
-      style.textContent = PRINT_CSS;
-      document.head.appendChild(style);
-      styleInjected.current = true;
-    }
     api.get('/directory').then((r) => {
       setFaculty(r.data);
       setSelectedIds(new Set(r.data.map((u: FacultyUser) => u._id)));
@@ -92,9 +68,10 @@ export default function ManagerialExportPage() {
     setExporting(null);
   };
 
-  const handlePrintPdf = () => {
-    window.print();
-  };
+  const handlePrintPdf = useReactToPrint({
+    contentRef: printRef,
+    documentTitle: 'Faculty_Data_Export',
+  });
 
   // Selected faculty for print table
   const selectedFaculty = faculty.filter(f => selectedIds.has(f._id));
@@ -102,12 +79,12 @@ export default function ManagerialExportPage() {
 
   return (
     <div>
-      <div className="page-header">
+      <div className="page-header no-print">
         <h1>Data Export</h1>
         <p>Select faculty members and data columns, then export as CSV, Excel, or PDF.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="no-print" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem', alignItems: 'start' }}>
         {/* Faculty selector */}
         <div className="card" style={{ overflow: 'hidden' }}>
           <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -168,7 +145,7 @@ export default function ManagerialExportPage() {
             </button>
             <button
               className="btn btn-secondary"
-              onClick={handlePrintPdf}
+              onClick={() => handlePrintPdf()}
               disabled={selectedIds.size === 0}
               id="export-pdf-btn"
               style={{ color: '#DC2626', borderColor: '#FCA5A5' }}
@@ -183,41 +160,54 @@ export default function ManagerialExportPage() {
         </div>
       </div>
 
-      {/* ── Hidden print wrapper — always in DOM ──────────────────────────── */}
-      <div id="dept-export-wrapper" style={{ display: 'none' }}>
-        <div style={{ marginBottom: '1.5rem' }}>
-          <h1 style={{ fontSize: '18pt', color: '#0F172A', marginBottom: '4px' }}>
-            {user?.department ? `${user.department} — ` : ''}Faculty Data Report
-          </h1>
-          <p style={{ fontSize: '9pt', color: '#64748B' }}>
-            Generated: {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · {selectedFaculty.length} faculty member{selectedFaculty.length !== 1 ? 's' : ''}
+      {/* ── React-to-print target ──────────────────────────── */}
+      <div style={{ display: 'none' }}>
+        <div ref={printRef} id="dept-export-wrapper" style={{ padding: '2cm', background: '#fff' }}>
+          <style dangerouslySetInnerHTML={{ __html: `
+            #dept-export-wrapper {
+              font-family: Arial, sans-serif !important;
+              font-size: 10pt !important;
+              color: #000 !important;
+            }
+            #dept-export-wrapper table { width: 100%; border-collapse: collapse; }
+            #dept-export-wrapper th { background: #1D4ED8; color: #fff; padding: 6px 8px; text-align: left; font-size: 9pt; }
+            #dept-export-wrapper td { padding: 5px 8px; border-bottom: 1px solid #e5e7eb; font-size: 9pt; vertical-align: top; }
+            #dept-export-wrapper tr:nth-child(even) td { background: #f8fafc; }
+          ` }} />
+          <div style={{ marginBottom: '1.5rem' }}>
+            <h1 style={{ fontSize: '18pt', color: '#0F172A', marginBottom: '4px' }}>
+              {user?.department ? `${user.department} — ` : ''}Faculty Data Report
+            </h1>
+            <p style={{ fontSize: '9pt', color: '#64748B' }}>
+              Generated: {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })} · {selectedFaculty.length} faculty member{selectedFaculty.length !== 1 ? 's' : ''}
+            </p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                {activeCols.map(c => <th key={c.key}>{c.label}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {selectedFaculty.map((f) => (
+                <tr key={f._id}>
+                  {activeCols.map(c => {
+                    let val: string = '';
+                    if (c.key === 'name') val = f.name;
+                    else if (c.key === 'email') val = f.email;
+                    else if (c.key === 'department') val = f.department || '—';
+                    else if (c.key === 'role') val = f.role;
+                    else val = '(see CSV/Excel for profile data)';
+                    return <td key={c.key}>{val}</td>;
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p style={{ fontSize: '8pt', color: '#94A3B8', marginTop: '2rem', textAlign: 'center' }}>
+            Prof CV · Academic Portfolio Platform
           </p>
         </div>
-        <table>
-          <thead>
-            <tr>
-              {activeCols.map(c => <th key={c.key}>{c.label}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {selectedFaculty.map((f) => (
-              <tr key={f._id}>
-                {activeCols.map(c => {
-                  let val: string = '';
-                  if (c.key === 'name') val = f.name;
-                  else if (c.key === 'email') val = f.email;
-                  else if (c.key === 'department') val = f.department || '—';
-                  else if (c.key === 'role') val = f.role;
-                  else val = '(see CSV/Excel for profile data)';
-                  return <td key={c.key}>{val}</td>;
-                })}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <p style={{ fontSize: '8pt', color: '#94A3B8', marginTop: '2rem', textAlign: 'center' }}>
-          Prof CV · Academic Portfolio Platform
-        </p>
       </div>
     </div>
   );

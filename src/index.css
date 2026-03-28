@@ -353,3 +353,32 @@ p { color: var(--color-text-muted); }
   box-shadow: var(--shadow-card);
   border-left: 4px solid var(--color-primary);
 }
+
+/* ── Print Utilities ────────────────────────────────────────── */
+@media print {
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  body {
+    background-color: #fff !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .sidebar, .topbar {
+    display: none !important;
+  }
+  .app-layout, .main-content, .page-content {
+    display: block !important;
+    overflow: visible !important;
+    height: auto !important;
+    min-height: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
