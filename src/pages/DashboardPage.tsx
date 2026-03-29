@@ -293,11 +293,13 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-
+         
           {/* BAR CHART INCLUSION */}
           <div style={{ marginBottom: '1.5rem' }}>
             <Barchart data={chartData} />
           </div>
+         
+          
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
             {teacherStats.mostPublishedYear && (
@@ -309,6 +311,7 @@ export default function DashboardPage() {
                 </div>
               </div>
             )}
+            
             {teacherStats.mostActiveProjectYear && (
               <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
                 <div className="stat-card-icon" style={{ background: '#D1FAE514', color: '#059669', flexShrink: 0 }}><TrendingUp size={18} /></div>

@@ -10,7 +10,7 @@ const Barchart = ({ data }) => {
   const filteredData = data.slice(-viewRange);
 
   return (
-    <div className="card" style={{ padding: '1.5rem', background: '#fff', height: '100%', borderRadius: '16px', border: '1px solid #f0f0f0' }}>
+    <div className="card" style={{ padding: '1.5rem', background: '#fff', height: '100%', maxWidth: '740px', borderRadius: '16px', border: '1px solid #f0f0f0' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 600 }}>Publication Growth</h3>
         
@@ -46,18 +46,24 @@ const Barchart = ({ data }) => {
         </div>
       </div>
       
-      <div style={{ width: '100%', height: 300 }}>
+      <div style={{ width: '100%', height: 200, maxWidth: '740px' }}>
+      
+
+
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={filteredData} margin={{ left: -20 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#f0f0f0" />
             <XAxis dataKey="year" axisLine={false} tickLine={false} tick={{ fill: '#999', fontSize: 12 }} dy={10} />
             <YAxis axisLine={false} tickLine={false} tick={{ fill: '#999', fontSize: 12 }} allowDecimals={false} />
             <Tooltip cursor={{ fill: '#f8fafc' }} />
-            <Bar dataKey="publications" fill="#6b84ad" radius={[4, 4, 0, 0]} barSize={40} />
+            <Bar dataKey="publications" fill="#3471d1" radius={[4, 4, 0, 0]} barSize={40} />
           </BarChart>
         </ResponsiveContainer>
+  
+
       </div>
     </div>
+      
   );
 };
 
