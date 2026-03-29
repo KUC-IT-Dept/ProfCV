@@ -8,18 +8,24 @@ const qualificationSchema = new mongoose.Schema({
 });
 
 const publicationSchema = new mongoose.Schema({
-  title: String,
+  title: { type: String, required: true },
+  authors: String,
   journal: String,
-  year: String,
-  doi: String,
-  url: String,
+  organisation: String,
+  volume: String,
+  issue: String,
+  month: String,
+  year: { type: String, required: true },
+  pages: String,
+  doi: { type: String, required: true },
+  url: { type: String, required: true },
 });
 
 const projectSchema = new mongoose.Schema({
-  title: String,
+  title: { type: String, required: true },
   description: String,
-  year: String,
-  url: String,
+  year: { type: String, required: true },
+  url: { type: String, required: true },
 });
 
 const customDetailSchema = new mongoose.Schema({
@@ -35,14 +41,19 @@ const attachmentSchema = new mongoose.Schema({
 });
 
 const visibilitySchema = new mongoose.Schema({
-  bio:            { type: Boolean, default: true },
+  bio: { type: Boolean, default: true },
   qualifications: { type: Boolean, default: true },
-  publications:   { type: Boolean, default: true },
-  projects:       { type: Boolean, default: true },
-  subjects:       { type: Boolean, default: true },
-  customDetails:  { type: Boolean, default: true },
-  media:          { type: Boolean, default: false },
-  interests:      { type: Boolean, default: true },
+  publications: { type: Boolean, default: true },
+  projects: { type: Boolean, default: true },
+  subjects: { type: Boolean, default: true },
+  customDetails: { type: Boolean, default: true },
+  media: { type: Boolean, default: false },
+  interests: { type: Boolean, default: true },
+  photo: { type: Boolean, default: true },
+  phoneNumber: { type: Boolean, default: false },
+  address: { type: Boolean, default: false },
+  dob: { type: Boolean, default: false },
+  gender: { type: Boolean, default: false },
 }, { _id: false });
 
 const profileSchema = new mongoose.Schema(
@@ -56,6 +67,10 @@ const profileSchema = new mongoose.Schema(
     bio: { type: String, default: '' },
     headline: { type: String, default: '' },
     photo: { type: String, default: '' },
+    dob: { type: String, default: '' },
+    gender: { type: String, default: '' },
+    phoneNumber: { type: String, default: '' },
+    address: { type: String, default: '' },
     subjects: [String],
     qualifications: [qualificationSchema],
     publications: [publicationSchema],

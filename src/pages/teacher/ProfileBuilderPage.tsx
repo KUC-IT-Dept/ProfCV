@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
-  Share2, Copy, Check, Eye, EyeOff, ExternalLink,
+  Share2, Copy, Check, Eye, EyeOff, ExternalLink, User,
+  ChevronDown, ChevronUp,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,15 +16,21 @@ type Profile = {
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
   visibility: Visibility;
+  photo?: string;
+  dob: string;
+  gender: string;
+  phoneNumber: string;
+  address: string;
 };
 
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
   projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
+  photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
 type Qualification = { degree: string; institution: string; year: string; grade: string };
-type Publication = { title: string; journal: string; year: string; doi: string; url: string };
+type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
 type CustomDetail = { sectionTitle: string; content: string };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
@@ -31,11 +38,13 @@ type Attachment = { name: string; url: string; fileType: string; sizeKB: number 
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
   qualifications: [], publications: [], projects: [],
-  customDetails: [], interests: [],
+  customDetails: [], interests: [], photo: '',
+  dob: '', gender: '', phoneNumber: '', address: '',
   media: { attachments: [], videoEmbeds: [] },
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
+    photo: true, dob: false, gender: false, phoneNumber: false, address: false,
   },
 };
 
@@ -222,6 +231,17 @@ function VisibilityPanel({
   onToggle: (key: keyof Visibility) => void;
   saving: boolean;
 }) {
+  const [personalOpen, setPersonalOpen] = useState(false);
+
+  const personalKeys = ['photo', 'phoneNumber', 'address', 'dob', 'gender'] as const;
+  const personalLabels: Record<string, string> = {
+    photo: 'Profile Photo',
+    phoneNumber: 'Phone Number',
+    address: 'Address',
+    dob: 'Date of Birth',
+    gender: 'Gender',
+  };
+
   return (
     <div className="card" style={{ padding: '1.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
@@ -250,6 +270,35 @@ function VisibilityPanel({
             </label>
           );
         })}
+
+        {/* Personal Info Dropdown */}
+        <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
+          <button
+            onClick={() => setPersonalOpen(!personalOpen)}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', background: 'var(--color-bg)', border: 'none', cursor: 'pointer' }}
+          >
+            <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>Personal Info</span>
+            {personalOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+          </button>
+          {personalOpen && (
+            <div style={{ padding: '0.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)' }}>
+              {personalKeys.map((key) => {
+                const isOn = visibility[key];
+                return (
+                  <label key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.375rem 0.5rem', borderRadius: 'var(--radius-sm)', transition: 'all 0.15s' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text)' }}>{personalLabels[key]}</span>
+                    <input
+                      type="checkbox"
+                      checked={isOn}
+                      onChange={() => onToggle(key)}
+                      style={{ width: 14, height: 14 }}
+                    />
+                  </label>
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -259,8 +308,10 @@ function VisibilityPanel({
 export default function ProfileBuilderPage() {
   const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
+  const [savedProfile, setSavedProfile] = useState<Profile>(EMPTY_PROFILE);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [uploadError, setUploadError] = useState('');
+  const [error, setError] = useState('');
   const [showShare, setShowShare] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
@@ -268,27 +319,47 @@ export default function ProfileBuilderPage() {
   useEffect(() => {
     api.get('/profile/me').then((r) => {
       const p = r.data;
-      setProfile({
+      const initialProfile = {
         name: p.user?.name || '', bio: p.bio || '', headline: p.headline || '', subjects: p.subjects || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
         projects: p.projects || [], customDetails: p.customDetails || [], interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
         visibility: p.visibility || EMPTY_PROFILE.visibility,
-      });
-    }).catch(() => {});
+        photo: p.photo || '',
+        dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
+      };
+      setProfile(initialProfile);
+      setSavedProfile(initialProfile);
+    }).catch(() => { });
   }, []);
 
   const save = useCallback(async () => {
+    // Validation
+    const missingPubs = profile.publications.some(p => !p.title || !p.year || !p.doi || !p.url);
+    const missingProjects = profile.projects.some(p => !p.title || !p.year || !p.url);
+
+    if (missingPubs || missingProjects) {
+      setError('Please fill in all mandatory fields (marked with *) for Publications and Research Projects.');
+      setSaveStatus('error');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     setSaveStatus('saving');
+    setError('');
     try {
       await api.put('/profile/me', profile);
-      // Update AuthContext if name has changed
-      if (profile.name && profile.name !== user?.name) {
-        updateUser({ name: profile.name });
+      // Update AuthContext if name or photo has changed
+      if ((profile.name && profile.name !== user?.name) || (profile.photo && profile.photo !== user?.photo)) {
+        updateUser({ name: profile.name, photo: profile.photo });
       }
+      setSavedProfile(profile);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
-    } catch { setSaveStatus('error'); }
+    } catch {
+      setSaveStatus('error');
+      setError('An error occurred while saving your profile.');
+    }
   }, [profile, user, updateUser]);
 
   const set = (key: keyof Profile, val: any) => setProfile((p) => ({ ...p, [key]: val }));
@@ -309,7 +380,7 @@ export default function ProfileBuilderPage() {
   };
   const removeQual = (i: number) => set('qualifications', profile.qualifications.filter((_, idx) => idx !== i));
 
-  const addPub = () => set('publications', [...profile.publications, { title: '', journal: '', year: '', doi: '', url: '' }]);
+  const addPub = () => set('publications', [...profile.publications, { title: '', authors: '', journal: '', organisation: '', year: '', volume: '', issue: '', month: '', pages: '', doi: '', url: '' }]);
   const updatePub = (i: number, f: keyof Publication, v: string) => {
     const arr = [...profile.publications]; arr[i] = { ...arr[i], [f]: v }; set('publications', arr);
   };
@@ -354,6 +425,28 @@ export default function ProfileBuilderPage() {
     e.target.value = '';
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError('');
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError(`"${file.name}" exceeds the 2 MB limit. Please upload a smaller image.`);
+      e.target.value = '';
+      return;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await api.post('/profile/me/photo', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const photoUrl = res.data.photoUrl;
+      set('photo', photoUrl);
+      updateUser({ photo: photoUrl });
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.message ?? 'Photo upload failed.');
+    }
+    e.target.value = '';
+  };
+
   const removeAttachment = (i: number) => set('media', { ...profile.media, attachments: profile.media.attachments.filter((_, idx) => idx !== i) });
 
   return (
@@ -378,6 +471,13 @@ export default function ProfileBuilderPage() {
           </button>
         </div>
       </div>
+
+      {error && (
+        <div className="alert alert-error" style={{ marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <AlertCircle size={18} />
+          <span>{error}</span>
+        </div>
+      )}
 
       {saveStatus === 'saved' && (
         <div className="alert alert-success" style={{ marginBottom: '1rem' }}>
@@ -445,7 +545,7 @@ export default function ProfileBuilderPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Publications ({profile.publications.length})
+              Publications ({savedProfile.publications.length})
             </button>
             <button
               onClick={() => setActiveTab('projects')}
@@ -462,7 +562,7 @@ export default function ProfileBuilderPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Research Projects ({profile.projects.length})
+              Research Projects ({savedProfile.projects.length})
             </button>
             <button
               onClick={() => setActiveTab('custom')}
@@ -479,7 +579,7 @@ export default function ProfileBuilderPage() {
                 whiteSpace: 'nowrap',
               }}
             >
-              Custom Sections ({profile.customDetails.length})
+              Custom Sections ({savedProfile.customDetails.length})
             </button>
             <button
               onClick={() => setActiveTab('media')}
@@ -505,6 +605,27 @@ export default function ProfileBuilderPage() {
             <div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 <div className="form-group">
+                  <label className="form-label">Profile Photo</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '0.5rem' }}>
+                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {profile.photo ? (
+                        <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <User size={32} color="var(--color-text-light)" />
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="photo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '0.375rem', display: 'inline-flex' }}>
+                        <Upload size={14} /> {profile.photo ? 'Change Photo' : 'Upload Photo'}
+                      </label>
+                      <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+                      <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>
+                        Accepted: JPG, PNG, GIF. Max 2MB.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-group">
                   <label className="form-label">Full Name</label>
                   <input className="form-input" value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Dr. John Smith" />
                 </div>
@@ -519,6 +640,30 @@ export default function ProfileBuilderPage() {
                 <div className="form-group">
                   <label className="form-label">Subjects Taught (comma-separated)</label>
                   <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Date of Birth</label>
+                    <input type="date" className="form-input" value={profile.dob} onChange={(e) => set('dob', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Gender</label>
+                    <select className="form-input" value={profile.gender} onChange={(e) => set('gender', e.target.value)}>
+                      <option value="">Select Gender</option>
+                      <option value="Male">Male</option>
+                      <option value="Female">Female</option>
+                      <option value="Other">Other</option>
+                      <option value="Prefer not to say">Prefer not to say</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Phone Number</label>
+                  <input className="form-input" value={profile.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} placeholder="e.g. +1 234 567 890" />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Office / Residential Address</label>
+                  <textarea className="form-textarea" value={profile.address} onChange={(e) => set('address', e.target.value)} placeholder="Enter full address…" style={{ minHeight: 80 }} />
                 </div>
                 <div>
                   <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
@@ -548,17 +693,36 @@ export default function ProfileBuilderPage() {
           {activeTab === 'publications' && (
             <div>
               {profile.publications.map((p, i) => (
-                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                <div key={i} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div className="form-group"><label className="form-label">Title</label><input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Paper title…" /></div>
+                    <div className="form-group">
+                      <label className="form-label">Paper Title / Name <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                      <input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Enter paper title…" />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Authors List (comma-separated)</label>
+                      <input className="form-input" value={p.authors} onChange={(e) => updatePub(i, 'authors', e.target.value)} placeholder="e.g. John Doe, Jane Smith…" />
+                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Journal / Conference</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
-                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
-                      <div className="form-group"><label className="form-label">DOI</label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
-                      <div className="form-group"><label className="form-label">URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                      <div className="form-group"><label className="form-label">Journal / Conference Name</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
+                      <div className="form-group"><label className="form-label">Organisation / Publisher</label><input className="form-input" value={p.organisation} onChange={(e) => updatePub(i, 'organisation', e.target.value)} placeholder="e.g. IEEE, Springer…" /></div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Year of Publication <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
+                      <div className="form-group"><label className="form-label">Month (Optional)</label><input className="form-input" value={p.month} onChange={(e) => updatePub(i, 'month', e.target.value)} placeholder="June" /></div>
+                      <div className="form-group"><label className="form-label">DOI <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
+                    </div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Volume (Optional)</label><input className="form-input" value={p.volume} onChange={(e) => updatePub(i, 'volume', e.target.value)} placeholder="Vol 12" /></div>
+                      <div className="form-group"><label className="form-label">Issue (Optional)</label><input className="form-input" value={p.issue} onChange={(e) => updatePub(i, 'issue', e.target.value)} placeholder="Issue 4" /></div>
+                      <div className="form-group"><label className="form-label">Page Numbers (Optional)</label><input className="form-input" value={p.pages} onChange={(e) => updatePub(i, 'pages', e.target.value)} placeholder="e.g. 123-145" /></div>
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Publication URL <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                      <input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" />
                     </div>
                   </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove</button>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove Publication</button>
                 </div>
               ))}
               <button className="btn btn-secondary" onClick={addPub} type="button"><Plus size={14} /> Add Publication</button>
@@ -568,16 +732,19 @@ export default function ProfileBuilderPage() {
           {activeTab === 'projects' && (
             <div>
               {profile.projects.map((p, i) => (
-                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                <div key={i} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Project Title</label><input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Title…" /></div>
-                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2024" /></div>
+                    <div className="form-group">
+                      <label className="form-label">Project Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                      <input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Research project title…" />
                     </div>
-                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Project description…" /></div>
-                    <div className="form-group"><label className="form-label">Project URL</label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://github.com/…" /></div>
+                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Brief project summary…" style={{ minHeight: 80 }} /></div>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Year <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2022-2023" /></div>
+                      <div className="form-group"><label className="form-label">Project URL <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                    </div>
                   </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove</button>
+                  <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove Project</button>
                 </div>
               ))}
               <button className="btn btn-secondary" onClick={addProj} type="button"><Plus size={14} /> Add Project</button>

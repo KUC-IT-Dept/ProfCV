@@ -14,6 +14,7 @@ export interface AuthUser {
   email: string;
   role: 'SUPERADMIN' | 'VC' | 'HOD' | 'TEACHER';
   department: string | null;
+  photo?: string;
 }
 
 interface AuthContextValue {

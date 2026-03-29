@@ -7,6 +7,7 @@ const {
   updateMyProfile,
   updateVisibility,
   uploadAttachment,
+  uploadPhoto,
   getProfileByUser,
   getPublicProfile,
 } = require('../controllers/profileController');
@@ -21,6 +22,7 @@ router.get('/me', getMyProfile);
 router.put('/me', updateMyProfile);
 router.patch('/me/visibility', updateVisibility);
 router.post('/me/attachment', ...uploadAttachment);
+router.post('/me/photo', ...uploadPhoto);
 
 // HOD / VC / SUPERADMIN can view any profile
 router.get(

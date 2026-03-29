@@ -11,6 +11,7 @@ const userSchema = new mongoose.Schema(
       required: true,
     },
     department: { type: String, default: null },
+    photo: { type: String, default: '' },
   },
   { timestamps: true }
 );

@@ -1,4 +1,5 @@
 const path = require('path');
+const fs = require('fs');
 const multer = require('multer');
 const { v4: uuidv4 } = require('uuid');
 const Profile = require('../models/Profile');
@@ -48,16 +49,24 @@ const getMyProfile = async (req, res) => {
 
 /** PUT /api/profile/me */
 const updateMyProfile = async (req, res) => {
-  const { name, bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media, interests } = req.body;
+  const {
+    name, bio, headline, photo, subjects, qualifications, publications,
+    projects, customDetails, media, interests, dob, gender, phoneNumber, address
+  } = req.body;
   try {
     // Update User document if name is provided
-    if (name) {
-      await User.findByIdAndUpdate(req.user.id, { name }, { runValidators: true, new: true });
+    if (name || photo) {
+      await User.findByIdAndUpdate(req.user.id, { name, photo }, { runValidators: true, new: true });
     }
     // Update Profile document
     let profile = await Profile.findOneAndUpdate(
       { user: req.user.id },
-      { $set: { bio, headline, photo, subjects, qualifications, publications, projects, customDetails, media, interests } },
+      {
+        $set: {
+          bio, headline, photo, subjects, qualifications, publications,
+          projects, customDetails, media, interests, dob, gender, phoneNumber, address
+        }
+      },
       { new: true, upsert: true, runValidators: true }
     );
     // Populate with fresh user data to ensure name is latest
@@ -72,7 +81,10 @@ const updateMyProfile = async (req, res) => {
 
 /** PATCH /api/profile/me/visibility */
 const updateVisibility = async (req, res) => {
-  const allowed = ['bio', 'qualifications', 'publications', 'projects', 'subjects', 'customDetails', 'media', 'interests'];
+  const allowed = [
+    'bio', 'qualifications', 'publications', 'projects', 'subjects',
+    'customDetails', 'media', 'interests', 'photo', 'dob', 'gender', 'phoneNumber', 'address'
+  ];
   const update = {};
   allowed.forEach((key) => {
     if (typeof req.body[key] === 'boolean') update[`visibility.${key}`] = req.body[key];
@@ -115,6 +127,32 @@ const uploadAttachment = [
   },
 ];
 
+/** POST /api/profile/me/photo */
+const uploadPhoto = [
+  upload.single('file'),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+    const fileUrl = `/uploads/${req.file.filename}`;
+    try {
+      await User.findByIdAndUpdate(req.user.id, { photo: fileUrl });
+      const profile = await Profile.findOneAndUpdate(
+        { user: req.user.id },
+        { $set: { photo: fileUrl } },
+        { new: true, upsert: true }
+      );
+
+      return res.status(200).json({
+        message: 'Photo uploaded and URL stored in database successfully.',
+        photoUrl: fileUrl,
+        profile,
+      });
+    } catch (err) {
+      console.error('[profileController.uploadPhoto]', err);
+      return res.status(500).json({ message: 'Server error during photo upload.' });
+    }
+  },
+];
+
 /** GET /api/profile/:userId  (HOD / VC / SUPERADMIN) */
 const getProfileByUser = async (req, res) => {
   try {
@@ -149,6 +187,11 @@ const getPublicProfile = async (req, res) => {
       projects: vis.projects !== false ? profile.projects : undefined,
       customDetails: vis.customDetails !== false ? profile.customDetails : undefined,
       media: vis.media === true ? profile.media : undefined,
+      photo: vis.photo !== false ? profile.photo : undefined,
+      dob: vis.dob === true ? profile.dob : undefined,
+      gender: vis.gender === true ? profile.gender : undefined,
+      phoneNumber: vis.phoneNumber === true ? profile.phoneNumber : undefined,
+      address: vis.address === true ? profile.address : undefined,
       visibility: profile.visibility,
     };
     return res.status(200).json(out);
@@ -163,6 +206,7 @@ module.exports = {
   updateMyProfile,
   updateVisibility,
   uploadAttachment,
+  uploadPhoto,
   getProfileByUser,
   getPublicProfile,
 };

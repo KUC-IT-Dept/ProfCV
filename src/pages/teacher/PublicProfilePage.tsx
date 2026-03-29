@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../lib/axios';
-import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User, Lightbulb } from 'lucide-react';
+import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User, Lightbulb, Calendar, Phone, MapPin, User2 } from 'lucide-react';
 
 type PublicProfile = {
   user: { name: string; email: string; role: string; department?: string };
@@ -10,10 +10,27 @@ type PublicProfile = {
   subjects?: string[];
   interests?: string[];
   qualifications?: { degree: string; institution: string; year: string; grade: string }[];
-  publications?: { title: string; journal: string; year: string; doi: string; url: string }[];
+  publications?: {
+    title: string;
+    authors: string;
+    journal: string;
+    organisation?: string;
+    year: string;
+    volume?: string;
+    issue?: string;
+    month?: string;
+    pages?: string;
+    doi: string;
+    url: string
+  }[];
   projects?: { title: string; description: string; year: string; url: string }[];
   customDetails?: { sectionTitle: string; content: string }[];
   media?: { attachments: { name: string; url: string; sizeKB: number }[]; videoEmbeds: string[] };
+  photo?: string;
+  dob?: string;
+  gender?: string;
+  phoneNumber?: string;
+  address?: string;
 };
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
@@ -69,8 +86,12 @@ export default function PublicProfilePage() {
       {/* Header band */}
       <div style={{ background: 'linear-gradient(135deg, #8a2be2 0%, #ffa500 100%)', padding: '3rem 1rem 4rem', marginBottom: '0', marginLeft: -16, marginRight: -16 }}>
         <div style={{ maxWidth: 760, margin: '0 auto', color: '#fff' }}>
-          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-            <User size={36} color="#fff" />
+          <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', overflow: 'hidden' }}>
+            {profile.photo ? (
+              <img src={profile.photo} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <User size={36} color="#fff" />
+            )}
           </div>
           <h1 style={{ fontSize: '1.875rem', fontWeight: 800, marginBottom: '0.25rem', color: '#fff' }}>{u.name}</h1>
           {profile.headline && <p style={{ fontSize: '1.0625rem', opacity: 0.9, marginBottom: '0.375rem', color: '#fff' }}>{profile.headline}</p>}
@@ -88,6 +109,42 @@ export default function PublicProfilePage() {
       {/* Content */}
       <div style={{ maxWidth: 760, margin: '-2rem auto 0', position: 'relative' }}>
         <div className="card" style={{ padding: '2rem' }}>
+
+          {/* Personal Info */}
+          {(profile.dob || profile.gender || profile.phoneNumber || profile.address) && (
+            <Section title="Personal Information" icon={<User2 size={17} />}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '0.5rem' }}>
+                {profile.dob && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <Calendar size={14} color="var(--color-text-muted)" />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Born:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{new Date(profile.dob).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' })}</span>
+                  </div>
+                )}
+                {profile.gender && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <User size={14} color="var(--color-text-muted)" />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Gender:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{profile.gender}</span>
+                  </div>
+                )}
+                {profile.phoneNumber && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.875rem' }}>
+                    <Phone size={14} color="var(--color-text-muted)" />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Phone:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500 }}>{profile.phoneNumber}</span>
+                  </div>
+                )}
+                {profile.address && (
+                  <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem', fontSize: '0.875rem', gridColumn: 'span 2' }}>
+                    <MapPin size={14} color="var(--color-text-muted)" style={{ marginTop: '0.2rem' }} />
+                    <span style={{ color: 'var(--color-text-muted)' }}>Address:</span>
+                    <span style={{ color: 'var(--color-text)', fontWeight: 500, whiteSpace: 'pre-wrap' }}>{profile.address}</span>
+                  </div>
+                )}
+              </div>
+            </Section>
+          )}
 
           {/* Bio */}
           {profile.bio && (
@@ -143,15 +200,26 @@ export default function PublicProfilePage() {
             <Section title={`Publications (${profile.publications.length})`} icon={<BookMarked size={17} />}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.875rem' }}>
                 {profile.publications.map((p, i) => (
-                  <div key={i} style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #BFDBFE' }}>
-                    <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
+                  <div key={i} style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #BFDBFE', marginBottom: '0.5rem' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '1rem' }}>
                       {p.url ? <a href={p.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{p.title}</a> : p.title}
                     </div>
-                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>
-                      {p.journal && <span>{p.journal}</span>}
-                      {p.year && <span> · {p.year}</span>}
+                    {p.authors && <div style={{ fontSize: '0.875rem', color: 'var(--color-text)', fontStyle: 'italic', marginTop: '0.125rem' }}>{p.authors}</div>}
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
+                      {p.journal && <strong style={{ color: 'var(--color-text)' }}>{p.journal}</strong>}
+                      {p.organisation && <span style={{ color: 'var(--color-text-muted)' }}> ({p.organisation})</span>}
+                      {p.volume && <span>, Vol. {p.volume}</span>}
+                      {p.issue && <span>, Issue {p.issue}</span>}
+                      {(p.month || p.year) && (
+                        <span>
+                          {' · '}
+                          {p.month && `${p.month} `}
+                          {p.year}
+                        </span>
+                      )}
+                      {p.pages && <span>, pp. {p.pages}</span>}
                     </div>
-                    {p.doi && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>DOI: {p.doi}</div>}
+                    {p.doi && <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginTop: '0.125rem' }}>DOI: {p.doi}</div>}
                   </div>
                 ))}
               </div>

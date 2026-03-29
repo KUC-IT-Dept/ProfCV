@@ -42,10 +42,15 @@ export default function Topbar({ toggleSidebar }: { toggleSidebar: () => void })
             fontSize: '0.8125rem',
             fontWeight: 700,
             flexShrink: 0,
+            overflow: 'hidden',
           }}
           aria-hidden="true"
         >
-          {user?.name?.charAt(0).toUpperCase()}
+          {user?.photo ? (
+            <img src={user.photo} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            user?.name?.charAt(0).toUpperCase()
+          )}
         </div>
         <div style={{ fontSize: '0.8125rem' }}>
           <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>{user?.name}</div>
