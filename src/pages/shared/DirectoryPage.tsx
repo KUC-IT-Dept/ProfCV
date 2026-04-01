@@ -257,8 +257,8 @@ export default function DirectoryPage() {
       id: 'actions',
       header: '',
       cell: (i) => (
-        <a
-          href={`/profile/${i.row.original._id}`}
+        <a   
+          href={`/p/${i.row.original._id}`}
           className="btn btn-ghost"
           style={{ fontSize: '0.8125rem', padding: '0.25rem 0.5rem' }}
           target="_blank"

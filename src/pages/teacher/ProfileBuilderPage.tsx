@@ -669,6 +669,10 @@ export default function ProfileBuilderPage() {
                   <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
                   <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
                 </div>
+                <div style={{backgroundColor:"red",width:"220px",color:"white",textAlign:"center",padding:"3px",fontWeight:"bold",borderRadius:"12px"
+                }}>
+                  update password
+                </div>
               </div>
             </div>
           )}
