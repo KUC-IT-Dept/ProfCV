@@ -63,9 +63,9 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
   return (
     <>
       <nav className={`sidebar ${sidebarStateClass}`} aria-label="Main navigation">
- 
 
- 
+
+
         {/* Logo */}
         <div className="sidebar-logo">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', overflow: 'hidden' }}>
@@ -74,7 +74,7 @@ export default function Sidebar({ isOpen, isMobile, closeSidebar }: { isOpen: bo
           </div>
           <div className="sidebar-logo-sub hidden-on-collapse text-truncate">Academic Portfolio Platform</div>
           {isMobile && (
-            <button onClick={closeSidebar} style={{ position: 'absolute', right: '1rem', top: '1.25rem', background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
+            <button onClick={closeSidebar} style={{ position: 'absolute', left: '0.5rem', top: '0.25rem', background: 'none', border: 'none', color: 'var(--color-text-muted)', cursor: 'pointer' }}>
               <X size={20} />
             </button>
           )}

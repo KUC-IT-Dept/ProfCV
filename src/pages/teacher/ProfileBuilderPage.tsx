@@ -223,6 +223,70 @@ function ShareModal({ userId, onClose }: { userId: string; onClose: () => void }
   );
 }
 
+// ── Update Password Modal ──────────────────────────────────────────────────────
+function UpdatePasswordModal({ onClose }: { onClose: () => void }) {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setError('New passwords do not match.');
+      return;
+    }
+    setSaving(true);
+    setError('');
+    setSuccess('');
+    try {
+      await api.put('/auth/password', { currentPassword, newPassword });
+      setSuccess('Password updated successfully.');
+      setTimeout(() => onClose(), 2000);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update password.');
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+      style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
+    >
+      <div className="card" style={{ width: '100%', maxWidth: 400, padding: '1.75rem' }} role="dialog" aria-modal="true">
+        <h2 style={{ fontSize: '1.125rem', marginBottom: '1.25rem' }}>Update Password</h2>
+        
+        {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
+        {success && <div className="alert alert-success" style={{ marginBottom: '1rem' }}>{success}</div>}
+
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="form-group">
+            <label className="form-label">Current Password</label>
+            <input type="password" required className="form-input" value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">New Password</label>
+            <input type="password" required className="form-input" value={newPassword} onChange={e => setNewPassword(e.target.value)} />
+          </div>
+          <div className="form-group">
+            <label className="form-label">Confirm New Password</label>
+            <input type="password" required className="form-input" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.5rem' }}>
+            <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>Cancel</button>
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? 'Updating...' : 'Update Password'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ── Visibility Settings Panel ──────────────────────────────────────────────────
 function VisibilityPanel({
   visibility, onToggle, saving,
@@ -313,6 +377,7 @@ export default function ProfileBuilderPage() {
   const [uploadError, setUploadError] = useState('');
   const [error, setError] = useState('');
   const [showShare, setShowShare] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<'basic' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
 
@@ -669,10 +734,24 @@ export default function ProfileBuilderPage() {
                   <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
                   <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
                 </div>
-                <div style={{backgroundColor:"red",width:"220px",color:"white",textAlign:"center",padding:"3px",fontWeight:"bold",borderRadius:"12px"
-                }}>
-                  update password
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowPasswordModal(true)}
+                  style={{
+                    backgroundColor: "red",
+                    width: "220px",
+                    color: "white",
+                    textAlign: "center",
+                    padding: "6px 16px",
+                    fontWeight: "bold",
+                    borderRadius: "12px",
+                    border: "none",
+                    cursor: "pointer",
+                    marginTop: "0.5rem"
+                  }}
+                >
+                  Update Password
+                </button>
               </div>
             </div>
           )}
@@ -831,6 +910,11 @@ export default function ProfileBuilderPage() {
       {/* Share Modal */}
       {showShare && user && (
         <ShareModal userId={user.id} onClose={() => setShowShare(false)} />
+      )}
+
+      {/* Password Modal */}
+      {showPasswordModal && (
+        <UpdatePasswordModal onClose={() => setShowPasswordModal(false)} />
       )}
     </div>
   );

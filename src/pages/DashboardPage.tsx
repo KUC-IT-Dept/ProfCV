@@ -177,35 +177,31 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-          <LayoutDashboard size={20} color="var(--color-primary)" />
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-  <LayoutDashboard size={20} color="var(--color-primary)" />
-  {/* Changed from user?.name?.split(' ')[0] to just user?.name */}
-  <h1>{greeting()}, {user?.name || 'Academic'}</h1>
+<div className="page-header">
+  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+    <LayoutDashboard size={20} color="var(--color-primary)" />
+    <h1>{greeting()}, {user?.name || 'Academic'}</h1>
+  </div>
+  <p>Welcome back to Prof CV — your academic portfolio platform.</p>
 </div>
-        </div>
-        <p>Welcome back to Prof CV — your academic portfolio platform.</p>
-      </div>
 
-      {!isTeacher && !isHod && adminStats && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          {[
-            { label: 'Total Faculty', value: adminStats.totalFaculty, icon: <Users size={20} /> },
-            { label: 'Departments', value: adminStats.departments, icon: <BookOpen size={20} /> },
-            { label: 'Faculty Profiles', value: adminStats.totalProfiles, icon: <FileText size={20} /> },
-          ].map((s) => (
-            <div className="stat-card" key={s.label}>
-              <div className="stat-card-icon">{s.icon}</div>
-              <div>
-                <div className="stat-card-value">{s.value}</div>
-                <div className="stat-card-label">{s.label}</div>
-              </div>
-            </div>
-          ))}
+{!isTeacher && !isHod && adminStats && (
+  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+    {[
+      { label: 'Total Faculty', value: adminStats.totalFaculty, icon: <Users size={20} /> },
+      { label: 'Departments', value: adminStats.departments, icon: <BookOpen size={20} /> },
+      { label: 'Faculty Profiles', value: adminStats.totalProfiles, icon: <FileText size={20} /> },
+    ].map((s) => (
+      <div className="stat-card" key={s.label}>
+        <div className="stat-card-icon">{s.icon}</div>
+        <div>
+          <div className="stat-card-value">{s.value}</div>
+          <div className="stat-card-label">{s.label}</div>
         </div>
-      )}
+      </div>
+    ))}
+  </div>
+)}
 
       {isHod && hodStats && (
         <>
