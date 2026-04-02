@@ -14,15 +14,16 @@ import {
 } from '@xyflow/react';
 import '@xyflow/react/dist/style.css';
 import dagre from 'dagre';
+import { useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 
 // ── Role colors (left border) ────────────────────────────────────────────────
 const ROLE_COLORS: Record<string, string> = {
-  SUPERADMIN: '#7C3AED',
-  VC: '#4F46E5',
-  HOD: '#1D4ED8',
-  TEACHER: '#059669',
+  SUPERADMIN: '#049336ff',
+  VC: '#d470f2ff',
+  HOD: '#f26170ff',
+  TEACHER: '#4636f8ff',
 };
 
 const ROLE_LABELS: Record<string, string> = {
@@ -45,6 +46,7 @@ function HierarchyNode({ data }: { data: any }) {
         padding: '0.625rem 0.875rem',
         minWidth: 160,
         boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.07)',
+        position: 'relative'
       }}
     >
       <Handle type="target" position={Position.Top} style={{ opacity: 0 }} />
@@ -57,6 +59,28 @@ function HierarchyNode({ data }: { data: any }) {
       {data.department && (
         <div style={{ fontSize: '0.7rem', color: '#94A3B8', marginTop: 2 }}>{data.department}</div>
       )}
+      {data.canPromote && data.role === 'TEACHER' && (
+        <button
+          onClick={(e) => { e.stopPropagation(); data.onMakeHod(data.id, data.name, data.department); }}
+          style={{
+            marginTop: '0.5rem',
+            padding: '0.375rem 0.5rem',
+            fontSize: '0.65rem',
+            background: 'var(--color-primary-light)',
+            color: 'var(--color-primary)',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            fontWeight: 600,
+            width: '100%',
+            transition: 'opacity 0.2s',
+          }}
+          onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.opacity = '0.8')}
+          onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.opacity = '1')}
+        >
+          Make HOD
+        </button>
+      )}
       <Handle type="source" position={Position.Bottom} style={{ opacity: 0 }} />
     </div>
   );
@@ -66,7 +90,7 @@ const NODE_TYPES = { hierarchyNode: HierarchyNode };
 
 // ── Dagre layout ─────────────────────────────────────────────────────────────
 const NODE_WIDTH = 180;
-const NODE_HEIGHT = 72;
+const NODE_HEIGHT = 100; // Expanded to accommodate Make HOD button
 
 function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
   // Constraint #1: use dagre to auto-calculate {x, y} — no hardcoded coordinates
@@ -86,7 +110,11 @@ function applyDagreLayout(nodes: Node[], edges: Edge[]): Node[] {
 }
 
 // ── Tree → React Flow elements ────────────────────────────────────────────────
-function buildFlowElements(treeData: any): { nodes: Node[]; edges: Edge[] } {
+function buildFlowElements(
+  treeData: any,
+  canPromote: boolean,
+  onMakeHod: (id: string, name: string, dept: string) => void
+): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -95,7 +123,7 @@ function buildFlowElements(treeData: any): { nodes: Node[]; edges: Edge[] } {
       id,
       type: 'hierarchyNode',
       position: { x: 0, y: 0 }, // will be overwritten by dagre
-      data: { name: u.name, role: u.role, department: u.department },
+      data: { id, name: u.name, role: u.role, department: u.department, canPromote, onMakeHod },
     });
   };
 
@@ -110,16 +138,29 @@ function buildFlowElements(treeData: any): { nodes: Node[]; edges: Edge[] } {
   };
 
   const root = treeData.root;
-  const rootId = root._id?.toString() ?? 'root';
+  if (!root || !root._id) {
+    console.error('Root node is missing _id');
+    return { nodes, edges };
+  }
+
+  const rootId = root._id.toString();
   addNode(root, rootId);
 
   (treeData.branches ?? []).forEach((branch: any) => {
-    const branchId = branch._id?.toString() ?? `branch-${branch.name}`;
+    if (!branch._id) {
+      console.error(`Branch node missing _id for ${branch.name}`);
+      return;
+    }
+    const branchId = branch._id.toString();
     if (!nodes.find(n => n.id === branchId)) addNode(branch, branchId);
     addEdge(rootId, branchId);
 
     (branch.leaves ?? []).forEach((leaf: any) => {
-      const leafId = leaf._id?.toString() ?? `leaf-${leaf.name}`;
+      if (!leaf._id) {
+        console.error(`Leaf node missing _id for ${leaf.name}`);
+        return;
+      }
+      const leafId = leaf._id.toString();
       if (!nodes.find(n => n.id === leafId)) addNode(leaf, leafId);
       addEdge(branchId, leafId);
     });
@@ -132,25 +173,48 @@ function buildFlowElements(treeData: any): { nodes: Node[]; edges: Edge[] } {
 // ── Main Component ────────────────────────────────────────────────────────────
 export default function HierarchyGraphPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState<Edge>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const canPromote = user?.role === 'VC' || user?.role === 'SUPERADMIN';
+  const [confirmSwap, setConfirmSwap] = useState<{ isOpen: boolean; id: string; name: string; dept: string } | null>(null);
+  const [isSwapping, setIsSwapping] = useState(false);
 
   const loadTree = useCallback(() => {
     setIsLoading(true);
     setError('');
     api.get('/directory/tree')
       .then((r) => {
-        const { nodes: n, edges: e } = buildFlowElements(r.data);
+        const { nodes: n, edges: e } = buildFlowElements(
+          r.data,
+          canPromote,
+          (id, name, dept) => setConfirmSwap({ isOpen: true, id, name, dept })
+        );
         setNodes(n);
         setEdges(e);
       })
       .catch(() => setError('Failed to load org hierarchy. Please try again.'))
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [canPromote, setNodes, setEdges]); // dependencies include canPromote
 
   useEffect(() => { loadTree(); }, [loadTree]);
+
+  const handleConfirmSwap = async () => {
+    if (!confirmSwap) return;
+    setIsSwapping(true);
+    try {
+      await api.put('/directory/swap-hod', { teacherId: confirmSwap.id });
+      setConfirmSwap(null);
+      loadTree(); // reload graph
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to update user role.');
+    } finally {
+      setIsSwapping(false);
+    }
+  };
 
   const scopeLabel: Record<string, string> = {
     HOD: `Your team — ${user?.department}`,
@@ -192,6 +256,7 @@ export default function HierarchyGraphPage() {
             edges={edges}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
+            onNodeClick={(_, node) => navigate(`/p/${node.id}`)}
             nodeTypes={NODE_TYPES}
             fitView
             fitViewOptions={{ padding: 0.2 }}
@@ -209,6 +274,35 @@ export default function HierarchyGraphPage() {
           </ReactFlow>
         )}
       </div>
+
+      {/* Confirmation Modal for Swap */}
+      {confirmSwap && confirmSwap.isOpen && (
+        <div
+          onClick={(e) => { if (e.target === e.currentTarget && !isSwapping) setConfirmSwap(null); }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '1rem' }}
+        >
+          <div className="card" style={{ width: '100%', maxWidth: 450, padding: '1.75rem' }} role="dialog">
+            <h2 style={{ fontSize: '1.125rem', marginBottom: '1rem', color: 'var(--color-danger)' }}>Confirm Role Update</h2>
+            <p style={{ fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+              Are you sure you want to promote <strong>{confirmSwap.name}</strong> to Head of Department for <strong>{confirmSwap.dept}</strong>?
+            </p>
+            <p style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+              The current Head of Department (if any) will automatically be demoted to a standard Faculty member. This action will be visible across the system immediately.
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+              <button className="btn btn-secondary" onClick={() => setConfirmSwap(null)} disabled={isSwapping}>Cancel</button>
+              <button
+                className="btn btn-primary"
+                onClick={handleConfirmSwap}
+                disabled={isSwapping}
+                style={{ background: 'var(--color-danger)', borderColor: 'var(--color-danger)' }}
+              >
+                {isSwapping ? 'Updating...' : 'Yes, Update Role'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

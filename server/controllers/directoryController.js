@@ -250,5 +250,40 @@ const addFaculty = async (req, res) => {
   }
 };
 
-module.exports = { getDirectory, getDirectoryTree, exportDirectory, addFaculty };
+/**
+ * PUT /api/directory/swap-hod
+ * VC / SUPERADMIN can swap a TEACHER to HOD, demoting the current HOD of that department to TEACHER.
+ */
+const swapHod = async (req, res) => {
+  const { teacherId } = req.body;
 
+  try {
+    const teacher = await User.findById(teacherId);
+    if (!teacher || teacher.role !== 'TEACHER') {
+      return res.status(400).json({ message: 'Target user not found or is not a TEACHER.' });
+    }
+    if (!teacher.department) {
+      return res.status(400).json({ message: 'Target user must have an assigned department to become HOD.' });
+    }
+
+    // Find current HOD of that department
+    const currentHod = await User.findOne({ role: 'HOD', department: teacher.department });
+    
+    // Demote current HOD if one exists
+    if (currentHod) {
+      currentHod.role = 'TEACHER';
+      await currentHod.save();
+    }
+
+    // Promote the target
+    teacher.role = 'HOD';
+    await teacher.save();
+
+    return res.status(200).json({ message: 'HOD swapped successfully.' });
+  } catch (err) {
+    console.error('[directoryController.swapHod]', err);
+    return res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+module.exports = { getDirectory, getDirectoryTree, exportDirectory, addFaculty, swapHod };
