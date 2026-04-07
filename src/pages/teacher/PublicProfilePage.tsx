@@ -24,7 +24,7 @@ type PublicProfile = {
     url: string
   }[];
   projects?: { title: string; description: string; year: string; url: string }[];
-  customDetails?: { sectionTitle: string; content: string }[];
+  customDetails?: { sectionTitle: string; content: string; isVisible?: boolean }[];
   media?: { attachments: { name: string; url: string; sizeKB: number }[]; videoEmbeds: string[] };
   photo?: string;
   dob?: string;
@@ -244,11 +244,14 @@ export default function PublicProfilePage() {
           )}
 
           {/* Custom Sections */}
-          {profile.customDetails && profile.customDetails.map((c, i) => (
-            <Section key={i} title={c.sectionTitle || 'Custom Section'} icon={<Link2 size={17} />}>
-              <p style={{ color: 'var(--color-text)', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{c.content}</p>
-            </Section>
-          ))}
+          {profile.customDetails && profile.customDetails
+            .filter(c => c.isVisible !== false)
+            .map((c, i) => (
+              <Section key={i} title={c.sectionTitle || 'Custom Section'} icon={<Link2 size={17} />}>
+                <p style={{ color: 'var(--color-text)', whiteSpace: 'pre-wrap', lineHeight: 1.7 }}>{c.content}</p>
+              </Section>
+            ))
+          }
 
           {/* Media */}
           {profile.media && profile.media.attachments?.length > 0 && (

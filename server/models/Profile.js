@@ -29,8 +29,9 @@ const projectSchema = new mongoose.Schema({
 });
 
 const customDetailSchema = new mongoose.Schema({
-  sectionTitle: String,
-  content: String,
+  sectionTitle: { type: String, required: true },
+  content: { type: String, required: true },
+  isVisible: { type: Boolean, default: true },
 });
 
 const attachmentSchema = new mongoose.Schema({
