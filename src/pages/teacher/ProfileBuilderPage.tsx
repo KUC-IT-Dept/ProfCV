@@ -32,7 +32,7 @@ type Visibility = {
 type Qualification = { degree: string; institution: string; year: string; grade: string };
 type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
-type CustomDetail = { sectionTitle: string; content: string };
+type CustomDetail = { sectionTitle: string; content: string; isVisible: boolean };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
 
 const EMPTY_PROFILE: Profile = {
@@ -258,7 +258,7 @@ function UpdatePasswordModal({ onClose }: { onClose: () => void }) {
     >
       <div className="card" style={{ width: '100%', maxWidth: 400, padding: '1.75rem' }} role="dialog" aria-modal="true">
         <h2 style={{ fontSize: '1.125rem', marginBottom: '1.25rem' }}>Update Password</h2>
-        
+
         {error && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{error}</div>}
         {success && <div className="alert alert-success" style={{ marginBottom: '1rem' }}>{success}</div>}
 
@@ -379,7 +379,7 @@ export default function ProfileBuilderPage() {
   const [showShare, setShowShare] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'basic' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
+  const [activeTab, setActiveTab] = useState<string>('basic');
 
   useEffect(() => {
     api.get('/profile/me').then((r) => {
@@ -387,7 +387,9 @@ export default function ProfileBuilderPage() {
       const initialProfile = {
         name: p.user?.name || '', bio: p.bio || '', headline: p.headline || '', subjects: p.subjects || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
-        projects: p.projects || [], customDetails: p.customDetails || [], interests: p.interests || [],
+        projects: p.projects || [],
+        customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
+        interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
         visibility: p.visibility || EMPTY_PROFILE.visibility,
         photo: p.photo || '',
@@ -402,9 +404,10 @@ export default function ProfileBuilderPage() {
     // Validation
     const missingPubs = profile.publications.some(p => !p.title || !p.year || !p.doi || !p.url);
     const missingProjects = profile.projects.some(p => !p.title || !p.year || !p.url);
+    const missingCustom = profile.customDetails.some(c => !c.sectionTitle || !c.content);
 
-    if (missingPubs || missingProjects) {
-      setError('Please fill in all mandatory fields (marked with *) for Publications and Research Projects.');
+    if (missingPubs || missingProjects || missingCustom) {
+      setError('Please fill in all mandatory fields (marked with *) for Publications, Research Projects, and Custom Sections.');
       setSaveStatus('error');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
@@ -457,8 +460,12 @@ export default function ProfileBuilderPage() {
   };
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
-  const addCustom = () => set('customDetails', [...profile.customDetails, { sectionTitle: '', content: '' }]);
-  const updateCustom = (i: number, f: keyof CustomDetail, v: string) => {
+  const addCustom = () => {
+    const newIdx = profile.customDetails.length;
+    set('customDetails', [...profile.customDetails, { sectionTitle: '', content: '', isVisible: true }]);
+    setActiveTab(`custom-${newIdx}`);
+  };
+  const updateCustom = (i: number, f: keyof CustomDetail, v: any) => {
     const arr = [...profile.customDetails]; arr[i] = { ...arr[i], [f]: v }; set('customDetails', arr);
   };
   const removeCustom = (i: number) => set('customDetails', profile.customDetails.filter((_, idx) => idx !== i));
@@ -558,111 +565,153 @@ export default function ProfileBuilderPage() {
       {/* Two-column layout: content + visibility sidebar */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem' }}>
         {/* Main builder content */}
-        <div>
+        <div style={{ minWidth: 0 }}>
           {/* Horizontal Tabs */}
-          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', overflowX: 'auto', paddingBottom: '0' }}>
-            <button
-              onClick={() => setActiveTab('basic')}
-              style={{
-                padding: '0.75rem 1rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                borderBottom: activeTab === 'basic' ? '2px solid var(--color-primary)' : 'none',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Basic Information
-            </button>
-            <button
-              onClick={() => setActiveTab('qualifications')}
-              style={{
-                padding: '0.75rem 1rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: activeTab === 'qualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                borderBottom: activeTab === 'qualifications' ? '2px solid var(--color-primary)' : 'none',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Qualifications ({profile.qualifications.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('publications')}
-              style={{
-                padding: '0.75rem 1rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: activeTab === 'publications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                borderBottom: activeTab === 'publications' ? '2px solid var(--color-primary)' : 'none',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Publications ({savedProfile.publications.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('projects')}
-              style={{
-                padding: '0.75rem 1rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Research Projects ({savedProfile.projects.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('custom')}
-              style={{
-                padding: '0.75rem 1rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: activeTab === 'custom' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                borderBottom: activeTab === 'custom' ? '2px solid var(--color-primary)' : 'none',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Custom Sections ({savedProfile.customDetails.length})
-            </button>
-            <button
-              onClick={() => setActiveTab('media')}
-              style={{
-                padding: '0.75rem 1rem',
-                border: 'none',
-                background: 'none',
-                cursor: 'pointer',
-                fontSize: '0.875rem',
-                fontWeight: 500,
-                color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none',
-                transition: 'all 0.15s',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              Media & Attachments
-            </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
+            {/* Scrollable Tabs Area */}
+            <div style={{ flex: 1, display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+              <button
+                onClick={() => setActiveTab('basic')}
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  borderBottom: activeTab === 'basic' ? '2px solid var(--color-primary)' : 'none',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Basic Information
+              </button>
+              <button
+                onClick={() => setActiveTab('qualifications')}
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: activeTab === 'qualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  borderBottom: activeTab === 'qualifications' ? '2px solid var(--color-primary)' : 'none',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Qualifications ({profile.qualifications.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('publications')}
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: activeTab === 'publications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  borderBottom: activeTab === 'publications' ? '2px solid var(--color-primary)' : 'none',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Publications ({savedProfile.publications.length})
+              </button>
+              <button
+                onClick={() => setActiveTab('projects')}
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Research Projects ({savedProfile.projects.length})
+              </button>
+              {profile.customDetails.map((c, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveTab(`custom-${i}`)}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    border: 'none',
+                    background: 'none',
+                    cursor: 'pointer',
+                    fontSize: '0.875rem',
+                    fontWeight: 500,
+                    color: activeTab === `custom-${i}` ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                    borderBottom: activeTab === `custom-${i}` ? '2px solid var(--color-primary)' : 'none',
+                    transition: 'all 0.15s',
+                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.375rem'
+                  }}
+                >
+                  {!c.isVisible && <EyeOff size={12} color="var(--color-text-light)" />}
+                  {c.sectionTitle || `Section ${i + 1}`}
+                </button>
+              ))}
+              <button
+                onClick={() => setActiveTab('media')}
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Media & Attachments
+              </button>
+            </div>
+
+            {/* Fixed Action Button */}
+            <div style={{ flexShrink: 0, paddingLeft: '0.5rem', borderLeft: '1px solid var(--color-border)', marginLeft: '0.5rem' }}>
+              <button
+                onClick={addCustom}
+                style={{
+                  padding: '0.5rem 0.875rem',
+                  border: '1px solid var(--color-primary)',
+                  borderRadius: 'var(--radius-sm)',
+                  background: 'var(--color-primary-light',
+                  cursor: 'pointer',
+                  fontSize: '0.8125rem',
+                  fontWeight: 600,
+                  color: 'var(--color-primary)',
+                  transition: 'all 0.15s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.375rem'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = 'var(--color-primary)';
+                  e.currentTarget.style.color = '#fff';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = 'var(--color-primary-light)';
+                  e.currentTarget.style.color = 'var(--color-primary)';
+                }}
+                title="Add Custom Section"
+              >
+                <Plus size={16} /> Add Section
+              </button>
+            </div>
           </div>
 
           {/* Tab Content */}
@@ -834,18 +883,48 @@ export default function ProfileBuilderPage() {
             </div>
           )}
 
-          {activeTab === 'custom' && (
+          {activeTab.startsWith('custom-') && (
             <div>
-              {profile.customDetails.map((c, i) => (
-                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div className="form-group"><label className="form-label">Section Title</label><input className="form-input" value={c.sectionTitle} onChange={(e) => updateCustom(i, 'sectionTitle', e.target.value)} placeholder="e.g. Awards, Teaching Philosophy…" /></div>
-                    <div className="form-group"><label className="form-label">Content</label><textarea className="form-textarea" value={c.content} onChange={(e) => updateCustom(i, 'content', e.target.value)} placeholder="Content…" /></div>
+              {(() => {
+                const idx = parseInt(activeTab.split('-')[1]);
+                const c = profile.customDetails[idx];
+                if (!c) return null;
+                return (
+                  <div key={idx} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={{ padding: '0.5rem', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-sm)', color: 'var(--color-primary)' }}>
+                          <Plus size={18} />
+                        </div>
+                        <h2 style={{ fontSize: '1rem', margin: 0 }}>Section Editor</h2>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '0.4rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                          {c.isVisible ? <Eye size={14} color="var(--color-primary)" /> : <EyeOff size={14} color="var(--color-text-light)" />}
+                          <span>{c.isVisible ? 'Visible on Profile' : 'Hidden from Profile'}</span>
+                          <input type="checkbox" checked={c.isVisible} onChange={() => updateCustom(idx, 'isVisible', !c.isVisible)} style={{ display: 'none' }} />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Section Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                        <input className="form-input" value={c.sectionTitle} onChange={(e) => updateCustom(idx, 'sectionTitle', e.target.value)} placeholder="e.g. Awards, Teaching Philosophy…" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Content <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                        <textarea className="form-textarea" value={c.content} onChange={(e) => updateCustom(idx, 'content', e.target.value)} placeholder="Content…" style={{ minHeight: 200 }} />
+                      </div>
+                    </div>
+                    <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
+                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeCustom(idx)} type="button">
+                        <Trash2 size={13} /> Remove Section
+                      </button>
+                    </div>
                   </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeCustom(i)} type="button"><Trash2 size={13} /> Remove</button>
-                </div>
-              ))}
-              <button className="btn btn-secondary" onClick={addCustom} type="button"><Plus size={14} /> Add Custom Section</button>
+                );
+              })()}
             </div>
           )}
 
@@ -897,8 +976,8 @@ export default function ProfileBuilderPage() {
           )}
         </div>
 
-        {/* Sidebar: Visibility Settings - Fixed Position */}
-        <div style={{ position: 'fixed', top: '100px', right: '0rem', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 100px)', overflowY: 'auto' }}>
+        {/* Sidebar: Visibility Settings - Sticky Position */}
+        <div style={{ position: 'sticky', top: '1.5rem', alignSelf: 'start', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 3rem)', overflowY: 'auto' }}>
           <VisibilityPanel
             visibility={profile.visibility}
             onToggle={toggleVisibility}
