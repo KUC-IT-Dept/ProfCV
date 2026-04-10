@@ -8,6 +8,7 @@ const qualificationSchema = new mongoose.Schema({
 });
 
 const publicationSchema = new mongoose.Schema({
+  publicationType: { type: String, enum: ['Journal Articles', 'Book Chapters', 'Books Authored / Edited', 'Conference Papers', 'Other'], default: 'Journal Articles' },
   title: { type: String, required: true },
   authors: String,
   journal: String,
@@ -17,8 +18,22 @@ const publicationSchema = new mongoose.Schema({
   month: String,
   year: { type: String, required: true },
   pages: String,
-  doi: { type: String, required: true },
-  url: { type: String, required: true },
+  doi: String,
+  url: String,
+
+  issn: String,
+  indexedIn: String,
+  impactFactor: String,
+  bookTitle: String,
+  publisher: String,
+  isbn: String,
+  editors: String,
+  bookType: String,
+  conferenceName: String,
+  nationalInternational: String,
+  venueDate: String,
+  organizedBy: String,
+  publishedInProceedings: String
 });
 
 const projectSchema = new mongoose.Schema({
