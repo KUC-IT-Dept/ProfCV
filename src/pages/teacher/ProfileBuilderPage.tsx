@@ -373,14 +373,12 @@ function CollapsibleEditorCard({
   summary,
   expanded,
   onToggle,
-  onEdit,
   children,
 }: {
   title: string;
   summary: string;
   expanded: boolean;
   onToggle: () => void;
-  onEdit: () => void;
   children: React.ReactNode;
 }) {
   return (
@@ -933,7 +931,6 @@ export default function ProfileBuilderPage() {
                     summary={summary}
                     expanded={isExpanded(cardKey)}
                     onToggle={() => toggleSection(cardKey)}
-                    onEdit={() => openSection(cardKey)}
                   >
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                       <div className="form-group"><label className="form-label">Degree</label><input className="form-input" value={q.degree} onChange={(e) => updateQual(i, 'degree', e.target.value)} placeholder="Ph.D. Computer Science" /></div>
@@ -961,7 +958,6 @@ export default function ProfileBuilderPage() {
                     summary={summary}
                     expanded={isExpanded(cardKey)}
                     onToggle={() => toggleSection(cardKey)}
-                    onEdit={() => openSection(cardKey)}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       <div className="form-group">
@@ -1011,7 +1007,6 @@ export default function ProfileBuilderPage() {
                     summary={summary}
                     expanded={isExpanded(cardKey)}
                     onToggle={() => toggleSection(cardKey)}
-                    onEdit={() => openSection(cardKey)}
                   >
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
                       <div className="form-group">
@@ -1048,7 +1043,6 @@ export default function ProfileBuilderPage() {
                     summary={summary || 'Add section content'}
                     expanded={isExpanded(cardKey)}
                     onToggle={() => toggleSection(cardKey)}
-                    onEdit={() => openSection(cardKey)}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '0.4rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
