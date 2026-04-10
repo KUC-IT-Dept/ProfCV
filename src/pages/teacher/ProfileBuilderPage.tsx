@@ -997,22 +997,6 @@ export default function ProfileBuilderPage() {
                 )}
                 {profile.workExperiences.map((w, i) => (
                   <div key={i} className="card" style={{ padding: '1rem', position: 'relative' }}>
-                    <button
-                      onClick={() => removeWorkExp(i)}
-                      style={{
-                        position: 'absolute',
-                        top: '1rem',
-                        right: '1rem',
-                        background: 'none',
-                        border: 'none',
-                        color: 'var(--color-text-muted)',
-                        cursor: 'pointer',
-                        padding: '0.2rem',
-                      }}
-                      title="Remove"
-                    >
-                      <Trash2 size={16} />
-                    </button>
                     <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
                       <div className="form-group"><label className="form-label">Institution Name *</label><input className="form-input" value={w.institutionName} onChange={(e) => updateWorkExp(i, 'institutionName', e.target.value)} /></div>
                       <div className="form-group"><label className="form-label">Designation *</label><input className="form-input" value={w.designation} onChange={(e) => updateWorkExp(i, 'designation', e.target.value)} /></div>
@@ -1023,6 +1007,7 @@ export default function ProfileBuilderPage() {
                       <div className="form-group"><label className="form-label">Total Duration</label><input className="form-input" value={w.totalDuration} onChange={(e) => updateWorkExp(i, 'totalDuration', e.target.value)} placeholder="e.g. 5 Years 2 Months" /></div>
                       <div className="form-group"><label className="form-label">Reason for Leaving</label><input className="form-input" value={w.reasonForLeaving} onChange={(e) => updateWorkExp(i, 'reasonForLeaving', e.target.value)} /></div>
                     </div>
+                    <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeWorkExp(i)} type="button"><Trash2 size={13} /> Remove Work Experience</button>
                   </div>
                 ))}
                 <button className="btn btn-secondary" onClick={addWorkExp} type="button" style={{ alignSelf: 'flex-start' }}><Plus size={14} /> Add Work Experience</button>
