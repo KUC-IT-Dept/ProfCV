@@ -70,8 +70,49 @@ const attachmentSchema = new mongoose.Schema({
   sizeKB: Number,
 });
 
+const professionalDetailSchema = new mongoose.Schema({
+  employeeId: String,
+  designation: String,
+  department: String,
+  institutionName: String,
+  affiliatedUniversity: String,
+  institutionType: String, // Government / Aided / Private / Deemed / Central University
+  natureOfAppointment: String, // Regular / Contract / Guest etc
+  dateOfJoining: String,
+  dateOfConfirmation: String,
+  payBand: String,
+  bankAccountDetails: String,
+  pfNumber: String,
+  serviceBookNumber: String,
+
+  // First promotion
+  dateOfFirstPromotion: String,
+  natureOfFirstAppointment: String,
+  firstPayBand: String,
+
+  // Second promotion
+  dateOfSecondPromotion: String,
+  natureOfSecondAppointment: String,
+  secondPayBand: String,
+
+  // Third promotion
+  dateOfThirdPromotion: String,
+  natureOfThirdAppointment: String,
+  thirdPayBand: String,
+}, { _id: false });
+
+const entranceTestSchema = new mongoose.Schema({
+  net: { subject: String, year: String, certificateNo: String },
+  set: { subject: String, year: String, state: String },
+  gate: { score: String, year: String },
+  jrf: { agency: String, year: String },
+  other: String, // Any other competitive exam qualified
+}, { _id: false });
+
 const visibilitySchema = new mongoose.Schema({
   bio: { type: Boolean, default: true },
+  professionalDetails: { type: Boolean, default: true },
+  entranceTests: { type: Boolean, default: true },
   qualifications: { type: Boolean, default: true },
   publications: { type: Boolean, default: true },
   awards: { type: Boolean, default: true },
@@ -116,6 +157,8 @@ const profileSchema = new mongoose.Schema(
       studentDetails: { type: String, default: '' }
     },
     customDetails: [customDetailSchema],
+    professionalDetails: { type: professionalDetailSchema, default: () => ({}) },
+    entranceTests: { type: entranceTestSchema, default: () => ({}) },
     media: {
       attachments: {
         type: [attachmentSchema],

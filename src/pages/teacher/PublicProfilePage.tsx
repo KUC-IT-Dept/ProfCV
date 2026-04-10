@@ -25,6 +25,22 @@ type PublicProfile = {
   }[];
   projects?: { title: string; description: string; year: string; url: string }[];
   customDetails?: { sectionTitle: string; content: string; isVisible?: boolean }[];
+  professionalDetails?: {
+    employeeId: string; designation: string; department: string; institutionName: string;
+    affiliatedUniversity: string; institutionType: string; natureOfAppointment: string;
+    dateOfJoining: string; dateOfConfirmation: string; payBand: string; bankAccountDetails: string;
+    pfNumber: string; serviceBookNumber: string;
+    dateOfFirstPromotion: string; natureOfFirstAppointment: string; firstPayBand: string;
+    dateOfSecondPromotion: string; natureOfSecondAppointment: string; secondPayBand: string;
+    dateOfThirdPromotion: string; natureOfThirdAppointment: string; thirdPayBand: string;
+  };
+  entranceTests?: {
+    net: { subject: string; year: string; certificateNo: string; };
+    set: { subject: string; year: string; state: string; };
+    gate: { score: string; year: string; };
+    jrf: { agency: string; year: string; };
+    other: string;
+  };
   media?: { attachments: { name: string; url: string; sizeKB: number }[]; videoEmbeds: string[] };
   photo?: string;
   dob?: string;
@@ -150,6 +166,127 @@ export default function PublicProfilePage() {
           {profile.bio && (
             <Section title="Biography" icon={<User size={17} />}>
               <p style={{ color: 'var(--color-text)', lineHeight: 1.8 }}>{profile.bio}</p>
+            </Section>
+          )}
+
+          {/* Professional Details */}
+          {profile.professionalDetails && Object.values(profile.professionalDetails).some(v => !!v) && (
+            <Section title="Professional / Employment Details" icon={<BookOpen size={17} />}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {profile.professionalDetails.employeeId && <div><span style={{ color: 'var(--color-text-muted)' }}>Employee ID / Staff Code:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.employeeId}</span></div>}
+                  {profile.professionalDetails.designation && <div><span style={{ color: 'var(--color-text-muted)' }}>Designation:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.designation}</span></div>}
+                  {profile.professionalDetails.department && <div><span style={{ color: 'var(--color-text-muted)' }}>Department:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.department}</span></div>}
+                  {profile.professionalDetails.institutionName && <div><span style={{ color: 'var(--color-text-muted)' }}>College / Institution:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.institutionName}</span></div>}
+                  {profile.professionalDetails.affiliatedUniversity && <div><span style={{ color: 'var(--color-text-muted)' }}>Affiliated University:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.affiliatedUniversity}</span></div>}
+                  {profile.professionalDetails.institutionType && <div><span style={{ color: 'var(--color-text-muted)' }}>Type of Institution:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.institutionType}</span></div>}
+                  {profile.professionalDetails.natureOfAppointment && <div><span style={{ color: 'var(--color-text-muted)' }}>Nature of Appointment:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.natureOfAppointment}</span></div>}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  {profile.professionalDetails.dateOfJoining && <div><span style={{ color: 'var(--color-text-muted)' }}>Date of Joining:</span> <span style={{ fontWeight: 500 }}>{new Date(profile.professionalDetails.dateOfJoining).toLocaleDateString()}</span></div>}
+                  {profile.professionalDetails.dateOfConfirmation && <div><span style={{ color: 'var(--color-text-muted)' }}>Date of Confirmation:</span> <span style={{ fontWeight: 500 }}>{new Date(profile.professionalDetails.dateOfConfirmation).toLocaleDateString()}</span></div>}
+                  {profile.professionalDetails.payBand && <div><span style={{ color: 'var(--color-text-muted)' }}>Pay Band / CTC:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.payBand}</span></div>}
+                  {profile.professionalDetails.bankAccountDetails && <div><span style={{ color: 'var(--color-text-muted)' }}>Bank Account (Salary):</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.bankAccountDetails}</span></div>}
+                  {profile.professionalDetails.pfNumber && <div><span style={{ color: 'var(--color-text-muted)' }}>PF Number:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.pfNumber}</span></div>}
+                  {profile.professionalDetails.serviceBookNumber && <div><span style={{ color: 'var(--color-text-muted)' }}>Service Book Number:</span> <span style={{ fontWeight: 500 }}>{profile.professionalDetails.serviceBookNumber}</span></div>}
+                </div>
+              </div>
+
+              {((profile.professionalDetails.dateOfFirstPromotion || profile.professionalDetails.natureOfFirstAppointment || profile.professionalDetails.firstPayBand) ||
+                (profile.professionalDetails.dateOfSecondPromotion || profile.professionalDetails.natureOfSecondAppointment || profile.professionalDetails.secondPayBand) ||
+                (profile.professionalDetails.dateOfThirdPromotion || profile.professionalDetails.natureOfThirdAppointment || profile.professionalDetails.thirdPayBand)) && (
+                <div style={{ marginTop: '1.5rem', background: 'var(--color-bg)', padding: '1rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                  <h3 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '1rem', color: 'var(--color-text)' }}>Promotion History</h3>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                    {(profile.professionalDetails.dateOfFirstPromotion || profile.professionalDetails.natureOfFirstAppointment || profile.professionalDetails.firstPayBand) && (
+                      <div style={{ paddingLeft: '0.75rem', borderLeft: '3px solid var(--color-primary)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>First Promotion</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8125rem' }}>
+                          {profile.professionalDetails.dateOfFirstPromotion && <div><span style={{ color: 'var(--color-text-muted)' }}>Date:</span> {new Date(profile.professionalDetails.dateOfFirstPromotion).toLocaleDateString()}</div>}
+                          {profile.professionalDetails.natureOfFirstAppointment && <div><span style={{ color: 'var(--color-text-muted)' }}>Nature:</span> {profile.professionalDetails.natureOfFirstAppointment}</div>}
+                          {profile.professionalDetails.firstPayBand && <div><span style={{ color: 'var(--color-text-muted)' }}>Pay:</span> {profile.professionalDetails.firstPayBand}</div>}
+                        </div>
+                      </div>
+                    )}
+                    {(profile.professionalDetails.dateOfSecondPromotion || profile.professionalDetails.natureOfSecondAppointment || profile.professionalDetails.secondPayBand) && (
+                      <div style={{ paddingLeft: '0.75rem', borderLeft: '3px solid var(--color-primary)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Second Promotion</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8125rem' }}>
+                          {profile.professionalDetails.dateOfSecondPromotion && <div><span style={{ color: 'var(--color-text-muted)' }}>Date:</span> {new Date(profile.professionalDetails.dateOfSecondPromotion).toLocaleDateString()}</div>}
+                          {profile.professionalDetails.natureOfSecondAppointment && <div><span style={{ color: 'var(--color-text-muted)' }}>Nature:</span> {profile.professionalDetails.natureOfSecondAppointment}</div>}
+                          {profile.professionalDetails.secondPayBand && <div><span style={{ color: 'var(--color-text-muted)' }}>Pay:</span> {profile.professionalDetails.secondPayBand}</div>}
+                        </div>
+                      </div>
+                    )}
+                    {(profile.professionalDetails.dateOfThirdPromotion || profile.professionalDetails.natureOfThirdAppointment || profile.professionalDetails.thirdPayBand) && (
+                      <div style={{ paddingLeft: '0.75rem', borderLeft: '3px solid var(--color-primary)' }}>
+                        <div style={{ fontWeight: 600, fontSize: '0.875rem', marginBottom: '0.5rem' }}>Third Promotion</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', fontSize: '0.8125rem' }}>
+                          {profile.professionalDetails.dateOfThirdPromotion && <div><span style={{ color: 'var(--color-text-muted)' }}>Date:</span> {new Date(profile.professionalDetails.dateOfThirdPromotion).toLocaleDateString()}</div>}
+                          {profile.professionalDetails.natureOfThirdAppointment && <div><span style={{ color: 'var(--color-text-muted)' }}>Nature:</span> {profile.professionalDetails.natureOfThirdAppointment}</div>}
+                          {profile.professionalDetails.thirdPayBand && <div><span style={{ color: 'var(--color-text-muted)' }}>Pay:</span> {profile.professionalDetails.thirdPayBand}</div>}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </Section>
+          )}
+
+          {/* Entrance / Eligibility Tests */}
+          {profile.entranceTests && (
+            !!profile.entranceTests.net?.subject || !!profile.entranceTests.set?.subject ||
+            !!profile.entranceTests.gate?.score || !!profile.entranceTests.jrf?.agency ||
+            !!profile.entranceTests.other
+          ) && (
+            <Section title="Entrance / Eligibility Tests" icon={<BookOpen size={17} />}>
+              <div style={{ display: 'grid', gap: '1rem' }}>
+                {profile.entranceTests.net?.subject && (
+                  <div style={{ padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>NET (National Eligibility Test)</div>
+                    <div style={{ fontSize: '0.875rem' }}>
+                      {profile.entranceTests.net.subject && <div><span style={{ color: 'var(--color-text-muted)' }}>Subject:</span> {profile.entranceTests.net.subject}</div>}
+                      {profile.entranceTests.net.year && <div><span style={{ color: 'var(--color-text-muted)' }}>Year:</span> {profile.entranceTests.net.year}</div>}
+                      {profile.entranceTests.net.certificateNo && <div><span style={{ color: 'var(--color-text-muted)' }}>Certificate No:</span> {profile.entranceTests.net.certificateNo}</div>}
+                    </div>
+                  </div>
+                )}
+                {profile.entranceTests.set?.subject && (
+                  <div style={{ padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>SET / SLET</div>
+                    <div style={{ fontSize: '0.875rem' }}>
+                      {profile.entranceTests.set.subject && <div><span style={{ color: 'var(--color-text-muted)' }}>Subject:</span> {profile.entranceTests.set.subject}</div>}
+                      {profile.entranceTests.set.year && <div><span style={{ color: 'var(--color-text-muted)' }}>Year:</span> {profile.entranceTests.set.year}</div>}
+                      {profile.entranceTests.set.state && <div><span style={{ color: 'var(--color-text-muted)' }}>State:</span> {profile.entranceTests.set.state}</div>}
+                    </div>
+                  </div>
+                )}
+                {profile.entranceTests.gate?.score && (
+                  <div style={{ padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>GATE</div>
+                    <div style={{ fontSize: '0.875rem' }}>
+                      {profile.entranceTests.gate.score && <div><span style={{ color: 'var(--color-text-muted)' }}>Score / Percentile:</span> {profile.entranceTests.gate.score}</div>}
+                      {profile.entranceTests.gate.year && <div><span style={{ color: 'var(--color-text-muted)' }}>Year:</span> {profile.entranceTests.gate.year}</div>}
+                    </div>
+                  </div>
+                )}
+                {profile.entranceTests.jrf?.agency && (
+                  <div style={{ padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>JRF (Junior Research Fellowship)</div>
+                    <div style={{ fontSize: '0.875rem' }}>
+                      {profile.entranceTests.jrf.agency && <div><span style={{ color: 'var(--color-text-muted)' }}>Agency:</span> {profile.entranceTests.jrf.agency}</div>}
+                      {profile.entranceTests.jrf.year && <div><span style={{ color: 'var(--color-text-muted)' }}>Year:</span> {profile.entranceTests.jrf.year}</div>}
+                    </div>
+                  </div>
+                )}
+                {profile.entranceTests.other && (
+                  <div style={{ padding: '1rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '0.9375rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>Other Competitive Exams</div>
+                    <div style={{ fontSize: '0.875rem' }}>{profile.entranceTests.other}</div>
+                  </div>
+                )}
+              </div>
             </Section>
           )}
 

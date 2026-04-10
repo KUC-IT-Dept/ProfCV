@@ -51,7 +51,7 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   const {
     name, bio, headline, photo, subjects, qualifications, publications,
-    projects, customDetails, media, interests, dob, gender, phoneNumber, address
+    projects, customDetails, professionalDetails, entranceTests, media, interests, dob, gender, phoneNumber, address
   } = req.body;
   try {
     // Update User document if name is provided
@@ -64,7 +64,7 @@ const updateMyProfile = async (req, res) => {
       {
         $set: {
           bio, headline, photo, subjects, qualifications, publications,
-          projects, customDetails, media, interests, dob, gender, phoneNumber, address
+          projects, customDetails, professionalDetails, entranceTests, media, interests, dob, gender, phoneNumber, address
         }
       },
       { new: true, upsert: true, runValidators: true }
@@ -82,7 +82,7 @@ const updateMyProfile = async (req, res) => {
 /** PATCH /api/profile/me/visibility */
 const updateVisibility = async (req, res) => {
   const allowed = [
-    'bio', 'qualifications', 'publications', 'projects', 'subjects',
+    'bio', 'professionalDetails', 'entranceTests', 'qualifications', 'publications', 'projects', 'subjects',
     'customDetails', 'media', 'interests', 'photo', 'dob', 'gender', 'phoneNumber', 'address'
   ];
   const update = {};
@@ -186,6 +186,8 @@ const getPublicProfile = async (req, res) => {
       publications: vis.publications !== false ? profile.publications : undefined,
       projects: vis.projects !== false ? profile.projects : undefined,
       customDetails: vis.customDetails !== false ? profile.customDetails : undefined,
+      professionalDetails: vis.professionalDetails !== false ? profile.professionalDetails : undefined,
+      entranceTests: vis.entranceTests !== false ? profile.entranceTests : undefined,
       media: vis.media === true ? profile.media : undefined,
       photo: vis.photo !== false ? profile.photo : undefined,
       dob: vis.dob === true ? profile.dob : undefined,
