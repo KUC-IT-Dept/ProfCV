@@ -21,6 +21,25 @@ type Profile = {
   gender: string;
   phoneNumber: string;
   address: string;
+  subCategory: string;
+  differentlyAbled: string;
+  maritalStatus: string;
+  spouse: string;
+  emergencyContact: string;
+  panNumber: string;
+  bloodGroup: string;
+  nationality: string;
+  stateCity: string;
+  permanentAddress: string;
+  currentAddress: string;
+  mobileNumber: string;
+  alternatePhone: string;
+  officialEmail: string;
+  personalEmail: string;
+  aadhaar: string;
+  passport: string;
+  religion: string;
+  category: string;
 };
 
 type Visibility = {
@@ -40,6 +59,25 @@ const EMPTY_PROFILE: Profile = {
   qualifications: [], publications: [], projects: [],
   customDetails: [], interests: [], photo: '',
   dob: '', gender: '', phoneNumber: '', address: '',
+  subCategory: '',
+  differentlyAbled: '',
+  maritalStatus: '',
+  spouse: '',
+  emergencyContact: '',
+  panNumber: '',
+  bloodGroup: '',
+  nationality: '',
+  stateCity: '',
+  permanentAddress: '',
+  currentAddress: '',
+  mobileNumber: '',
+  alternatePhone: '',
+  officialEmail: '',
+  personalEmail: '',
+  aadhaar: '',
+  passport: '',
+  religion: '',
+  category: '',
   media: { attachments: [], videoEmbeds: [] },
   visibility: {
     bio: true, qualifications: true, publications: true,
@@ -447,6 +485,25 @@ export default function ProfileBuilderPage() {
         visibility: p.visibility || EMPTY_PROFILE.visibility,
         photo: p.photo || '',
         dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
+        subCategory: p.subCategory || '',
+        differentlyAbled: p.differentlyAbled || '',
+        maritalStatus: p.maritalStatus || '',
+        spouse: p.spouse || '',
+        emergencyContact: p.emergencyContact || '',
+        panNumber: p.panNumber || '',
+        bloodGroup: p.bloodGroup || '',
+        nationality: p.nationality || '',
+        stateCity: p.stateCity || '',
+        permanentAddress: p.permanentAddress || '',
+        currentAddress: p.currentAddress || '',
+        mobileNumber: p.mobileNumber || '',
+        alternatePhone: p.alternatePhone || '',
+        officialEmail: p.officialEmail || '',
+        personalEmail: p.personalEmail || '',
+        aadhaar: p.aadhaar || '',
+        passport: p.passport || '',
+        religion: p.religion || '',
+        category: p.category || '',
       };
       setProfile(initialProfile);
       setSavedProfile(initialProfile);
@@ -822,12 +879,38 @@ export default function ProfileBuilderPage() {
 
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div className="card" style={{ padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Personal Info</div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', color: 'var(--color-text)' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>
+                        Personal Information
+                      </div>
+
+                      <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '1fr 1fr',
+                        gap: '0.5rem',
+                        color: 'var(--color-text)'
+                      }}>
+                        <div><strong>Full Name:</strong> {profile.name || 'Not set'}</div>
                         <div><strong>Date of Birth:</strong> {profile.dob || 'Not set'}</div>
                         <div><strong>Gender:</strong> {profile.gender || 'Not set'}</div>
-                        <div><strong>Phone:</strong> {profile.phoneNumber || 'Not set'}</div>
-                        <div><strong>Address:</strong> {profile.address || 'Not set'}</div>
+                        <div><strong>Blood Group:</strong> {profile.bloodGroup || 'Not set'}</div>
+                        <div><strong>Nationality:</strong> {profile.nationality || 'Not set'}</div>
+                        <div><strong>State & City:</strong> {profile.stateCity || 'Not set'}</div>
+                        <div><strong>Permanent Address:</strong> {profile.permanentAddress || 'Not set'}</div>
+                        <div><strong>Current Address:</strong> {profile.currentAddress || 'Not set'}</div>
+                        <div><strong>Mobile Number:</strong> {profile.mobileNumber || 'Not set'}</div>
+                        <div><strong>Alternate Phone:</strong> {profile.alternatePhone || 'Not set'}</div>
+                        <div><strong>Official Email:</strong> {profile.officialEmail || 'Not set'}</div>
+                        <div><strong>Personal Email:</strong> {profile.personalEmail || 'Not set'}</div>
+                        <div><strong>Aadhaar:</strong> {profile.aadhaar || 'Not set'}</div>
+                        <div><strong>Passport:</strong> {profile.passport || 'Not set'}</div>
+                        <div><strong>Religion:</strong> {profile.religion || 'Not set'}</div>
+                        <div><strong>Category:</strong> {profile.category || 'Not set'}</div>
+                        <div><strong>Sub-category:</strong> {profile.subCategory || 'Not set'}</div>
+                        <div><strong>Differently Abled:</strong> {profile.differentlyAbled || 'Not set'}</div>
+                        <div><strong>Marital Status:</strong> {profile.maritalStatus || 'Not set'}</div>
+                        <div><strong>Spouse:</strong> {profile.spouse || 'Not set'}</div>
+                        <div><strong>Emergency Contact:</strong> {profile.emergencyContact || 'Not set'}</div>
+                        <div><strong>PAN Number:</strong> {profile.panNumber || 'Not set'}</div>
                       </div>
                     </div>
                     <div className="card" style={{ padding: '1rem' }}>
@@ -908,6 +991,60 @@ export default function ProfileBuilderPage() {
                     <textarea className="form-textarea" value={profile.address} onChange={(e) => set('address', e.target.value)} placeholder="Enter full address…" style={{ minHeight: 80 }} />
                   </div>
                   <div>
+                    <div className="form-group">
+                      <label className="form-label">Blood Group</label>
+                      <input className="form-input" value={profile.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Nationality</label>
+                      <input className="form-input" value={profile.nationality} onChange={(e) => set('nationality', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">State & City</label>
+                      <input className="form-input" value={profile.stateCity} onChange={(e) => set('stateCity', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Permanent Address</label>
+                      <textarea className="form-textarea" value={profile.permanentAddress} onChange={(e) => set('permanentAddress', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Current Address</label>
+                      <textarea className="form-textarea" value={profile.currentAddress} onChange={(e) => set('currentAddress', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Mobile Number</label>
+                      <input className="form-input" value={profile.mobileNumber} onChange={(e) => set('mobileNumber', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Alternate Phone</label>
+                      <input className="form-input" value={profile.alternatePhone} onChange={(e) => set('alternatePhone', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Official Email</label>
+                      <input className="form-input" value={profile.officialEmail} onChange={(e) => set('officialEmail', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Personal Email</label>
+                      <input className="form-input" value={profile.personalEmail} onChange={(e) => set('personalEmail', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">Aadhaar</label>
+                      <input className="form-input" value={profile.aadhaar} onChange={(e) => set('aadhaar', e.target.value)} />
+                    </div>
+
+                    <div className="form-group">
+                      <label className="form-label">PAN Number</label>
+                      <input className="form-input" value={profile.panNumber} onChange={(e) => set('panNumber', e.target.value)} />
+                    </div>
                     <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
                     <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
                   </div>
