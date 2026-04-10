@@ -3,7 +3,6 @@ import {
   Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
   Share2, Copy, Check, Eye, EyeOff, ExternalLink, User,
   ChevronDown, ChevronUp,
-  FileInput,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
@@ -69,20 +68,28 @@ type Visibility = {
   photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
-type Qualification = { degree: string; specialisation: string; institution: string; university: string; yearofpassing: string; cgpa: string;division: string ;mode :string; country: string ;state :string ;tenthcertificate :string ;twelfthcertificate :string ;ugcertificate :string ;pgcertificate :string ;mphilcertificate :string };
+type Qualification = {
+  [key: string]: string;
+  degree: string;
+  specialisation: string;
+  institution: string;
+  university: string;
+  yearofpassing: string;
+  cgpa: string;
+  division: string;
+  mode: string;
+  country: string;
+  state: string;
+  tenthcertificate: string;
+  twelfthcertificate: string;
+  ugcertificate: string;
+  pgcertificate: string;
+  mphilcertificate: string;
+};
 type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
 type CustomDetail = { sectionTitle: string; content: string; isVisible: boolean };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
-const indianStates = [
-  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 
-  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 
-  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 
-  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
-];
-
-const usStates = ['California', 'New York', 'Texas', 'Florida'];
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
   qualifications: [], publications: [], projects: [],
@@ -674,13 +681,17 @@ export default function ProfileBuilderPage() {
   };
   const removeVideoEmbed = (i: number) => set('media', { ...profile.media, videoEmbeds: profile.media.videoEmbeds.filter((_, idx) => idx !== i) });
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (
+    arg1: React.ChangeEvent<HTMLInputElement> | number,
+    arg2?: string,
+    arg3?: File,
+  ) => {
     setUploadError('');
-    const file = e.target.files?.[0];
+    const file = typeof arg1 === 'number' ? arg3 : arg1.target.files?.[0];
     if (!file) return;
     if (file.size > 5 * 1024 * 1024) {
       setUploadError(`"${file.name}" exceeds the 5 MB limit. Please upload a smaller file.`);
-      e.target.value = '';
+      if (typeof arg1 !== 'number') arg1.target.value = '';
       return;
     }
     const form = new FormData();
@@ -688,11 +699,17 @@ export default function ProfileBuilderPage() {
     try {
       const res = await api.post('/profile/me/attachment', form, { headers: { 'Content-Type': 'multipart/form-data' } });
       const att: Attachment = res.data.attachment;
-      set('media', { ...profile.media, attachments: [...profile.media.attachments, att] });
+      if (typeof arg1 === 'number' && arg2) {
+        set('qualifications', profile.qualifications.map((qualification, index) => (
+          index === arg1 ? { ...qualification, [arg2]: att.url } : qualification
+        )));
+      } else {
+        set('media', { ...profile.media, attachments: [...profile.media.attachments, att] });
+      }
     } catch (err: any) {
       setUploadError(err?.response?.data?.message ?? 'Upload failed.');
     }
-    e.target.value = '';
+    if (typeof arg1 !== 'number') arg1.target.value = '';
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1403,7 +1420,7 @@ export default function ProfileBuilderPage() {
                         value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
                         placeholder="Select country"
                       />
-                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.twelfthstate} onChange={(value) => updateQual(i, 'twelfthstate', e.target.value)} placeholder="Kerala" /></div>
+                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.twelfthstate} onChange={(e) => updateQual(i, 'twelfthstate', e.target.value)} placeholder="Kerala" /></div>
                       
                       <div className="col-span-2">
                         <FileField label="Upload Graduation certificate" name="graduationcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />

@@ -1,6 +1,13 @@
-import React from 'react';
+type SelectFieldProps = {
+  label: string;
+  name?: string;
+  options: string[];
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+};
 
-const SelectField = ({ label, name, options, value, onChange }) => {
+const SelectField = ({ label, name, options, value, onChange, placeholder }: SelectFieldProps) => {
   return (
     <div className="flex flex-col gap-1 w-full">
       <label className="text-[13px] font-medium text-gray-700">
@@ -9,7 +16,7 @@ const SelectField = ({ label, name, options, value, onChange }) => {
       <select
         name={name}
         value={value}
-        onChange={onChange}
+        onChange={(event) => onChange(event.target.value)}
         className="h-[38px] px-3 border border-[#D1D5DB] rounded-[4px] bg-white text-sm text-gray-700 outline-none focus:border-blue-500 appearance-none cursor-pointer"
         style={{
           backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
@@ -18,7 +25,7 @@ const SelectField = ({ label, name, options, value, onChange }) => {
           backgroundSize: '1em'
         }}
       >
-        <option value="" disabled>Select {label}</option>
+        <option value="" disabled>{placeholder || `Select ${label}`}</option>
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
