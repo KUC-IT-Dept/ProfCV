@@ -3,9 +3,13 @@ import {
   Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
   Share2, Copy, Check, Eye, EyeOff, ExternalLink, User,
   ChevronDown, ChevronUp,
+  FileInput,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
+import FileField from '../../components/FileField';
+import SelectField from '../../components/SelectField';
+
 
 type Profile = {
   name: string; bio: string; headline: string; subjects: string[];
@@ -65,12 +69,20 @@ type Visibility = {
   photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
-type Qualification = { degree: string; institution: string; year: string; grade: string };
+type Qualification = { degree: string; specialisation: string; institution: string; university: string; yearofpassing: string; cgpa: string;division: string ;mode :string; country: string ;state :string ;tenthcertificate :string ;twelfthcertificate :string ;ugcertificate :string ;pgcertificate :string ;mphilcertificate :string };
 type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
 type CustomDetail = { sectionTitle: string; content: string; isVisible: boolean };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
+const indianStates = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 
+  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 
+  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 
+  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal'
+];
 
+const usStates = ['California', 'New York', 'Texas', 'Florida'];
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
   qualifications: [], publications: [], projects: [],
@@ -1319,11 +1331,219 @@ export default function ProfileBuilderPage() {
                     expanded={isExpanded(cardKey)}
                     onToggle={() => toggleSection(cardKey)}
                   >
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Degree</label><input className="form-input" value={q.degree} onChange={(e) => updateQual(i, 'degree', e.target.value)} placeholder="Ph.D. Computer Science" /></div>
-                      <div className="form-group"><label className="form-label">Institution</label><input className="form-input" value={q.institution} onChange={(e) => updateQual(i, 'institution', e.target.value)} placeholder="MIT" /></div>
-                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={q.year} onChange={(e) => updateQual(i, 'year', e.target.value)} placeholder="2018" /></div>
-                      <div className="form-group"><label className="form-label">Grade / Result</label><input className="form-input" value={q.grade} onChange={(e) => updateQual(i, 'grade', e.target.value)} placeholder="Distinction" /></div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      
+                      
+                     
+                      <div className="col-span-2">
+                      <FileField label="Upload 10th certificate" name="tenthcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
+                        </div>
+                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.tenthboard} onChange={(e) => updateQual(i, 'boarduniversity', e.target.value)} placeholder="Diploma in Computer Science" /></div>
+                       <SelectField
+                       label="Year of Passing"
+                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
+                      value={q.year}
+                      onChange={(value) => updateQual(i, 'year', value)}
+                      placeholder="Select year of passing"
+                    />
+                       <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.tenthcgpa} onChange={(e) => updateQual(i, 'tenthcgpa', e.target.value)} placeholder="9.38" /></div>
+                          <SelectField
+                        label="Division/Class"
+                        options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
+                        value={q.tenthdivision}
+                        onChange={(value) => updateQual(i, 'tenthdivision', value)}
+                        placeholder="Select division/class"
+                      />
+
+
+                       
+                      <SelectField
+                        label="Mode of Study"
+                        options={['regular', 'distance']}
+                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
+                        placeholder="Select mode of study"
+                      />
+
+                       <SelectField
+                        label="Country"
+                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
+                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
+                        placeholder="Select country"
+                      />
+                       <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.tenthstate} onChange={(e) => updateQual(i, 'tenthstate', e.target.value)} placeholder="Kerala" /></div>
+                      <div className="col-span-2">
+                      <FileField label="Upload 12th certificate" name="twelfthcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
+                        </div>
+                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.twelfthboard} onChange={(e) => updateQual(i, 'twelfthboard', e.target.value)} placeholder="kerala board" /></div>
+                        <SelectField
+                       label="Year of Passing"
+                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
+                      value={q.year}
+                      onChange={(value) => updateQual(i, 'year', value)}
+                      placeholder="Select year of passing"
+                    />
+                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.twelfthcgpa} onChange={(e) => updateQual(i, 'twelfthcgpa', e.target.value)} placeholder="9.38" /></div>
+                        <SelectField
+                       label="Division/Class"
+                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
+                      value={q.twelfthdivision}
+                      onChange={(value) => updateQual(i, 'twelfthdivision', value)}
+                      placeholder="Select division/class"
+                    />
+                          <SelectField
+                        label="Mode of Study"
+                        options={['regular', 'distance']}
+                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
+                        placeholder="Select mode of study"
+                      />
+
+                        <SelectField
+                        label="Country"
+                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
+                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
+                        placeholder="Select country"
+                      />
+                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.twelfthstate} onChange={(value) => updateQual(i, 'twelfthstate', e.target.value)} placeholder="Kerala" /></div>
+                      
+                      <div className="col-span-2">
+                        <FileField label="Upload Graduation certificate" name="graduationcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
+                          </div>
+                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.graduationboard} onChange={(e) => updateQual(i, 'graduationboard', e.target.value)} placeholder="kerala university" /></div>
+                        <SelectField
+                       label="Year of Passing"
+                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
+                      value={q.year}
+                      onChange={(value) => updateQual(i, 'year', value)}
+                      placeholder="Select year of passing"
+                    />
+                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.graduationcgpa} onChange={(e) => updateQual(i, 'graduationcgpa', e.target.value)} placeholder="9.38" /></div>
+                        <SelectField
+                       label="Division/Class"
+                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
+                      value={q.graduationdivision}
+                      onChange={(value) => updateQual(i, 'graduationdivision', value)}
+                      placeholder="Select division/class"
+                    />
+
+                        <SelectField
+                        label="Mode of Study"
+                        options={['regular', 'distance']}
+                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
+                        placeholder="Select mode of study"
+                      />
+
+                        <SelectField
+                        label="Country"
+                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
+                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
+                        placeholder="Select country"
+                      />
+                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.graduationstate} onChange={(e) => updateQual(i, 'graduationstate', e.target.value)} placeholder="Kerala" /></div>
+                      
+                      <div className="col-span-2">
+                        <FileField label="Upload Post-Graduation certificate" name="postgraduationcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
+                          </div>
+                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.postgraduationboard} onChange={(e) => updateQual(i, 'postgraduationboard', e.target.value)} placeholder="kerala university" /></div>
+                        <SelectField
+                       label="Year of Passing"
+                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
+                      value={q.year}
+                      onChange={(value) => updateQual(i, 'year', value)}
+                      placeholder="Select year of passing"
+                    />
+                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.postgraduationcgpa} onChange={(e) => updateQual(i, 'postgraduationcgpa', e.target.value)} placeholder="9.38" /></div>
+                      <SelectField
+                       label="Division/Class"
+                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
+                      value={q.postgraduationdivision}
+                      onChange={(value) => updateQual(i, 'postgraduationdivision', value)}
+                      placeholder="Select division/class"
+                    />
+
+                        <SelectField
+                        label="Mode of Study"
+                        options={['regular', 'distance']}
+                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
+                        placeholder="Select mode of study"
+                      />
+
+                        <SelectField
+                        label="Country"
+                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
+                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
+                        placeholder="Select country"
+                      />
+                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.postgraduationstate} onChange={(e) => updateQual(i, 'postgraduationstate', e.target.value)} placeholder="Kerala" /></div>
+                      
+                      <div className="col-span-2">
+                        <FileField label="Upload M.Phil. certificate" name="mphilcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
+                          </div>
+                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.mphilboard} onChange={(e) => updateQual(i, 'mphilboard', e.target.value)} placeholder="kerala university" /></div>
+                       <SelectField
+                       label="Year of Passing"
+                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
+                      value={q.year}
+                      onChange={(value) => updateQual(i, 'year', value)}
+                      placeholder="Select year of passing"
+                    />
+                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.mphilcgpa} onChange={(e) => updateQual(i, 'mphilcgpa', e.target.value)} placeholder="9.38" /></div>
+                        <SelectField
+                       label="Division/Class"
+                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
+                      value={q.mphildivision}
+                      onChange={(value) => updateQual(i, 'mphildivision', value)}
+                      placeholder="Select division/class"
+                    />
+                        <SelectField
+                       label="Mode of Study"
+                      options={['regular', 'distance']}
+                      value={q.mode}
+                      onChange={(value) => updateQual(i, 'mode', value)}
+                      placeholder="Select mode of study"
+                    />
+
+                        <SelectField
+                        label="Country"
+                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
+                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
+                        placeholder="Select country"
+                      />
+                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.mphilstate} onChange={(e) => updateQual(i, 'mphilstate', e.target.value)} placeholder="Kerala" /></div>
+                     
+                      <div className="col-span-2">
+                        <FileField label="Upload Ph.D. certificate" name="phdcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
+                          </div>
+                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.phdboard} onChange={(e) => updateQual(i, 'phdboard', e.target.value)} placeholder="kerala university" /></div>
+                        <SelectField
+                       label="Year of Passing"
+                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
+                      value={q.year}
+                      onChange={(value) => updateQual(i, 'year', value)}
+                      placeholder="Select year of passing"
+                    />
+                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.phdcgpa} onChange={(e) => updateQual(i, 'phdcgpa', e.target.value)} placeholder="9.38" /></div>
+                       <SelectField
+                       label="Division/Class"
+                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
+                      value={q.phddivision}
+                      onChange={(value) => updateQual(i, 'phddivision', value)}
+                      placeholder="Select division/class"
+                    />
+                        <SelectField
+                        label="Mode of Study"
+                        options={['regular', 'distance']}
+                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
+                        placeholder="Select mode of study"
+                      />
+
+                        <SelectField
+                        label="Country"
+                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
+                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
+                        placeholder="Select country"
+                      />
+                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.phdstate} onChange={(e) => updateQual(i, 'phdstate', e.target.value)} placeholder="Kerala" /></div>
+                        
                     </div>
                     <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeQual(i)} type="button"><Trash2 size={13} /> Remove</button>
                   </CollapsibleEditorCard>
