@@ -368,6 +368,59 @@ function VisibilityPanel({
   );
 }
 
+function CollapsibleEditorCard({
+  title,
+  summary,
+  expanded,
+  onToggle,
+  onEdit,
+  children,
+}: {
+  title: string;
+  summary: string;
+  expanded: boolean;
+  onToggle: () => void;
+  onEdit: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: '0.75rem' }}>
+        <button
+          type="button"
+          onClick={onToggle}
+          style={{
+            flex: 1,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '0.75rem',
+            padding: '0.25rem 0',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer',
+            textAlign: 'left',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+              <h3 style={{ fontSize: '0.9375rem', margin: 0 }}>{title}</h3>
+              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-light)' }}>{expanded ? 'Expanded' : 'Collapsed'}</span>
+            </div>
+            <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              {summary}
+            </p>
+          </div>
+          {expanded ? <ChevronUp size={14} color="var(--color-text-muted)" /> : <ChevronDown size={14} color="var(--color-text-muted)" />}
+        </button>
+
+      </div>
+
+      {expanded && <div style={{ marginTop: '1rem' }}>{children}</div>}
+    </div>
+  );
+}
+
 // ── Main Page ──────────────────────────────────────────────────────────────────
 export default function ProfileBuilderPage() {
   const { user, updateUser } = useAuth();
@@ -380,6 +433,8 @@ export default function ProfileBuilderPage() {
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
   const [activeTab, setActiveTab] = useState<string>('basic');
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  const [basicEditMode, setBasicEditMode] = useState(false);
 
   useEffect(() => {
     api.get('/profile/me').then((r) => {
@@ -399,6 +454,10 @@ export default function ProfileBuilderPage() {
       setSavedProfile(initialProfile);
     }).catch(() => { });
   }, []);
+
+  const isExpanded = (key: string) => expandedSections[key] ?? false;
+  const openSection = (key: string) => setExpandedSections((prev) => ({ ...prev, [key]: true }));
+  const toggleSection = (key: string) => setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const save = useCallback(async () => {
     // Validation
@@ -442,19 +501,31 @@ export default function ProfileBuilderPage() {
     setVisSaving(false);
   };
 
-  const addQual = () => set('qualifications', [...profile.qualifications, { degree: '', institution: '', year: '', grade: '' }]);
+  const addQual = () => {
+    const nextIndex = profile.qualifications.length;
+    set('qualifications', [...profile.qualifications, { degree: '', institution: '', year: '', grade: '' }]);
+    openSection(`qualifications-${nextIndex}`);
+  };
   const updateQual = (i: number, f: keyof Qualification, v: string) => {
     const q = [...profile.qualifications]; q[i] = { ...q[i], [f]: v }; set('qualifications', q);
   };
   const removeQual = (i: number) => set('qualifications', profile.qualifications.filter((_, idx) => idx !== i));
 
-  const addPub = () => set('publications', [...profile.publications, { title: '', authors: '', journal: '', organisation: '', year: '', volume: '', issue: '', month: '', pages: '', doi: '', url: '' }]);
+  const addPub = () => {
+    const nextIndex = profile.publications.length;
+    set('publications', [...profile.publications, { title: '', authors: '', journal: '', organisation: '', year: '', volume: '', issue: '', month: '', pages: '', doi: '', url: '' }]);
+    openSection(`publications-${nextIndex}`);
+  };
   const updatePub = (i: number, f: keyof Publication, v: string) => {
     const arr = [...profile.publications]; arr[i] = { ...arr[i], [f]: v }; set('publications', arr);
   };
   const removePub = (i: number) => set('publications', profile.publications.filter((_, idx) => idx !== i));
 
-  const addProj = () => set('projects', [...profile.projects, { title: '', description: '', year: '', url: '' }]);
+  const addProj = () => {
+    const nextIndex = profile.projects.length;
+    set('projects', [...profile.projects, { title: '', description: '', year: '', url: '' }]);
+    openSection(`projects-${nextIndex}`);
+  };
   const updateProj = (i: number, f: keyof Project, v: string) => {
     const arr = [...profile.projects]; arr[i] = { ...arr[i], [f]: v }; set('projects', arr);
   };
@@ -464,6 +535,7 @@ export default function ProfileBuilderPage() {
     const newIdx = profile.customDetails.length;
     set('customDetails', [...profile.customDetails, { sectionTitle: '', content: '', isVisible: true }]);
     setActiveTab(`custom-${newIdx}`);
+    openSection(`custom-${newIdx}`);
   };
   const updateCustom = (i: number, f: keyof CustomDetail, v: any) => {
     const arr = [...profile.customDetails]; arr[i] = { ...arr[i], [f]: v }; set('customDetails', arr);
@@ -522,7 +594,7 @@ export default function ProfileBuilderPage() {
   const removeAttachment = (i: number) => set('media', { ...profile.media, attachments: profile.media.attachments.filter((_, idx) => idx !== i) });
 
   return (
-    <div style={{ maxWidth: 900 }}>
+    <div style={{ width: 'calc(100% - 340px)', maxWidth: 'none' }}>
       {/* Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
@@ -563,7 +635,7 @@ export default function ProfileBuilderPage() {
       )}
 
       {/* Two-column layout: content + visibility sidebar */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '1.5rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
         {/* Main builder content */}
         <div style={{ minWidth: 0 }}>
           {/* Horizontal Tabs */}
@@ -716,169 +788,246 @@ export default function ProfileBuilderPage() {
 
           {/* Tab Content */}
           {activeTab === 'basic' && (
-            <div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div className="form-group">
-                  <label className="form-label">Profile Photo</label>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '0.5rem' }}>
-                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {profile.photo ? (
-                        <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                      ) : (
-                        <User size={32} color="var(--color-text-light)" />
-                      )}
-                    </div>
-                    <div>
-                      <label htmlFor="photo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '0.375rem', display: 'inline-flex' }}>
-                        <Upload size={14} /> {profile.photo ? 'Change Photo' : 'Upload Photo'}
-                      </label>
-                      <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
-                      <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>
-                        Accepted: JPG, PNG, GIF. Max 2MB.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <input className="form-input" value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Dr. John Smith" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Professional Headline</label>
-                  <input className="form-input" value={profile.headline} onChange={(e) => set('headline', e.target.value)} placeholder="e.g. Associate Professor of Computer Science" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Biography</label>
-                  <textarea className="form-textarea" value={profile.bio} onChange={(e) => set('bio', e.target.value)} placeholder="Brief professional biography…" style={{ minHeight: 120 }} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Subjects Taught (comma-separated)</label>
-                  <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
-                </div>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label className="form-label">Date of Birth</label>
-                    <input type="date" className="form-input" value={profile.dob} onChange={(e) => set('dob', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Gender</label>
-                    <select className="form-input" value={profile.gender} onChange={(e) => set('gender', e.target.value)}>
-                      <option value="">Select Gender</option>
-                      <option value="Male">Male</option>
-                      <option value="Female">Female</option>
-                      <option value="Other">Other</option>
-                      <option value="Prefer not to say">Prefer not to say</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Phone Number</label>
-                  <input className="form-input" value={profile.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} placeholder="e.g. +1 234 567 890" />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Office / Residential Address</label>
-                  <textarea className="form-textarea" value={profile.address} onChange={(e) => set('address', e.target.value)} placeholder="Enter full address…" style={{ minHeight: 80 }} />
-                </div>
+            <div className="card" style={{ padding: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                 <div>
-                  <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
-                  <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
+                  <h2 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Basic Information</h2>
+                  <p style={{ fontSize: '0.8125rem', margin: 0 }}>View your details, then click Edit to make changes.</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPasswordModal(true)}
-                  style={{
-                    backgroundColor: "red",
-                    width: "220px",
-                    color: "white",
-                    textAlign: "center",
-                    padding: "6px 16px",
-                    fontWeight: "bold",
-                    borderRadius: "12px",
-                    border: "none",
-                    cursor: "pointer",
-                    marginTop: "0.5rem"
-                  }}
-                >
-                  Update Password
+                <button className="btn btn-secondary" type="button" onClick={() => setBasicEditMode((prev) => !prev)}>
+                  Edit
                 </button>
               </div>
+
+              {!basicEditMode ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {profile.photo ? <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={32} color="var(--color-text-light)" />}
+                    </div>
+                    <div>
+                      <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>{profile.name || 'Unnamed profile'}</h3>
+                      <p style={{ margin: 0 }}>{profile.headline || 'No headline added yet'}</p>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="card" style={{ padding: '1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Biography</div>
+                      <div style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text)' }}>{profile.bio || 'No biography added yet'}</div>
+                    </div>
+                    <div className="card" style={{ padding: '1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Subjects</div>
+                      <div style={{ color: 'var(--color-text)' }}>{profile.subjects.length > 0 ? profile.subjects.join(', ') : 'No subjects added yet'}</div>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="card" style={{ padding: '1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Personal Info</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', color: 'var(--color-text)' }}>
+                        <div><strong>Date of Birth:</strong> {profile.dob || 'Not set'}</div>
+                        <div><strong>Gender:</strong> {profile.gender || 'Not set'}</div>
+                        <div><strong>Phone:</strong> {profile.phoneNumber || 'Not set'}</div>
+                        <div><strong>Address:</strong> {profile.address || 'Not set'}</div>
+                      </div>
+                    </div>
+                    <div className="card" style={{ padding: '1rem' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Interests</div>
+                      {profile.interests.length > 0 ? (
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                          {profile.interests.map((interest, i) => (
+                            <span key={i} style={{ padding: '0.35rem 0.65rem', borderRadius: '99px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', fontSize: '0.8125rem' }}>{interest}</span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div style={{ color: 'var(--color-text)' }}>No interests added yet</div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <button type="button" onClick={() => setShowPasswordModal(true)} style={{ backgroundColor: 'red', width: '220px', color: 'white', textAlign: 'center', padding: '6px 16px', fontWeight: 'bold', borderRadius: '12px', border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}>
+                      Update Password
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Profile Photo</label>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '0.5rem' }}>
+                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {profile.photo ? <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={32} color="var(--color-text-light)" />}
+                      </div>
+                      <div>
+                        <label htmlFor="photo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '0.375rem', display: 'inline-flex' }}>
+                          <Upload size={14} /> {profile.photo ? 'Change Photo' : 'Upload Photo'}
+                        </label>
+                        <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
+                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>Accepted: JPG, PNG, GIF. Max 2MB.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Full Name</label>
+                    <input className="form-input" value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Dr. John Smith" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Professional Headline</label>
+                    <input className="form-input" value={profile.headline} onChange={(e) => set('headline', e.target.value)} placeholder="e.g. Associate Professor of Computer Science" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Biography</label>
+                    <textarea className="form-textarea" value={profile.bio} onChange={(e) => set('bio', e.target.value)} placeholder="Brief professional biography…" style={{ minHeight: 120 }} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Subjects Taught (comma-separated)</label>
+                    <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group">
+                      <label className="form-label">Date of Birth</label>
+                      <input type="date" className="form-input" value={profile.dob} onChange={(e) => set('dob', e.target.value)} />
+                    </div>
+                    <div className="form-group">
+                      <label className="form-label">Gender</label>
+                      <select className="form-input" value={profile.gender} onChange={(e) => set('gender', e.target.value)}>
+                        <option value="">Select Gender</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                        <option value="Prefer not to say">Prefer not to say</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Phone Number</label>
+                    <input className="form-input" value={profile.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} placeholder="e.g. +1 234 567 890" />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Office / Residential Address</label>
+                    <textarea className="form-textarea" value={profile.address} onChange={(e) => set('address', e.target.value)} placeholder="Enter full address…" style={{ minHeight: 80 }} />
+                  </div>
+                  <div>
+                    <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
+                    <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
+                  </div>
+                  <button type="button" onClick={() => setShowPasswordModal(true)} style={{ backgroundColor: 'red', width: '220px', color: 'white', textAlign: 'center', padding: '6px 16px', fontWeight: 'bold', borderRadius: '12px', border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}>
+                    Update Password
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
           {activeTab === 'qualifications' && (
             <div>
-              {profile.qualifications.map((q, i) => (
-                <div key={i} className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    <div className="form-group"><label className="form-label">Degree</label><input className="form-input" value={q.degree} onChange={(e) => updateQual(i, 'degree', e.target.value)} placeholder="Ph.D. Computer Science" /></div>
-                    <div className="form-group"><label className="form-label">Institution</label><input className="form-input" value={q.institution} onChange={(e) => updateQual(i, 'institution', e.target.value)} placeholder="MIT" /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={q.year} onChange={(e) => updateQual(i, 'year', e.target.value)} placeholder="2018" /></div>
-                    <div className="form-group"><label className="form-label">Grade / Result</label><input className="form-input" value={q.grade} onChange={(e) => updateQual(i, 'grade', e.target.value)} placeholder="Distinction" /></div>
-                  </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.5rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeQual(i)} type="button"><Trash2 size={13} /> Remove</button>
-                </div>
-              ))}
+              {profile.qualifications.map((q, i) => {
+                const cardKey = `qualifications-${i}`;
+                const summary = [q.degree, q.institution, q.year].filter(Boolean).join(' · ') || 'Add qualification details';
+                return (
+                  <CollapsibleEditorCard
+                    key={cardKey}
+                    title={q.degree || `Qualification ${i + 1}`}
+                    summary={summary}
+                    expanded={isExpanded(cardKey)}
+                    onToggle={() => toggleSection(cardKey)}
+                    onEdit={() => openSection(cardKey)}
+                  >
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                      <div className="form-group"><label className="form-label">Degree</label><input className="form-input" value={q.degree} onChange={(e) => updateQual(i, 'degree', e.target.value)} placeholder="Ph.D. Computer Science" /></div>
+                      <div className="form-group"><label className="form-label">Institution</label><input className="form-input" value={q.institution} onChange={(e) => updateQual(i, 'institution', e.target.value)} placeholder="MIT" /></div>
+                      <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={q.year} onChange={(e) => updateQual(i, 'year', e.target.value)} placeholder="2018" /></div>
+                      <div className="form-group"><label className="form-label">Grade / Result</label><input className="form-input" value={q.grade} onChange={(e) => updateQual(i, 'grade', e.target.value)} placeholder="Distinction" /></div>
+                    </div>
+                    <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeQual(i)} type="button"><Trash2 size={13} /> Remove</button>
+                  </CollapsibleEditorCard>
+                );
+              })}
               <button className="btn btn-secondary" onClick={addQual} type="button"><Plus size={14} /> Add Qualification</button>
             </div>
           )}
 
           {activeTab === 'publications' && (
             <div>
-              {profile.publications.map((p, i) => (
-                <div key={i} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Paper Title / Name <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                      <input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Enter paper title…" />
+              {profile.publications.map((p, i) => {
+                const cardKey = `publications-${i}`;
+                const summary = [p.title, p.year, p.journal].filter(Boolean).join(' · ') || 'Add publication details';
+                return (
+                  <CollapsibleEditorCard
+                    key={cardKey}
+                    title={p.title || `Publication ${i + 1}`}
+                    summary={summary}
+                    expanded={isExpanded(cardKey)}
+                    onToggle={() => toggleSection(cardKey)}
+                    onEdit={() => openSection(cardKey)}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Paper Title / Name <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                        <input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Enter paper title…" />
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Authors List (comma-separated)</label>
+                        <input className="form-input" value={p.authors} onChange={(e) => updatePub(i, 'authors', e.target.value)} placeholder="e.g. John Doe, Jane Smith…" />
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div className="form-group"><label className="form-label">Journal / Conference Name</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
+                        <div className="form-group"><label className="form-label">Organisation / Publisher</label><input className="form-input" value={p.organisation} onChange={(e) => updatePub(i, 'organisation', e.target.value)} placeholder="e.g. IEEE, Springer…" /></div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                        <div className="form-group"><label className="form-label">Year of Publication <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
+                        <div className="form-group"><label className="form-label">Month (Optional)</label><input className="form-input" value={p.month} onChange={(e) => updatePub(i, 'month', e.target.value)} placeholder="June" /></div>
+                        <div className="form-group"><label className="form-label">DOI <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
+                      </div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+                        <div className="form-group"><label className="form-label">Volume (Optional)</label><input className="form-input" value={p.volume} onChange={(e) => updatePub(i, 'volume', e.target.value)} placeholder="Vol 12" /></div>
+                        <div className="form-group"><label className="form-label">Issue (Optional)</label><input className="form-input" value={p.issue} onChange={(e) => updatePub(i, 'issue', e.target.value)} placeholder="Issue 4" /></div>
+                        <div className="form-group"><label className="form-label">Page Numbers (Optional)</label><input className="form-input" value={p.pages} onChange={(e) => updatePub(i, 'pages', e.target.value)} placeholder="e.g. 123-145" /></div>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Publication URL <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                        <input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" />
+                      </div>
+                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem', alignSelf: 'flex-start' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove Publication</button>
                     </div>
-                    <div className="form-group">
-                      <label className="form-label">Authors List (comma-separated)</label>
-                      <input className="form-input" value={p.authors} onChange={(e) => updatePub(i, 'authors', e.target.value)} placeholder="e.g. John Doe, Jane Smith…" />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Journal / Conference Name</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
-                      <div className="form-group"><label className="form-label">Organisation / Publisher</label><input className="form-input" value={p.organisation} onChange={(e) => updatePub(i, 'organisation', e.target.value)} placeholder="e.g. IEEE, Springer…" /></div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Year of Publication <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
-                      <div className="form-group"><label className="form-label">Month (Optional)</label><input className="form-input" value={p.month} onChange={(e) => updatePub(i, 'month', e.target.value)} placeholder="June" /></div>
-                      <div className="form-group"><label className="form-label">DOI <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Volume (Optional)</label><input className="form-input" value={p.volume} onChange={(e) => updatePub(i, 'volume', e.target.value)} placeholder="Vol 12" /></div>
-                      <div className="form-group"><label className="form-label">Issue (Optional)</label><input className="form-input" value={p.issue} onChange={(e) => updatePub(i, 'issue', e.target.value)} placeholder="Issue 4" /></div>
-                      <div className="form-group"><label className="form-label">Page Numbers (Optional)</label><input className="form-input" value={p.pages} onChange={(e) => updatePub(i, 'pages', e.target.value)} placeholder="e.g. 123-145" /></div>
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Publication URL <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                      <input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" />
-                    </div>
-                  </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove Publication</button>
-                </div>
-              ))}
+                  </CollapsibleEditorCard>
+                );
+              })}
               <button className="btn btn-secondary" onClick={addPub} type="button"><Plus size={14} /> Add Publication</button>
             </div>
           )}
 
           {activeTab === 'projects' && (
             <div>
-              {profile.projects.map((p, i) => (
-                <div key={i} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Project Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                      <input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Research project title…" />
+              {profile.projects.map((p, i) => {
+                const cardKey = `projects-${i}`;
+                const summary = [p.title, p.year].filter(Boolean).join(' · ') || 'Add project details';
+                return (
+                  <CollapsibleEditorCard
+                    key={cardKey}
+                    title={p.title || `Project ${i + 1}`}
+                    summary={summary}
+                    expanded={isExpanded(cardKey)}
+                    onToggle={() => toggleSection(cardKey)}
+                    onEdit={() => openSection(cardKey)}
+                  >
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                      <div className="form-group">
+                        <label className="form-label">Project Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
+                        <input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Research project title…" />
+                      </div>
+                      <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Brief project summary…" style={{ minHeight: 80 }} /></div>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                        <div className="form-group"><label className="form-label">Year <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2022-2023" /></div>
+                        <div className="form-group"><label className="form-label">Project URL <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://…" /></div>
+                      </div>
+                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem', alignSelf: 'flex-start' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove Project</button>
                     </div>
-                    <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Brief project summary…" style={{ minHeight: 80 }} /></div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      <div className="form-group"><label className="form-label">Year <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2022-2023" /></div>
-                      <div className="form-group"><label className="form-label">Project URL <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://…" /></div>
-                    </div>
-                  </div>
-                  <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove Project</button>
-                </div>
-              ))}
+                  </CollapsibleEditorCard>
+                );
+              })}
               <button className="btn btn-secondary" onClick={addProj} type="button"><Plus size={14} /> Add Project</button>
             </div>
           )}
@@ -889,22 +1038,24 @@ export default function ProfileBuilderPage() {
                 const idx = parseInt(activeTab.split('-')[1]);
                 const c = profile.customDetails[idx];
                 if (!c) return null;
+                const cardKey = `custom-${idx}`;
+                const preview = c.content.trim().replace(/\s+/g, ' ').slice(0, 90);
+                const summary = `${c.isVisible ? 'Visible' : 'Hidden'}${preview ? ` · ${preview}` : ''}`;
                 return (
-                  <div key={idx} className="card" style={{ padding: '1.5rem', marginBottom: '1rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{ padding: '0.5rem', background: 'var(--color-primary-light)', borderRadius: 'var(--radius-sm)', color: 'var(--color-primary)' }}>
-                          <Plus size={18} />
-                        </div>
-                        <h2 style={{ fontSize: '1rem', margin: 0 }}>Section Editor</h2>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                        <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '0.4rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                          {c.isVisible ? <Eye size={14} color="var(--color-primary)" /> : <EyeOff size={14} color="var(--color-text-light)" />}
-                          <span>{c.isVisible ? 'Visible on Profile' : 'Hidden from Profile'}</span>
-                          <input type="checkbox" checked={c.isVisible} onChange={() => updateCustom(idx, 'isVisible', !c.isVisible)} style={{ display: 'none' }} />
-                        </label>
-                      </div>
+                  <CollapsibleEditorCard
+                    key={cardKey}
+                    title={c.sectionTitle || `Section ${idx + 1}`}
+                    summary={summary || 'Add section content'}
+                    expanded={isExpanded(cardKey)}
+                    onToggle={() => toggleSection(cardKey)}
+                    onEdit={() => openSection(cardKey)}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '0.4rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                        {c.isVisible ? <Eye size={14} color="var(--color-primary)" /> : <EyeOff size={14} color="var(--color-text-light)" />}
+                        <span>{c.isVisible ? 'Visible on Profile' : 'Hidden from Profile'}</span>
+                        <input type="checkbox" checked={c.isVisible} onChange={() => updateCustom(idx, 'isVisible', !c.isVisible)} style={{ display: 'none' }} />
+                      </label>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -922,7 +1073,7 @@ export default function ProfileBuilderPage() {
                         <Trash2 size={13} /> Remove Section
                       </button>
                     </div>
-                  </div>
+                  </CollapsibleEditorCard>
                 );
               })()}
             </div>
@@ -976,8 +1127,8 @@ export default function ProfileBuilderPage() {
           )}
         </div>
 
-        {/* Sidebar: Visibility Settings - Sticky Position */}
-        <div style={{ position: 'sticky', top: '1.5rem', alignSelf: 'start', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 3rem)', overflowY: 'auto' }}>
+        {/* Sidebar: Visibility Settings - Fixed Right Position */}
+        <div style={{ position: 'fixed', top: '5rem', right: '1.5rem', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
           <VisibilityPanel
             visibility={profile.visibility}
             onToggle={toggleVisibility}

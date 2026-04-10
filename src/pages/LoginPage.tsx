@@ -113,7 +113,6 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Demo credentials
         <div className="card" style={{ padding: '1rem 1.25rem', marginTop: '1rem' }}>
           <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.5rem' }}>
             Demo Credentials (password: <code>password123</code>)
@@ -136,7 +135,7 @@ export default function LoginPage() {
               </button>
             ))}
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );
