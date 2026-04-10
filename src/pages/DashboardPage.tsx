@@ -3,11 +3,21 @@ import { useNavigate } from 'react-router-dom';
 import {
   Users, BookOpen, Share2, FileText, User, Download, LayoutDashboard,
   FlaskConical, GraduationCap, BookMarked, Paperclip, Trophy, TrendingUp,
-  Calendar, Newspaper, Award,
+  Calendar, Newspaper, Award, Building2, ChevronRight, X
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import api from '../lib/axios';
 import Barchart from '../components/Barchart'; // Import your Barchart component
+
+export interface DepartmentInfo {
+  name: string;
+  hodName: string;
+  facultyCount: number;
+  studentsCount: number;
+  courses: string[];
+  description: string;
+  facultyPreview: { id: string; name: string; publications: number; projects: number; role: string; }[];
+}
 
 interface AdminStats {
   totalFaculty: number;
@@ -87,6 +97,44 @@ export default function DashboardPage() {
   const [teacherStats, setTeacherStats] = useState<TeacherStats | null>(null);
   const [hodStats, setHodStats] = useState<HodStats | null>(null);
   const [chartData, setChartData] = useState<{ year: string; publications: number }[]>([]); // Added for chart
+  const [departmentList, setDepartmentList] = useState<DepartmentInfo[]>([]);
+  const [selectedDeptName, setSelectedDeptName] = useState<string | null>(null);
+  const [selectedDeptStats, setSelectedDeptStats] = useState<HodStats | null>(null);
+
+  useEffect(() => {
+    if (selectedDeptName) {
+      api.get('/directory').then(async (directoryRes) => {
+        const teachers: any[] = (directoryRes.data as any[]).filter((u: any) => u.department === selectedDeptName && u.role === 'TEACHER');
+        const profiles = await Promise.all(
+          teachers.map((t: any) =>
+            api.get(`/profile/${t._id}`).then(r => ({ ...r.data, _userId: t._id, _userName: t.name })).catch(() => null)
+          )
+        );
+        const valid = profiles.filter(Boolean);
+        const totalPubs = valid.reduce((s, p) => s + (p.publications?.length || 0), 0);
+        const totalProjects = valid.reduce((s, p) => s + (p.projects?.length || 0), 0);
+        const totalQuals = valid.reduce((s, p) => s + (p.qualifications?.length || 0), 0);
+        const leaderboard: HodTeacher[] = valid.map(p => {
+          const pubs = (p.publications || []) as any[];
+          const sorted = [...pubs].filter(x => x.year).sort((a, b) => Number(b.year) - Number(a.year));
+          return {
+            name: p._userName || p.user?.name || 'Unknown',
+            publishCount: pubs.length,
+            projectCount: (p.projects || []).length,
+            latestPub: sorted[0]?.title,
+          };
+        }).sort((a, b) => b.publishCount - a.publishCount);
+        
+        setSelectedDeptStats({
+          totalFaculty: teachers.length, totalPubs, totalProjects, totalQuals,
+          avgPubs: teachers.length ? (totalPubs / teachers.length).toFixed(1) : '0',
+          leaderboard: leaderboard.slice(0, 5),
+        });
+      }).catch(() => { });
+    } else {
+      setSelectedDeptStats(null);
+    }
+  }, [selectedDeptName]);
 
   const isTeacher = user?.role === 'TEACHER';
   const isHod = user?.role === 'HOD';
@@ -158,11 +206,44 @@ export default function DashboardPage() {
       }).catch(() => { });
     } else {
       // ... (Keep your existing Admin logic)
-      api.get('/directory').then((res) => {
+      api.get('/directory').then(async (res) => {
         const users: any[] = res.data;
         const depts = new Set(users.map((u: any) => u.department).filter(Boolean));
         const teachers = users.filter((u: any) => u.role === 'TEACHER');
         setAdminStats({ totalFaculty: teachers.length, departments: depts.size, totalProfiles: teachers.length });
+
+        const deptsArr = Array.from(depts);
+        const aggregated: DepartmentInfo[] = await Promise.all(deptsArr.map(async (deptName) => {
+          const deptStr = String(deptName);
+          const deptUsers = users.filter((u: any) => u.department === deptStr);
+          const hod = deptUsers.find((u: any) => u.role === 'HOD');
+          const facultyUsers = deptUsers.filter((u: any) => u.role === 'TEACHER' || u.role === 'HOD');
+          
+          let topFaculty = facultyUsers.slice(0, 3);
+          
+          const previewWithAchievements = await Promise.all(topFaculty.map(async u => {
+             try {
+                const prRes = await api.get(`/profile/${u._id}`);
+                const pubs = prRes.data?.publications?.length || 0;
+                const projs = prRes.data?.projects?.length || 0;
+                return { id: u._id, name: u.name, publications: pubs, projects: projs, role: u.role };
+             } catch (e) {
+                return { id: u._id, name: u.name, publications: 0, projects: 0, role: u.role };
+             }
+          }));
+
+          return {
+            name: deptStr,
+            hodName: hod ? hod.name : 'Unknown',
+            facultyCount: facultyUsers.length,
+            studentsCount: Math.floor(Math.random() * 300) + 150, // Mocked for UI
+            courses: ['B.Tech Core Curriculum', 'M.Tech Advanced Topics', 'Ph.D. Research Track'],
+            description: `The ${deptStr} department is dedicated to promoting academic excellence, innovation, and comprehensive research. Our distinguished faculty provide top-tier learning experiences.`,
+            facultyPreview: previewWithAchievements
+          };
+        }));
+        
+        setDepartmentList(aggregated);
       }).catch(() => {});
     }
   }, [isTeacher, isHod, user?.department]);
@@ -337,6 +418,171 @@ export default function DashboardPage() {
             )}
           </div>
         </>
+      )}
+
+      {/* DEPARTMENTS SECTION */}
+      {departmentList.length > 0 && (
+        <div style={{ marginBottom: '2.5rem' }}>
+          <h2 style={{ fontSize: '1.125rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 600 }}>
+            <Building2 size={20} color="var(--color-primary)" />
+            Departments
+          </h2>
+          
+          {selectedDeptName ? (
+            // Expanded View
+            (() => {
+              const d = departmentList.find(x => x.name === selectedDeptName);
+              if (!d) return null;
+              return (
+                <div 
+                  className="card" 
+                  style={{ 
+                    padding: '2rem', 
+                    border: '1px solid var(--color-border)',
+                    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05), 0 8px 10px -6px rgba(0,0,0,0.01)',
+                    position: 'relative',
+                    animation: 'fadeInSlideUp 0.3s ease-out'
+                  }}
+                >
+                  <button 
+                    onClick={() => setSelectedDeptName(null)}
+                    style={{
+                      position: 'absolute', top: '1.5rem', right: '1.5rem',
+                      background: 'rgba(0,0,0,0.04)', border: 'none', borderRadius: '50%',
+                      width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      cursor: 'pointer', transition: 'background 0.2s', color: 'var(--color-text)'
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.08)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.04)'}
+                    title="Close"
+                  >
+                    <X size={18} />
+                  </button>
+                  
+                  <div style={{ paddingRight: '3rem', marginBottom: '1.5rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-primary)', fontWeight: 700, letterSpacing: '0.05em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>Department Profile</div>
+                    <h3 style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-text)', marginBottom: '0.5rem' }}>{d.name}</h3>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-text-muted)' }}>
+                      <User size={16} /> <span><strong>HOD:</strong> {d.hodName}</span>
+                    </div>
+                  </div>
+                  
+                  {selectedDeptStats ? (
+                    <>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+                        {[
+                          { label: 'Faculty in Dept', value: selectedDeptStats.totalFaculty, icon: <Users size={20} />, color: '#1D4ED8' },
+                          { label: 'Total Publications', value: selectedDeptStats.totalPubs, icon: <BookMarked size={20} />, color: '#4F46E5' },
+                          { label: 'Research Projects', value: selectedDeptStats.totalProjects, icon: <FlaskConical size={20} />, color: '#059669' },
+                          { label: 'Qualifications', value: selectedDeptStats.totalQuals, icon: <GraduationCap size={20} />, color: '#D97706' },
+                          { label: 'Avg Pubs / Teacher', value: selectedDeptStats.avgPubs, icon: <TrendingUp size={20} />, color: '#7C3AED' },
+                        ].map((s) => (
+                          <div className="stat-card" key={s.label}>
+                            <div className="stat-card-icon" style={{ background: `${s.color}14`, color: s.color }}>{s.icon}</div>
+                            <div>
+                              <div className="stat-card-value">{s.value}</div>
+                              <div className="stat-card-label">{s.label}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {selectedDeptStats.leaderboard.length > 0 && (
+                        <div className="card" style={{ padding: '1.25rem', marginBottom: '1.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                            <Trophy size={17} color="#D97706" />
+                            <h3 style={{ fontSize: '0.9375rem' }}>Publication Leaderboard</h3>
+                            <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Top faculty by publications</span>
+                          </div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                            <thead>
+                              <tr>
+                                {['Rank', 'Faculty', 'Publications', 'Projects', 'Latest Publication'].map(h => (
+                                  <th key={h} style={{ textAlign: 'left', padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--color-border)', color: 'var(--color-text-muted)', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{h}</th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {selectedDeptStats.leaderboard.map((t, i) => (
+                                <tr key={i} style={{ borderBottom: '1px solid var(--color-border)' }}>
+                                  <td style={{ padding: '0.75rem', fontWeight: 700, fontSize: '1.1rem' }}>{MEDALS[i] ?? `#${i + 1}`}</td>
+                                  <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--color-text)' }}>{t.name}</td>
+                                  <td style={{ padding: '0.75rem' }}>
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.2rem 0.6rem', background: '#EFF6FF', color: '#1D4ED8', borderRadius: 99, fontWeight: 700, fontSize: '0.8125rem' }}>
+                                      <BookMarked size={12} /> {t.publishCount}
+                                    </span>
+                                  </td>
+                                  <td style={{ padding: '0.75rem', color: 'var(--color-text-muted)' }}>{t.projectCount}</td>
+                                  <td style={{ padding: '0.75rem', color: 'var(--color-text-muted)', fontSize: '0.8125rem', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    {t.latestPub ?? <span style={{ color: 'var(--color-text-light)' }}>—</span>}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--color-text-muted)' }}>Loading department stats...</div>
+                  )}
+                  
+                </div>
+              );
+            })()
+          ) : (
+            // Grid View
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1rem' }}>
+              {departmentList.map(d => (
+                <div 
+                  key={d.name}
+                  className="card"
+                  onClick={() => setSelectedDeptName(d.name)}
+                  style={{
+                    padding: '1.25rem', border: '1px solid var(--color-border)', cursor: 'pointer',
+                    display: 'flex', flexDirection: 'column', gap: '0.75rem', background: '#fff',
+                    transition: 'all 0.2s ease', position: 'relative', overflow: 'hidden'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.05), 0 4px 6px -2px rgba(0,0,0,0.025)';
+                    e.currentTarget.style.borderColor = 'var(--color-primary-light)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = 'translateY(0)';
+                    e.currentTarget.style.boxShadow = 'var(--shadow-card)';
+                    e.currentTarget.style.borderColor = 'var(--color-border)';
+                  }}
+                >
+                  <div style={{ paddingRight: '2rem' }}>
+                    <div style={{ fontSize: '1.05rem', fontWeight: 700, color: 'var(--color-text)', marginBottom: '0.25rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{d.name}</div>
+                    <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)' }}>HOD: {d.hodName}</div>
+                  </div>
+                  
+                  <div style={{ marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem' }}>
+                    <div style={{ fontSize: '0.8125rem', color: '#64748b', fontWeight: 500, display: 'flex', gap: '0.75rem' }}>
+                      <span><strong style={{ color: 'var(--color-text)' }}>{d.facultyCount}</strong> Faculty</span>
+                      <span style={{ color: '#cbd5e1' }}>|</span>
+                      <span><strong style={{ color: 'var(--color-text)' }}>{d.studentsCount}</strong> Students</span>
+                    </div>
+                  </div>
+                  
+                  <div style={{ position: 'absolute', right: '1.25rem', top: '1.25rem', color: '#cbd5e1', transition: 'color 0.2s', display: 'flex', alignItems: 'center' }} className="dept-arrow">
+                    <ChevronRight size={20} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <style dangerouslySetInnerHTML={{__html: `
+            .card:hover .dept-arrow { color: var(--color-primary) !important; transform: translateX(2px); }
+            @keyframes fadeInSlideUp {
+              0% { opacity: 0; transform: translateY(10px); }
+              100% { opacity: 1; transform: translateY(0); }
+            }
+          `}} />
+        </div>
       )}
 
       <h2 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Quick Access</h2>
