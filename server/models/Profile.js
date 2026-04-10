@@ -39,8 +39,22 @@ const publicationSchema = new mongoose.Schema({
 const projectSchema = new mongoose.Schema({
   title: { type: String, required: true },
   description: String,
+  year: String,
+  url: String,
+  fundingAgency: String,
+  role: { type: String, enum: ['Principal Investigator', 'Co-PI'] },
+  amount: String,
+  duration: String,
+  status: { type: String, enum: ['Ongoing', 'Completed'] },
+  referenceNumber: String
+});
+
+const awardSchema = new mongoose.Schema({
+  name: { type: String, required: true },
+  awardingBody: { type: String, required: true },
+  level: { type: String, enum: ['Institution', 'State', 'National', 'International'], default: 'Institution' },
   year: { type: String, required: true },
-  url: { type: String, required: true },
+  description: String,
 });
 
 const customDetailSchema = new mongoose.Schema({
@@ -60,7 +74,9 @@ const visibilitySchema = new mongoose.Schema({
   bio: { type: Boolean, default: true },
   qualifications: { type: Boolean, default: true },
   publications: { type: Boolean, default: true },
+  awards: { type: Boolean, default: true },
   projects: { type: Boolean, default: true },
+  researchSupervision: { type: Boolean, default: true },
   subjects: { type: Boolean, default: true },
   customDetails: { type: Boolean, default: true },
   media: { type: Boolean, default: false },
@@ -90,7 +106,15 @@ const profileSchema = new mongoose.Schema(
     subjects: [String],
     qualifications: [qualificationSchema],
     publications: [publicationSchema],
+    awards: [awardSchema],
     projects: [projectSchema],
+    researchSupervision: {
+      phdAwardedCount: { type: String, default: '' },
+      phdOngoingCount: { type: String, default: '' },
+      mphilGuidedCount: { type: String, default: '' },
+      completedStudentsNames: { type: String, default: '' },
+      studentDetails: { type: String, default: '' }
+    },
     customDetails: [customDetailSchema],
     media: {
       attachments: {
