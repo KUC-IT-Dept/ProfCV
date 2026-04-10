@@ -21,11 +21,28 @@ type Profile = {
   gender: string;
   phoneNumber: string;
   address: string;
+  professionalDetails: {
+    employeeId: string; designation: string; department: string; institutionName: string;
+    affiliatedUniversity: string; institutionType: string; natureOfAppointment: string;
+    dateOfJoining: string; dateOfConfirmation: string; payBand: string; bankAccountDetails: string;
+    pfNumber: string; serviceBookNumber: string;
+    dateOfFirstPromotion: string; natureOfFirstAppointment: string; firstPayBand: string;
+    dateOfSecondPromotion: string; natureOfSecondAppointment: string; secondPayBand: string;
+    dateOfThirdPromotion: string; natureOfThirdAppointment: string; thirdPayBand: string;
+  };
+  entranceTests: {
+    net: { subject: string; year: string; certificateNo: string; };
+    set: { subject: string; year: string; state: string; };
+    gate: { score: string; year: string; };
+    jrf: { agency: string; year: string; };
+    other: string;
+  };
 };
 
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
   projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
+  professionalDetails: boolean; entranceTests: boolean;
   photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
@@ -44,7 +61,24 @@ const EMPTY_PROFILE: Profile = {
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
+    professionalDetails: true, entranceTests: true,
     photo: true, dob: false, gender: false, phoneNumber: false, address: false,
+  },
+  professionalDetails: {
+    employeeId: '', designation: '', department: '', institutionName: '',
+    affiliatedUniversity: '', institutionType: '', natureOfAppointment: '',
+    dateOfJoining: '', dateOfConfirmation: '', payBand: '', bankAccountDetails: '',
+    pfNumber: '', serviceBookNumber: '',
+    dateOfFirstPromotion: '', natureOfFirstAppointment: '', firstPayBand: '',
+    dateOfSecondPromotion: '', natureOfSecondAppointment: '', secondPayBand: '',
+    dateOfThirdPromotion: '', natureOfThirdAppointment: '', thirdPayBand: '',
+  },
+  entranceTests: {
+    net: { subject: '', year: '', certificateNo: '' },
+    set: { subject: '', year: '', state: '' },
+    gate: { score: '', year: '' },
+    jrf: { agency: '', year: '' },
+    other: '',
   },
 };
 
@@ -53,6 +87,8 @@ const VISIBILITY_SECTIONS = [
   { key: 'subjects', label: 'Subjects Taught' },
   { key: 'interests', label: 'Interests' },
   { key: 'qualifications', label: 'Qualifications' },
+  { key: 'professionalDetails', label: 'Professional Details' },
+  { key: 'entranceTests', label: 'Entrance / Eligibility Tests' },
   { key: 'publications', label: 'Publications' },
   { key: 'projects', label: 'Research Projects' },
   { key: 'customDetails', label: 'Custom Sections' },
@@ -379,7 +415,7 @@ export default function ProfileBuilderPage() {
   const [showShare, setShowShare] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState<'basic' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
+  const [activeTab, setActiveTab] = useState<'basic' | 'professionalDetails' | 'entranceTests' | 'qualifications' | 'publications' | 'projects' | 'custom' | 'media'>('basic');
 
   useEffect(() => {
     api.get('/profile/me').then((r) => {
@@ -392,6 +428,14 @@ export default function ProfileBuilderPage() {
         visibility: p.visibility || EMPTY_PROFILE.visibility,
         photo: p.photo || '',
         dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
+        professionalDetails: Object.assign({}, EMPTY_PROFILE.professionalDetails, p.professionalDetails || {}),
+        entranceTests: Object.assign({
+          net: { subject: '', year: '', certificateNo: '' },
+          set: { subject: '', year: '', state: '' },
+          gate: { score: '', year: '' },
+          jrf: { agency: '', year: '' },
+          other: '',
+        }, p.entranceTests || {}),
       };
       setProfile(initialProfile);
       setSavedProfile(initialProfile);
@@ -437,6 +481,22 @@ export default function ProfileBuilderPage() {
       await api.patch('/profile/me/visibility', { [key]: newVis[key] });
     } catch { /* silent */ }
     setVisSaving(false);
+  };
+
+  const updateProfDetail = (f: keyof Profile['professionalDetails'], v: string) => {
+    setProfile((p) => ({ ...p, professionalDetails: { ...p.professionalDetails, [f]: v } }));
+  };
+
+  const updateEntranceTest = <K extends keyof Profile['entranceTests']>(exam: K, field: string, v: string) => {
+    setProfile((p) => {
+      const et = { ...p.entranceTests };
+      if (exam === 'other') {
+        (et as any).other = v;
+      } else {
+        (et[exam] as any) = { ...(et[exam] as any), [field]: v };
+      }
+      return { ...p, entranceTests: et };
+    });
   };
 
   const addQual = () => set('qualifications', [...profile.qualifications, { degree: '', institution: '', year: '', grade: '' }]);
@@ -577,6 +637,40 @@ export default function ProfileBuilderPage() {
               }}
             >
               Basic Information
+            </button>
+            <button
+              onClick={() => setActiveTab('professionalDetails')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'professionalDetails' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'professionalDetails' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Professional Details
+            </button>
+            <button
+              onClick={() => setActiveTab('entranceTests')}
+              style={{
+                padding: '0.75rem 1rem',
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                fontSize: '0.875rem',
+                fontWeight: 500,
+                color: activeTab === 'entranceTests' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                borderBottom: activeTab === 'entranceTests' ? '2px solid var(--color-primary)' : 'none',
+                transition: 'all 0.15s',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              Entrance / Eligibility Tests
             </button>
             <button
               onClick={() => setActiveTab('qualifications')}
@@ -752,6 +846,163 @@ export default function ProfileBuilderPage() {
                 >
                   Update Password
                 </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'professionalDetails' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>Professional Details</h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group">
+                    <label className="form-label">Employee ID / Staff Code</label>
+                    <input className="form-input" value={profile.professionalDetails?.employeeId || ''} onChange={(e) => updateProfDetail('employeeId', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Designation</label>
+                    <select className="form-input" value={profile.professionalDetails?.designation || ''} onChange={(e) => updateProfDetail('designation', e.target.value)}>
+                      <option value="">Select Designation</option>
+                      <option value="Assistant Professor">Assistant Professor</option>
+                      <option value="Associate Professor">Associate Professor</option>
+                      <option value="Professor">Professor</option>
+                      <option value="Senior Professor">Senior Professor</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Department</label>
+                    <input className="form-input" value={profile.professionalDetails?.department || ''} onChange={(e) => updateProfDetail('department', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">College / Institution Name</label>
+                    <input className="form-input" value={profile.professionalDetails?.institutionName || ''} onChange={(e) => updateProfDetail('institutionName', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">University Affiliated to</label>
+                    <input className="form-input" value={profile.professionalDetails?.affiliatedUniversity || ''} onChange={(e) => updateProfDetail('affiliatedUniversity', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Type of Institution</label>
+                    <select className="form-input" value={profile.professionalDetails?.institutionType || ''} onChange={(e) => updateProfDetail('institutionType', e.target.value)}>
+                      <option value="">Select Type</option>
+                      <option value="Government">Government</option>
+                      <option value="Aided">Aided</option>
+                      <option value="Private">Private</option>
+                      <option value="Deemed">Deemed</option>
+                      <option value="Central University">Central University</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Nature of Appointment</label>
+                    <select className="form-input" value={profile.professionalDetails?.natureOfAppointment || ''} onChange={(e) => updateProfDetail('natureOfAppointment', e.target.value)}>
+                      <option value="">Select Nature</option>
+                      <option value="Regular">Regular</option>
+                      <option value="Contract">Contract</option>
+                      <option value="Guest">Guest</option>
+                      <option value="Adjunct">Adjunct</option>
+                      <option value="Visiting">Visiting</option>
+                      <option value="Assistant Professor">Assistant Professor</option>
+                      <option value="Associate Professor">Associate Professor</option>
+                      <option value="Professor">Professor</option>
+                      <option value="Senior Professor">Senior Professor</option>
+                    </select>
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Date of Joining (current institution)</label>
+                    <input type="date" className="form-input" value={profile.professionalDetails?.dateOfJoining || ''} onChange={(e) => updateProfDetail('dateOfJoining', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Date of Confirmation / Regularization</label>
+                    <input type="date" className="form-input" value={profile.professionalDetails?.dateOfConfirmation || ''} onChange={(e) => updateProfDetail('dateOfConfirmation', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Pay Band / Pay Scale / CTC</label>
+                    <input className="form-input" value={profile.professionalDetails?.payBand || ''} onChange={(e) => updateProfDetail('payBand', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Bank Account Details (for salary)</label>
+                    <input className="form-input" value={profile.professionalDetails?.bankAccountDetails || ''} onChange={(e) => updateProfDetail('bankAccountDetails', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Provident Fund (PF) Number</label>
+                    <input className="form-input" value={profile.professionalDetails?.pfNumber || ''} onChange={(e) => updateProfDetail('pfNumber', e.target.value)} />
+                  </div>
+                  <div className="form-group">
+                    <label className="form-label">Service Book Number</label>
+                    <input className="form-input" value={profile.professionalDetails?.serviceBookNumber || ''} onChange={(e) => updateProfDetail('serviceBookNumber', e.target.value)} />
+                  </div>
+                </div>
+
+                <h4 style={{ fontSize: '1rem', marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>First Promotion</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group"><label className="form-label">Date of First Promotion</label><input type="date" className="form-input" value={profile.professionalDetails?.dateOfFirstPromotion || ''} onChange={(e) => updateProfDetail('dateOfFirstPromotion', e.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfFirstAppointment || ''} onChange={(e) => updateProfDetail('natureOfFirstAppointment', e.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.firstPayBand || ''} onChange={(e) => updateProfDetail('firstPayBand', e.target.value)} /></div>
+                </div>
+
+                <h4 style={{ fontSize: '1rem', marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Second Promotion</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group"><label className="form-label">Date of Second Promotion</label><input type="date" className="form-input" value={profile.professionalDetails?.dateOfSecondPromotion || ''} onChange={(e) => updateProfDetail('dateOfSecondPromotion', e.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfSecondAppointment || ''} onChange={(e) => updateProfDetail('natureOfSecondAppointment', e.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.secondPayBand || ''} onChange={(e) => updateProfDetail('secondPayBand', e.target.value)} /></div>
+                </div>
+
+                <h4 style={{ fontSize: '1rem', marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Third Promotion</h4>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="form-group"><label className="form-label">Date of Third Promotion</label><input type="date" className="form-input" value={profile.professionalDetails?.dateOfThirdPromotion || ''} onChange={(e) => updateProfDetail('dateOfThirdPromotion', e.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfThirdAppointment || ''} onChange={(e) => updateProfDetail('natureOfThirdAppointment', e.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.thirdPayBand || ''} onChange={(e) => updateProfDetail('thirdPayBand', e.target.value)} /></div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'entranceTests' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '0', color: 'var(--color-primary)' }}>Entrance / Eligibility Tests</h3>
+                
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>NET (National Eligibility Test)</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group"><label className="form-label">Subject</label><input className="form-input" value={profile.entranceTests?.net?.subject || ''} onChange={(e) => updateEntranceTest('net', 'subject', e.target.value)} /></div>
+                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.net?.year || ''} onChange={(e) => updateEntranceTest('net', 'year', e.target.value)} placeholder="e.g. 2021" /></div>
+                    <div className="form-group"><label className="form-label">Certificate No.</label><input className="form-input" value={profile.entranceTests?.net?.certificateNo || ''} onChange={(e) => updateEntranceTest('net', 'certificateNo', e.target.value)} /></div>
+                  </div>
+                </div>
+
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>SET / SLET</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group"><label className="form-label">Subject</label><input className="form-input" value={profile.entranceTests?.set?.subject || ''} onChange={(e) => updateEntranceTest('set', 'subject', e.target.value)} /></div>
+                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.set?.year || ''} onChange={(e) => updateEntranceTest('set', 'year', e.target.value)} placeholder="e.g. 2022" /></div>
+                    <div className="form-group"><label className="form-label">State</label><input className="form-input" value={profile.entranceTests?.set?.state || ''} onChange={(e) => updateEntranceTest('set', 'state', e.target.value)} /></div>
+                  </div>
+                </div>
+
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>GATE</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group"><label className="form-label">Score / Percentile</label><input className="form-input" value={profile.entranceTests?.gate?.score || ''} onChange={(e) => updateEntranceTest('gate', 'score', e.target.value)} /></div>
+                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.gate?.year || ''} onChange={(e) => updateEntranceTest('gate', 'year', e.target.value)} placeholder="e.g. 2020" /></div>
+                  </div>
+                </div>
+
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>JRF (Junior Research Fellowship)</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                    <div className="form-group"><label className="form-label">Agency (UGC/CSIR/ICMR etc.)</label><input className="form-input" value={profile.entranceTests?.jrf?.agency || ''} onChange={(e) => updateEntranceTest('jrf', 'agency', e.target.value)} /></div>
+                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.jrf?.year || ''} onChange={(e) => updateEntranceTest('jrf', 'year', e.target.value)} /></div>
+                  </div>
+                </div>
+
+                <div className="card" style={{ padding: '1.25rem' }}>
+                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Any other competitive exam qualified</h4>
+                  <div className="form-group">
+                    <input className="form-input" value={profile.entranceTests?.other || ''} onChange={(e) => updateEntranceTest('other', '', e.target.value)} placeholder="e.g. GRE, CAT, IELTS, state-level exams..." />
+                  </div>
+                </div>
               </div>
             </div>
           )}
