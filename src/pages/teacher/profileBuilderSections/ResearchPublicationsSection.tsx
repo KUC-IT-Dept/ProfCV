@@ -2,7 +2,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
 import { Profile } from './profileBuilderTypes';
 
-type PublicationsSectionProps = {
+type ResearchPublicationsSectionProps = {
   profile: Profile;
   onAdd: () => void;
   onUpdate: (index: number, field: keyof Profile['publications'][number], value: string) => void;
@@ -11,7 +11,7 @@ type PublicationsSectionProps = {
   onToggle: (key: string) => void;
 };
 
-export default function PublicationsSection({ profile, onAdd, onUpdate, onRemove, isExpanded, onToggle }: PublicationsSectionProps) {
+export default function ResearchPublicationsSection({ profile, onAdd, onUpdate, onRemove, isExpanded, onToggle }: ResearchPublicationsSectionProps) {
   return (
     <div>
       {profile.publications.map((publication, index) => {

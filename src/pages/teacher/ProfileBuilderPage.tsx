@@ -1,21 +1,26 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Plus, Trash2, Upload, Link, Save, CheckCircle, AlertCircle,
-  Share2, Copy, Check, Eye, EyeOff, ExternalLink, User,
+  Plus, Trash2, Save, CheckCircle, AlertCircle,
+  Share2, Copy, Check, Eye, EyeOff, ExternalLink,
   ChevronDown, ChevronUp,
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
-import BasicInformationSection from './profileBuilderSections/BasicInformationSection';
+import PersonalInformationSection from './profileBuilderSections/PersonalInformationSection';
+import EducationalQualificationsSection from './profileBuilderSections/EducationalQualificationsSection';
 import EntranceEligibilityTestsSection from './profileBuilderSections/EntranceEligibilityTestsSection';
-import MediaAttachmentsSection from './profileBuilderSections/MediaAttachmentsSection';
-import DocumentsSection from './profileBuilderSections/DocumentsSection';
-import ProfessionalDetailsSection from './profileBuilderSections/ProfessionalDetailsSection';
-import PublicationsSection from './profileBuilderSections/PublicationsSection';
-import QualificationsSection from './profileBuilderSections/QualificationsSection';
-import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
-import ResearchSupervisionSection from './profileBuilderSections/ResearchSupervisionSection';
+import ProfessionalEmploymentDetailsSection from './profileBuilderSections/ProfessionalEmploymentDetailsSection';
 import WorkExperienceSection from './profileBuilderSections/WorkExperienceSection';
+import ResearchPublicationsSection from './profileBuilderSections/ResearchPublicationsSection';
+import AwardsHonoursSection from './profileBuilderSections/AwardsHonoursSection';
+import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
+import PhdResearchSupervisionSection from './profileBuilderSections/PhdResearchSupervisionSection';
+import AcademicResponsibilitiesSection from './profileBuilderSections/AcademicResponsibilitiesSection';
+import ProfessionalMembershipsSection from './profileBuilderSections/ProfessionalMembershipsSection';
+import TrainingFdpWorkshopsSection from './profileBuilderSections/TrainingFdpWorkshopsSection';
+import OnlineCoursesCertificationsSection from './profileBuilderSections/OnlineCoursesCertificationsSection';
+import InternationalExperienceSection from './profileBuilderSections/InternationalExperienceSection';
+import DocumentsToUploadSection from './profileBuilderSections/DocumentsToUploadSection';
 
 
 type Profile = {
@@ -178,110 +183,6 @@ const VISIBILITY_SECTIONS = [
   { key: 'media', label: 'Attachments & Media' },
 ] as const;
 
-
-// ── Interests Tab Component ────────────────────────────────────────────────────
-const DEFAULT_INTERESTS = ['AI', 'ML', 'IoT', 'MERN', 'HCI', 'Embedded Systems', 'Strategic Logic', 'Inclusive Design'];
-
-function InterestsTab({ interests, onAddInterest, onRemoveInterest }: { interests: string[]; onAddInterest: (interest: string) => void; onRemoveInterest: (index: number) => void }) {
-  const [showDropdown, setShowDropdown] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [customValue, setCustomValue] = useState('');
-
-  const filteredInterests = DEFAULT_INTERESTS.filter(
-    (interest) =>
-      interest.toLowerCase().includes(searchTerm.toLowerCase()) &&
-      !interests.includes(interest)
-  );
-
-  const handleAddDefault = (interest: string) => {
-    onAddInterest(interest);
-    setSearchTerm('');
-    setShowDropdown(false);
-  };
-
-  const handleAddCustom = () => {
-    if (customValue.trim() && !interests.includes(customValue.trim())) {
-      onAddInterest(customValue.trim());
-      setCustomValue('');
-      setShowDropdown(false);
-    }
-  };
-
-  return (
-    <div>
-      <div style={{ marginBottom: '1.5rem', position: 'relative' }}>
-        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
-          <input
-            type="text"
-            placeholder="Search interests..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            onFocus={() => setShowDropdown(true)}
-            className="form-input"
-            style={{ flex: 1 }}
-          />
-          <button className="btn btn-primary" onClick={() => setShowDropdown(!showDropdown)} type="button" style={{ flexShrink: 0 }}>
-            <Plus size={14} /> Add
-          </button>
-        </div>
-
-        {showDropdown && (
-          <div style={{ position: 'absolute', top: '3.2rem', left: 0, right: 0, background: 'var(--color-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', zIndex: 10, maxHeight: '300px', overflowY: 'auto', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-            <div style={{ padding: '0.75rem' }}>
-              {filteredInterests.map((interest) => (
-                <button
-                  key={interest}
-                  onClick={() => handleAddDefault(interest)}
-                  type="button"
-                  style={{ display: 'block', width: '100%', padding: '0.625rem 0.75rem', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left', fontSize: '0.875rem', color: 'var(--color-text)', borderRadius: 'var(--radius-sm)', transition: 'background-color 0.15s' }}
-                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = 'var(--color-bg)')}
-                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.backgroundColor = 'transparent')}
-                >
-                  {interest}
-                </button>
-              ))}
-              <div style={{ borderTop: '1px solid var(--color-border)', marginTop: '0.5rem', paddingTop: '0.75rem' }}>
-                <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
-                  Custom Interest
-                </label>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <input
-                    type="text"
-                    placeholder="Enter custom interest..."
-                    value={customValue}
-                    onChange={(e) => setCustomValue(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddCustom()}
-                    className="form-input"
-                    style={{ flex: 1, fontSize: '0.8125rem', padding: '0.5rem 0.625rem' }}
-                  />
-                  <button className="btn btn-primary" onClick={handleAddCustom} type="button" style={{ flexShrink: 0, padding: '0.5rem 0.75rem' }}>
-                    <Plus size={12} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {interests.length > 0 && (
-        <div>
-          <label className="form-label">Added Interests</label>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-            {interests.map((interest, i) => (
-              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 0.75rem', background: 'var(--color-primary-light)', color: 'var(--color-primary)', borderRadius: '99px', fontSize: '0.8125rem', fontWeight: 500 }}>
-                {interest}
-                <button onClick={() => onRemoveInterest(i)} type="button" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ── Share Modal ────────────────────────────────────────────────────────────────
 function ShareModal({ userId, onClose }: { userId: string; onClose: () => void }) {
@@ -542,7 +443,6 @@ function CollapsibleEditorCard({
 export default function ProfileBuilderPage() {
   const { user, updateUser } = useAuth();
   const [profile, setProfile] = useState<Profile>(EMPTY_PROFILE);
-  const [savedProfile, setSavedProfile] = useState<Profile>(EMPTY_PROFILE);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [uploadError, setUploadError] = useState('');
   const [error, setError] = useState('');
@@ -597,7 +497,6 @@ export default function ProfileBuilderPage() {
         }, p.entranceTests || {}),
       };
       setProfile(initialProfile);
-      setSavedProfile(initialProfile);
     }).catch(() => { });
   }, []);
 
@@ -626,7 +525,6 @@ export default function ProfileBuilderPage() {
       if ((profile.name && profile.name !== user?.name) || (profile.photo && profile.photo !== user?.photo)) {
         updateUser({ name: profile.name, photo: profile.photo });
       }
-      setSavedProfile(profile);
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
     } catch {
@@ -784,30 +682,6 @@ export default function ProfileBuilderPage() {
     e.target.value = '';
   };
 
-  const handleDocumentUpload = async (docKey: keyof Profile['documents'], event: React.ChangeEvent<HTMLInputElement>) => {
-    setUploadError('');
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError(`"${file.name}" exceeds the 5 MB limit. Please upload a smaller file.`);
-      event.target.value = '';
-      return;
-    }
-    const form = new FormData();
-    form.append('file', file);
-    try {
-      const res = await api.post(`/profile/me/document/${docKey}`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
-      set('documents', { ...profile.documents, [docKey]: res.data.fileUrl });
-    } catch (err: any) {
-      setUploadError(err?.response?.data?.message ?? 'Upload failed.');
-    }
-    event.target.value = '';
-  };
-
-  const removeDocument = (docKey: keyof Profile['documents']) => {
-    set('documents', { ...profile.documents, [docKey]: '' });
-  };
-
   const removeAttachment = (i: number) => set('media', { ...profile.media, attachments: profile.media.attachments.filter((_, idx) => idx !== i) });
 
   return (
@@ -855,44 +729,49 @@ export default function ProfileBuilderPage() {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
             <div style={{ flex: 1, display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
               <button onClick={() => setActiveTab('basic')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'basic' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Basic Information
+                1. Personal Information
               </button>
-              <button onClick={() => setActiveTab('professionalDetails')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'professionalDetails' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'professionalDetails' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Professional Details
+              <button onClick={() => setActiveTab('educationalQualifications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'educationalQualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'educationalQualifications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                2. Educational Qualifications
               </button>
               <button onClick={() => setActiveTab('entranceTests')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'entranceTests' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'entranceTests' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Entrance / Eligibility Tests
+                3. Entrance / Eligibility Tests
+              </button>
+              <button onClick={() => setActiveTab('professionalEmploymentDetails')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'professionalEmploymentDetails' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'professionalEmploymentDetails' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                4. Professional / Employment Details
               </button>
               <button onClick={() => setActiveTab('workExperiences')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'workExperiences' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'workExperiences' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Work Experience ({profile.workExperiences.length})
+                5. Work Experience
               </button>
-              <button onClick={() => setActiveTab('qualifications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'qualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'qualifications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Qualifications ({profile.qualifications.length})
+              <button onClick={() => setActiveTab('researchPublications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'researchPublications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'researchPublications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                6. Research & Publications
               </button>
-              <button onClick={() => setActiveTab('publications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'publications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'publications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Publications ({savedProfile.publications.length})
+              <button onClick={() => setActiveTab('awardsHonours')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'awardsHonours' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'awardsHonours' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                7. Awards & Honours
               </button>
               <button onClick={() => setActiveTab('projects')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Research Projects ({savedProfile.projects.length})
+                8. Research Projects
               </button>
-              <button onClick={() => setActiveTab('researchSupervision')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'researchSupervision' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'researchSupervision' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Research Supervision
+              <button onClick={() => setActiveTab('phdResearchSupervision')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'phdResearchSupervision' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'phdResearchSupervision' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                9. Ph.D. / Research Supervision
               </button>
-              {profile.customDetails.map((customDetail, index) => (
-                <button
-                  key={index}
-                  onClick={() => setActiveTab(`custom-${index}`)}
-                  style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === `custom-${index}` ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === `custom-${index}` ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
-                >
-                  {!customDetail.isVisible && <EyeOff size={12} color="var(--color-text-light)" />}
-                  {customDetail.sectionTitle || `Section ${index + 1}`}
-                </button>
-              ))}
-              <button onClick={() => setActiveTab('media')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Media & Attachments
+              <button onClick={() => setActiveTab('academicResponsibilities')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'academicResponsibilities' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'academicResponsibilities' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                10. Academic Responsibilities
               </button>
-              <button onClick={() => setActiveTab('documents')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'documents' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'documents' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Documents
+              <button onClick={() => setActiveTab('professionalMemberships')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'professionalMemberships' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'professionalMemberships' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                11. Professional Memberships
+              </button>
+              <button onClick={() => setActiveTab('trainingFdpWorkshops')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'trainingFdpWorkshops' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'trainingFdpWorkshops' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                12. Training, FDP & Workshops
+              </button>
+              <button onClick={() => setActiveTab('onlineCoursesCertifications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'onlineCoursesCertifications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'onlineCoursesCertifications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                13. Online Courses & Certifications
+              </button>
+              <button onClick={() => setActiveTab('internationalExperience')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'internationalExperience' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'internationalExperience' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                14. International Experience
+              </button>
+              <button onClick={() => setActiveTab('documentsToUpload')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'documentsToUpload' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'documentsToUpload' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                15. Documents to Upload
               </button>
             </div>
 
@@ -916,7 +795,7 @@ export default function ProfileBuilderPage() {
           </div>
 
           {activeTab === 'basic' && (
-            <BasicInformationSection
+            <PersonalInformationSection
               profile={profile}
               editMode={basicEditMode}
               onToggleEdit={() => setBasicEditMode((prev) => !prev)}
@@ -928,8 +807,8 @@ export default function ProfileBuilderPage() {
             />
           )}
 
-          {activeTab === 'professionalDetails' && (
-            <ProfessionalDetailsSection profile={profile} onUpdate={updateProfDetail} />
+          {activeTab === 'professionalEmploymentDetails' && (
+            <ProfessionalEmploymentDetailsSection profile={profile} onUpdate={updateProfDetail} />
           )}
 
           {activeTab === 'entranceTests' && (
@@ -947,8 +826,8 @@ export default function ProfileBuilderPage() {
             />
           )}
 
-          {activeTab === 'qualifications' && (
-            <QualificationsSection
+          {activeTab === 'educationalQualifications' && (
+            <EducationalQualificationsSection
               profile={profile}
               onAdd={addQual}
               onUpdate={updateQual}
@@ -959,8 +838,8 @@ export default function ProfileBuilderPage() {
             />
           )}
 
-          {activeTab === 'publications' && (
-            <PublicationsSection
+          {activeTab === 'researchPublications' && (
+            <ResearchPublicationsSection
               profile={profile}
               onAdd={addPub}
               onUpdate={updatePub}
@@ -981,8 +860,37 @@ export default function ProfileBuilderPage() {
             />
           )}
 
-          {activeTab === 'researchSupervision' && (
-            <ResearchSupervisionSection />
+          {activeTab === 'awardsHonours' && (
+            <AwardsHonoursSection profile={profile} />
+          )}
+          {activeTab === 'phdResearchSupervision' && (
+            <PhdResearchSupervisionSection profile={profile} />
+          )}
+          {activeTab === 'academicResponsibilities' && (
+            <AcademicResponsibilitiesSection profile={profile} />
+          )}
+          {activeTab === 'professionalMemberships' && (
+            <ProfessionalMembershipsSection profile={profile} />
+          )}
+          {activeTab === 'trainingFdpWorkshops' && (
+            <TrainingFdpWorkshopsSection profile={profile} />
+          )}
+          {activeTab === 'onlineCoursesCertifications' && (
+            <OnlineCoursesCertificationsSection profile={profile} />
+          )}
+          {activeTab === 'internationalExperience' && (
+            <InternationalExperienceSection profile={profile} />
+          )}
+          {activeTab === 'documentsToUpload' && (
+            <DocumentsToUploadSection
+              profile={profile}
+              uploadError={uploadError}
+              onUploadFile={handleFileUpload}
+              onAddVideoEmbed={addVideoEmbed}
+              onUpdateVideoEmbed={updateVideoEmbed}
+              onRemoveVideoEmbed={removeVideoEmbed}
+              onRemoveAttachment={removeAttachment}
+            />
           )}
 
           {activeTab.startsWith('custom-') && (
@@ -1031,27 +939,6 @@ export default function ProfileBuilderPage() {
               })()}
             </div>
           )}
-
-          {activeTab === 'media' && (
-            <MediaAttachmentsSection
-              profile={profile}
-              uploadError={uploadError}
-              onUploadFile={handleFileUpload}
-              onAddVideoEmbed={addVideoEmbed}
-              onUpdateVideoEmbed={updateVideoEmbed}
-              onRemoveVideoEmbed={removeVideoEmbed}
-              onRemoveAttachment={removeAttachment}
-            />
-          )}
-
-          {activeTab === 'documents' && (
-            <DocumentsSection
-              profile={profile}
-              uploadError={uploadError}
-              onUploadFile={handleDocumentUpload}
-              onRemoveDocument={removeDocument}
-            />
-          )}
         </div>
 
         <div style={{ position: 'fixed', top: '5rem', right: '1.5rem', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
@@ -1073,3 +960,5 @@ export default function ProfileBuilderPage() {
     </div>
   );
 }
+
+

@@ -1,11 +1,11 @@
-import React from 'react';
+
 import { Plus, Trash2 } from 'lucide-react';
 import FileField from '../../../components/FileField';
 import SelectField from '../../../components/SelectField';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
 import { Profile } from './profileBuilderTypes';
 
-type QualificationsSectionProps = {
+type EducationalQualificationsSectionProps = {
   profile: Profile;
   onAdd: () => void;
   onUpdate: (index: number, field: keyof Profile['qualifications'][number], value: string) => void;
@@ -20,7 +20,7 @@ const DIVISION_OPTIONS = ['First Class with Distinction', 'First Class', 'Second
 const MODE_OPTIONS = ['regular', 'distance'];
 const COUNTRY_OPTIONS = ['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other'];
 
-export default function QualificationsSection({ profile, onAdd, onUpdate, onRemove, onUploadCertificate, isExpanded, onToggle }: QualificationsSectionProps) {
+export default function EducationalQualificationsSection({ profile, onAdd, onUpdate, onRemove, onUploadCertificate, isExpanded, onToggle }: EducationalQualificationsSectionProps) {
   return (
     <div>
       {profile.qualifications.map((qualification, index) => {
