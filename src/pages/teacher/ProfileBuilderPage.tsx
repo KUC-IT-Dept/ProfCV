@@ -466,6 +466,7 @@ export default function ProfileBuilderPage() {
         workExperiences: p.workExperiences || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
         projects: p.projects || [],
+        professionalMemberships: p.professionalMemberships || [],
         internationalExperiences: p.internationalExperiences || [],
         customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
         interests: p.interests || [],
@@ -627,6 +628,16 @@ export default function ProfileBuilderPage() {
     const arr = [...profile.internationalExperiences]; arr[i] = { ...arr[i], [f]: v }; set('internationalExperiences', arr);
   };
   const removeIntExp = (i: number) => set('internationalExperiences', profile.internationalExperiences.filter((_, idx) => idx !== i));
+
+  const addProfMembership = () => {
+    const nextIndex = (profile.professionalMemberships || []).length;
+    set('professionalMemberships', [...(profile.professionalMemberships || []), { bodyName: '', membershipType: '', membershipId: '', yearOfJoining: '' }]);
+    openSection(`professionalMemberships-${nextIndex}`);
+  };
+  const updateProfMembership = (i: number, f: keyof Profile['professionalMemberships'][number], v: string) => {
+    const arr = [...(profile.professionalMemberships || [])]; arr[i] = { ...arr[i], [f]: v }; set('professionalMemberships', arr);
+  };
+  const removeProfMembership = (i: number) => set('professionalMemberships', (profile.professionalMemberships || []).filter((_, idx) => idx !== i));
 
   const addTraining = () => {
     const trainings = (profile as any).trainings || [];
@@ -935,7 +946,14 @@ export default function ProfileBuilderPage() {
             <AcademicResponsibilitiesSection profile={profile} />
           )}
           {activeTab === 'professionalMemberships' && (
-            <ProfessionalMembershipsSection profile={profile} />
+            <ProfessionalMembershipsSection
+              profile={profile}
+              onAdd={addProfMembership}
+              onUpdate={updateProfMembership}
+              onRemove={removeProfMembership}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
           {activeTab === 'trainingFdpWorkshops' && (
             <TrainingFdpWorkshopsSection profile={profile} />
