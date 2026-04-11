@@ -32,6 +32,7 @@ type Profile = {
   publications: Publication[];
   projects: Project[];
   internationalExperiences: InternationalExperience[];
+  professionalMemberships: ProfessionalMembership[];
   customDetails: CustomDetail[];
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
@@ -132,11 +133,12 @@ type WorkExperience = { institutionName: string; designation: string; department
 type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
 type InternationalExperience = { countryVisited: string; purpose: string; institutionName: string; duration: string; fundingSource: string; };
+type ProfessionalMembership = { bodyName: string; membershipType: string; membershipId: string; yearOfJoining: string; };
 type CustomDetail = { sectionTitle: string; content: string; isVisible: boolean };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
-  workExperiences: [], qualifications: [], publications: [], projects: [], internationalExperiences: [],
+  workExperiences: [], qualifications: [], publications: [], projects: [], internationalExperiences: [], professionalMemberships: [],
   customDetails: [], interests: [], photo: '',
   dob: '', gender: '', phoneNumber: '', address: '',
   subCategory: '',
@@ -482,6 +484,7 @@ export default function ProfileBuilderPage() {
         workExperiences: p.workExperiences || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
         projects: p.projects || [],
+        professionalMemberships: p.professionalMemberships || [],
         internationalExperiences: p.internationalExperiences || [],
         customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
         interests: p.interests || [],
@@ -686,6 +689,16 @@ export default function ProfileBuilderPage() {
       [field]: value,
     });
   };
+
+  const addProfMembership = () => {
+    const nextIndex = (profile.professionalMemberships || []).length;
+    set('professionalMemberships', [...(profile.professionalMemberships || []), { bodyName: '', membershipType: '', membershipId: '', yearOfJoining: '' }]);
+    openSection(`professionalMemberships-${nextIndex}`);
+  };
+  const updateProfMembership = (i: number, f: keyof Profile['professionalMemberships'][number], v: string) => {
+    const arr = [...(profile.professionalMemberships || [])]; arr[i] = { ...arr[i], [f]: v }; set('professionalMemberships', arr);
+  };
+  const removeProfMembership = (i: number) => set('professionalMemberships', (profile.professionalMemberships || []).filter((_, idx) => idx !== i));
 
   const addTraining = () => {
     const trainings = (profile as any).trainings || [];
@@ -997,7 +1010,14 @@ export default function ProfileBuilderPage() {
             />
           )}
           {activeTab === 'professionalMemberships' && (
-            <ProfessionalMembershipsSection profile={profile} />
+            <ProfessionalMembershipsSection
+              profile={profile}
+              onAdd={addProfMembership}
+              onUpdate={updateProfMembership}
+              onRemove={removeProfMembership}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
           {activeTab === 'trainingFdpWorkshops' && (
             <TrainingSection

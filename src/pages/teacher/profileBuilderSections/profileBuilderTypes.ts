@@ -144,6 +144,13 @@ export type AcademicCourse = {
   subject: string;
 };
 
+export type ProfessionalMembership = {
+  bodyName: string;
+  membershipType: string;
+  membershipId: string;
+  yearOfJoining: string;
+};
+
 export type Profile = {
   name: string;
   bio: string;
@@ -154,6 +161,7 @@ export type Profile = {
   publications: Publication[];
   projects: Project[];
   internationalExperiences: InternationalExperience[];
+  professionalMemberships: ProfessionalMembership[];
   customDetails: CustomDetail[];
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
@@ -203,6 +211,7 @@ export const EMPTY_PROFILE: Profile = {
   publications: [],
   projects: [],
   internationalExperiences: [],
+  professionalMemberships: [],
   customDetails: [],
   interests: [],
   photo: '',
@@ -254,6 +263,7 @@ export const EMPTY_PROFILE: Profile = {
     media: false,
     interests: true,
     professionalDetails: true,
+    professionalMemberships: true,
     entranceTests: true,
     workExperiences: true,
     photo: true,
@@ -302,6 +312,7 @@ export const VISIBILITY_SECTIONS = [
   { key: 'workExperiences', label: 'Work Experience' },
   { key: 'qualifications', label: 'Qualifications' },
   { key: 'professionalDetails', label: 'Professional Details' },
+  { key: 'professionalMemberships', label: 'Professional Memberships' },
   { key: 'entranceTests', label: 'Entrance / Eligibility Tests' },
   { key: 'publications', label: 'Publications' },
   { key: 'projects', label: 'Research Projects' },
