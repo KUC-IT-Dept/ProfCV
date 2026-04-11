@@ -9,6 +9,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import BasicInformationSection from './profileBuilderSections/BasicInformationSection';
 import EntranceEligibilityTestsSection from './profileBuilderSections/EntranceEligibilityTestsSection';
 import MediaAttachmentsSection from './profileBuilderSections/MediaAttachmentsSection';
+import DocumentsSection from './profileBuilderSections/DocumentsSection';
 import ProfessionalDetailsSection from './profileBuilderSections/ProfessionalDetailsSection';
 import PublicationsSection from './profileBuilderSections/PublicationsSection';
 import QualificationsSection from './profileBuilderSections/QualificationsSection';
@@ -25,6 +26,20 @@ type Profile = {
   customDetails: CustomDetail[];
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
+  documents: {
+    passportPhoto: string;
+    signature: string;
+    dobProof: string;
+    categoryCertificate: string;
+    degreeCertificates: string;
+    netSetJrfCertificate: string;
+    experienceCertificates: string;
+    appointmentOrders: string;
+    awardCertificates: string;
+    publicationProofs: string;
+    aadhaarCard: string;
+    panCard: string;
+  };
   visibility: Visibility;
   photo?: string;
   dob: string;
@@ -123,6 +138,7 @@ const EMPTY_PROFILE: Profile = {
   religion: '',
   category: '',
   media: { attachments: [], videoEmbeds: [] },
+  documents: { passportPhoto: '', signature: '', dobProof: '', categoryCertificate: '', degreeCertificates: '', netSetJrfCertificate: '', experienceCertificates: '', appointmentOrders: '', awardCertificates: '', publicationProofs: '', aadhaarCard: '', panCard: '' },
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
@@ -547,6 +563,7 @@ export default function ProfileBuilderPage() {
         customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
         interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
+        documents: p.documents || EMPTY_PROFILE.documents,
         visibility: p.visibility || EMPTY_PROFILE.visibility,
         photo: p.photo || '',
         dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
@@ -766,6 +783,30 @@ export default function ProfileBuilderPage() {
     e.target.value = '';
   };
 
+  const handleDocumentUpload = async (docKey: keyof Profile['documents'], event: React.ChangeEvent<HTMLInputElement>) => {
+    setUploadError('');
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(`"${file.name}" exceeds the 5 MB limit. Please upload a smaller file.`);
+      event.target.value = '';
+      return;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await api.post(`/profile/me/document/${docKey}`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      set('documents', { ...profile.documents, [docKey]: res.data.fileUrl });
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.message ?? 'Upload failed.');
+    }
+    event.target.value = '';
+  };
+
+  const removeDocument = (docKey: keyof Profile['documents']) => {
+    set('documents', { ...profile.documents, [docKey]: '' });
+  };
+
   const removeAttachment = (i: number) => set('media', { ...profile.media, attachments: profile.media.attachments.filter((_, idx) => idx !== i) });
 
   return (
@@ -845,6 +886,9 @@ export default function ProfileBuilderPage() {
               ))}
               <button onClick={() => setActiveTab('media')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Media & Attachments
+              </button>
+              <button onClick={() => setActiveTab('documents')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'documents' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'documents' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                Documents
               </button>
             </div>
 
@@ -989,6 +1033,15 @@ export default function ProfileBuilderPage() {
               onUpdateVideoEmbed={updateVideoEmbed}
               onRemoveVideoEmbed={removeVideoEmbed}
               onRemoveAttachment={removeAttachment}
+            />
+          )}
+
+          {activeTab === 'documents' && (
+            <DocumentsSection
+              profile={profile}
+              uploadError={uploadError}
+              onUploadFile={handleDocumentUpload}
+              onRemoveDocument={removeDocument}
             />
           )}
         </div>
