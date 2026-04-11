@@ -23,6 +23,16 @@ type PublicProfile = {
     doi: string;
     url: string
   }[];
+  workExperiences?: {
+    institutionName: string;
+    designation: string;
+    department: string;
+    fromDate: string;
+    toDate: string;
+    totalDuration: string;
+    natureOfAppointment: string;
+    reasonForLeaving: string;
+  }[];
   projects?: { title: string; description: string; year: string; url: string }[];
   customDetails?: { sectionTitle: string; content: string; isVisible?: boolean }[];
   professionalDetails?: {
@@ -231,6 +241,27 @@ export default function PublicProfilePage() {
                   </div>
                 </div>
               )}
+            </Section>
+          )}
+
+          {/* Work Experiences */}
+          {profile.workExperiences && profile.workExperiences.length > 0 && (
+            <Section title="Work Experience" icon={<BookOpen size={17} />}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+                {profile.workExperiences.map((w, i) => (
+                  <div key={i} style={{ padding: '1.25rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ fontWeight: 600, fontSize: '1.05rem', color: 'var(--color-primary)', marginBottom: '0.25rem' }}>{w.institutionName}</div>
+                    <div style={{ fontWeight: 500, fontSize: '0.9375rem', marginBottom: '0.75rem', color: 'var(--color-text)' }}>{w.designation} <span style={{ color: 'var(--color-text-muted)', fontWeight: 400 }}>— {w.department}</span></div>
+                    
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', fontSize: '0.875rem' }}>
+                      {(w.fromDate || w.toDate) && <div><span style={{ color: 'var(--color-text-muted)' }}>Duration:</span> {w.fromDate} to {w.toDate || 'Present'}</div>}
+                      {w.totalDuration && <div><span style={{ color: 'var(--color-text-muted)' }}>Total Time:</span> {w.totalDuration}</div>}
+                      {w.natureOfAppointment && <div><span style={{ color: 'var(--color-text-muted)' }}>Nature:</span> {w.natureOfAppointment}</div>}
+                      {w.reasonForLeaving && <div><span style={{ color: 'var(--color-text-muted)' }}>Reason for Leaving:</span> {w.reasonForLeaving}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
             </Section>
           )}
 

@@ -109,10 +109,22 @@ const entranceTestSchema = new mongoose.Schema({
   other: String, // Any other competitive exam qualified
 }, { _id: false });
 
+const workExperienceSchema = new mongoose.Schema({
+  institutionName: String,
+  designation: String,
+  department: String,
+  fromDate: String,
+  toDate: String,
+  totalDuration: String,
+  natureOfAppointment: String,
+  reasonForLeaving: String,
+});
+
 const visibilitySchema = new mongoose.Schema({
   bio: { type: Boolean, default: true },
   professionalDetails: { type: Boolean, default: true },
   entranceTests: { type: Boolean, default: true },
+  workExperiences: { type: Boolean, default: true },
   qualifications: { type: Boolean, default: true },
   publications: { type: Boolean, default: true },
   awards: { type: Boolean, default: true },
@@ -145,6 +157,7 @@ const profileSchema = new mongoose.Schema(
     phoneNumber: { type: String, default: '' },
     address: { type: String, default: '' },
     subjects: [String],
+    workExperiences: [workExperienceSchema],
     qualifications: [qualificationSchema],
     publications: [publicationSchema],
     awards: [awardSchema],

@@ -12,6 +12,7 @@ import SelectField from '../../components/SelectField';
 
 type Profile = {
   name: string; bio: string; headline: string; subjects: string[];
+  workExperiences: WorkExperience[];
   qualifications: Qualification[];
   publications: Publication[];
   projects: Project[];
@@ -64,7 +65,7 @@ type Profile = {
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
   projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
-  professionalDetails: boolean; entranceTests: boolean;
+  professionalDetails: boolean; entranceTests: boolean; workExperiences: boolean;
   photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
@@ -86,13 +87,14 @@ type Qualification = {
   pgcertificate: string;
   mphilcertificate: string;
 };
+type WorkExperience = { institutionName: string; designation: string; department: string; fromDate: string; toDate: string; totalDuration: string; natureOfAppointment: string; reasonForLeaving: string; };
 type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
 type CustomDetail = { sectionTitle: string; content: string; isVisible: boolean };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
-  qualifications: [], publications: [], projects: [],
+  workExperiences: [], qualifications: [], publications: [], projects: [],
   customDetails: [], interests: [], photo: '',
   dob: '', gender: '', phoneNumber: '', address: '',
   subCategory: '',
@@ -118,7 +120,7 @@ const EMPTY_PROFILE: Profile = {
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
-    professionalDetails: true, entranceTests: true,
+    professionalDetails: true, entranceTests: true, workExperiences: true,
     photo: true, dob: false, gender: false, phoneNumber: false, address: false,
   },
   professionalDetails: {
@@ -143,6 +145,7 @@ const VISIBILITY_SECTIONS = [
   { key: 'bio', label: 'Biography & Headline' },
   { key: 'subjects', label: 'Subjects Taught' },
   { key: 'interests', label: 'Interests' },
+  { key: 'workExperiences', label: 'Work Experience' },
   { key: 'qualifications', label: 'Qualifications' },
   { key: 'professionalDetails', label: 'Professional Details' },
   { key: 'entranceTests', label: 'Entrance / Eligibility Tests' },
@@ -532,6 +535,7 @@ export default function ProfileBuilderPage() {
       const p = r.data;
       const initialProfile = {
         name: p.user?.name || '', bio: p.bio || '', headline: p.headline || '', subjects: p.subjects || [],
+        workExperiences: p.workExperiences || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
         projects: p.projects || [],
         customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
@@ -628,7 +632,7 @@ export default function ProfileBuilderPage() {
     setProfile((p) => ({ ...p, professionalDetails: { ...p.professionalDetails, [f]: v } }));
   };
 
-  const updateEntranceTest = <K extends keyof Profile['entranceTests']>(exam: K, field: string, v: string) => {
+  const updateEntranceTest = (exam: 'net' | 'set' | 'gate' | 'jrf' | 'other', field: string, v: string) => {
     setProfile((p) => {
       const et = { ...p.entranceTests };
       if (exam === 'other') {
@@ -639,6 +643,12 @@ export default function ProfileBuilderPage() {
       return { ...p, entranceTests: et };
     });
   };
+
+  const addWorkExp = () => set('workExperiences', [...profile.workExperiences, { institutionName: '', designation: '', department: '', fromDate: '', toDate: '', totalDuration: '', natureOfAppointment: '', reasonForLeaving: '' }]);
+  const updateWorkExp = (i: number, f: keyof WorkExperience, v: string) => {
+    const w = [...profile.workExperiences]; w[i] = { ...w[i], [f]: v }; set('workExperiences', w);
+  };
+  const removeWorkExp = (i: number) => set('workExperiences', profile.workExperiences.filter((_, idx) => idx !== i));
   const updateQual = (i: number, f: keyof Qualification, v: string) => {
     const q = [...profile.qualifications]; q[i] = { ...q[i], [f]: v }; set('qualifications', q);
   };
@@ -835,6 +845,23 @@ export default function ProfileBuilderPage() {
                 }}
               >
                 Entrance / Eligibility Tests
+              </button>
+              <button
+                onClick={() => setActiveTab('workExperiences')}
+                style={{
+                  padding: '0.75rem 1rem',
+                  border: 'none',
+                  background: 'none',
+                  cursor: 'pointer',
+                  fontSize: '0.875rem',
+                  fontWeight: 500,
+                  color: activeTab === 'workExperiences' ? 'var(--color-primary)' : 'var(--color-text-muted)',
+                  borderBottom: activeTab === 'workExperiences' ? '2px solid var(--color-primary)' : 'none',
+                  transition: 'all 0.15s',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                Work Experience ({profile.workExperiences.length})
               </button>
               <button
                 onClick={() => setActiveTab('qualifications')}
@@ -1282,6 +1309,37 @@ export default function ProfileBuilderPage() {
                   <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfThirdAppointment || ''} onChange={(e) => updateProfDetail('natureOfThirdAppointment', e.target.value)} /></div>
                   <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.thirdPayBand || ''} onChange={(e) => updateProfDetail('thirdPayBand', e.target.value)} /></div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'workExperiences' && (
+            <div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>Work Experience</h3>
+                </div>
+                {profile.workExperiences.length === 0 && (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
+                    No work experience added yet. Click "Add Work Exp" to begin.
+                  </div>
+                )}
+                {profile.workExperiences.map((w, i) => (
+                  <div key={i} className="card" style={{ padding: '1rem', position: 'relative' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
+                      <div className="form-group"><label className="form-label">Institution Name *</label><input className="form-input" value={w.institutionName} onChange={(e) => updateWorkExp(i, 'institutionName', e.target.value)} /></div>
+                      <div className="form-group"><label className="form-label">Designation *</label><input className="form-input" value={w.designation} onChange={(e) => updateWorkExp(i, 'designation', e.target.value)} /></div>
+                      <div className="form-group"><label className="form-label">Department *</label><input className="form-input" value={w.department} onChange={(e) => updateWorkExp(i, 'department', e.target.value)} /></div>
+                      <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={w.natureOfAppointment} onChange={(e) => updateWorkExp(i, 'natureOfAppointment', e.target.value)} /></div>
+                      <div className="form-group"><label className="form-label">From Date</label><input type="date" className="form-input" value={w.fromDate} onChange={(e) => updateWorkExp(i, 'fromDate', e.target.value)} /></div>
+                      <div className="form-group"><label className="form-label">To Date</label><input type="date" className="form-input" value={w.toDate} onChange={(e) => updateWorkExp(i, 'toDate', e.target.value)} /></div>
+                      <div className="form-group"><label className="form-label">Total Duration</label><input className="form-input" value={w.totalDuration} onChange={(e) => updateWorkExp(i, 'totalDuration', e.target.value)} placeholder="e.g. 5 Years 2 Months" /></div>
+                      <div className="form-group"><label className="form-label">Reason for Leaving</label><input className="form-input" value={w.reasonForLeaving} onChange={(e) => updateWorkExp(i, 'reasonForLeaving', e.target.value)} /></div>
+                    </div>
+                    <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeWorkExp(i)} type="button"><Trash2 size={13} /> Remove Work Experience</button>
+                  </div>
+                ))}
+                <button className="btn btn-secondary" onClick={addWorkExp} type="button" style={{ alignSelf: 'flex-start' }}><Plus size={14} /> Add Work Experience</button>
               </div>
             </div>
           )}

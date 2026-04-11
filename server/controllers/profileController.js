@@ -50,7 +50,7 @@ const getMyProfile = async (req, res) => {
 /** PUT /api/profile/me */
 const updateMyProfile = async (req, res) => {
   const {
-    name, bio, headline, photo, subjects, qualifications, publications,
+    name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
     projects, customDetails, professionalDetails, entranceTests, media, interests, dob, gender, phoneNumber, address
   } = req.body;
   try {
@@ -63,7 +63,7 @@ const updateMyProfile = async (req, res) => {
       { user: req.user.id },
       {
         $set: {
-          bio, headline, photo, subjects, qualifications, publications,
+          bio, headline, photo, subjects, workExperiences, qualifications, publications,
           projects, customDetails, professionalDetails, entranceTests, media, interests, dob, gender, phoneNumber, address
         }
       },
@@ -82,7 +82,7 @@ const updateMyProfile = async (req, res) => {
 /** PATCH /api/profile/me/visibility */
 const updateVisibility = async (req, res) => {
   const allowed = [
-    'bio', 'professionalDetails', 'entranceTests', 'qualifications', 'publications', 'projects', 'subjects',
+    'bio', 'professionalDetails', 'entranceTests', 'workExperiences', 'qualifications', 'publications', 'projects', 'subjects',
     'customDetails', 'media', 'interests', 'photo', 'dob', 'gender', 'phoneNumber', 'address'
   ];
   const update = {};
@@ -181,6 +181,7 @@ const getPublicProfile = async (req, res) => {
       headline: profile.headline,
       bio: vis.bio !== false ? profile.bio : undefined,
       subjects: vis.subjects !== false ? profile.subjects : undefined,
+      workExperiences: vis.workExperiences !== false ? profile.workExperiences : undefined,
       interests: vis.interests !== false ? profile.interests : undefined,
       qualifications: vis.qualifications !== false ? profile.qualifications : undefined,
       publications: vis.publications !== false ? profile.publications : undefined,
