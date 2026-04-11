@@ -13,6 +13,7 @@ import ProfessionalDetailsSection from './profileBuilderSections/ProfessionalDet
 import PublicationsSection from './profileBuilderSections/PublicationsSection';
 import QualificationsSection from './profileBuilderSections/QualificationsSection';
 import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
+import ResearchSupervisionSection from './profileBuilderSections/ResearchSupervisionSection';
 import WorkExperienceSection from './profileBuilderSections/WorkExperienceSection';
 
 
@@ -833,6 +834,9 @@ export default function ProfileBuilderPage() {
               <button onClick={() => setActiveTab('projects')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Research Projects ({savedProfile.projects.length})
               </button>
+              <button onClick={() => setActiveTab('researchSupervision')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'researchSupervision' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'researchSupervision' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                Research Supervision
+              </button>
               {profile.customDetails.map((customDetail, index) => (
                 <button
                   key={index}
@@ -931,6 +935,10 @@ export default function ProfileBuilderPage() {
               isExpanded={isExpanded}
               onToggle={toggleSection}
             />
+          )}
+
+          {activeTab === 'researchSupervision' && (
+            <ResearchSupervisionSection />
           )}
 
           {activeTab.startsWith('custom-') && (
