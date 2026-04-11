@@ -885,9 +885,6 @@ export default function ProfileBuilderPage() {
                   {customDetail.sectionTitle || `Section ${index + 1}`}
                 </button>
               ))}
-              <button onClick={() => setActiveTab('media')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Media & Attachments
-              </button>
 
               <button onClick={() => setActiveTab('academicResponsibilities')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'academicResponsibilities' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'academicResponsibilities' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 10. Academic Responsibilities
