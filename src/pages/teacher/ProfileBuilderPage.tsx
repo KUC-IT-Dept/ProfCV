@@ -9,7 +9,18 @@ import { useAuth } from '../../contexts/AuthContext';
 import PersonalInformationSection from './profileBuilderSections/PersonalInformationSection';
 import EducationalQualificationsSection from './profileBuilderSections/EducationalQualificationsSection';
 import EntranceEligibilityTestsSection from './profileBuilderSections/EntranceEligibilityTestsSection';
+<<<<<<< HEAD
+import MediaAttachmentsSection from './profileBuilderSections/MediaAttachmentsSection';
+import DocumentsSection from './profileBuilderSections/DocumentsSection';
+import ProfessionalDetailsSection from './profileBuilderSections/ProfessionalDetailsSection';
+import PublicationsSection from './profileBuilderSections/PublicationsSection';
+import QualificationsSection from './profileBuilderSections/QualificationsSection';
+import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
+import ResearchSupervisionSection from './profileBuilderSections/ResearchSupervisionSection';
+import TrainingSection from './profileBuilderSections/TrainingSection';
+=======
 import ProfessionalEmploymentDetailsSection from './profileBuilderSections/ProfessionalEmploymentDetailsSection';
+>>>>>>> ada21040c1e36632cbe5518bf7998cb553c063c2
 import WorkExperienceSection from './profileBuilderSections/WorkExperienceSection';
 import ResearchPublicationsSection from './profileBuilderSections/ResearchPublicationsSection';
 import AwardsHonoursSection from './profileBuilderSections/AwardsHonoursSection';
@@ -612,6 +623,21 @@ export default function ProfileBuilderPage() {
   };
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
+  const addTraining = () => {
+    const trainings = (profile as any).trainings || [];
+    const nextIndex = trainings.length;
+    set('trainings', [...trainings, { programName: '', type: '', organizedBy: '', durationDates: '', mode: '', certificate: '' }]);
+    openSection(`trainings-${nextIndex}`);
+  };
+  const updateTraining = (i: number, f: string, v: string) => {
+    const trainings = (profile as any).trainings || [];
+    const arr = [...trainings]; arr[i] = { ...arr[i], [f]: v }; set('trainings', arr);
+  };
+  const removeTraining = (i: number) => {
+    const trainings = (profile as any).trainings || [];
+    set('trainings', trainings.filter((_: any, idx: number) => idx !== i));
+  };
+
   const addCustom = () => {
     const newIdx = profile.customDetails.length;
     set('customDetails', [...profile.customDetails, { sectionTitle: '', content: '', isVisible: true }]);
@@ -755,8 +781,26 @@ export default function ProfileBuilderPage() {
               <button onClick={() => setActiveTab('phdResearchSupervision')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'phdResearchSupervision' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'phdResearchSupervision' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 9. Ph.D. / Research Supervision
               </button>
+<<<<<<< HEAD
+              <button onClick={() => setActiveTab('training')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'training' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'training' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                Training, FDP & Workshops
+              </button>
+              {profile.customDetails.map((customDetail, index) => (
+                <button
+                  key={index}
+                  onClick={() => setActiveTab(`custom-${index}`)}
+                  style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === `custom-${index}` ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === `custom-${index}` ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+                >
+                  {!customDetail.isVisible && <EyeOff size={12} color="var(--color-text-light)" />}
+                  {customDetail.sectionTitle || `Section ${index + 1}`}
+                </button>
+              ))}
+              <button onClick={() => setActiveTab('media')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                Media & Attachments
+=======
               <button onClick={() => setActiveTab('academicResponsibilities')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'academicResponsibilities' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'academicResponsibilities' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 10. Academic Responsibilities
+>>>>>>> ada21040c1e36632cbe5518bf7998cb553c063c2
               </button>
               <button onClick={() => setActiveTab('professionalMemberships')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'professionalMemberships' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'professionalMemberships' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 11. Professional Memberships
@@ -890,6 +934,17 @@ export default function ProfileBuilderPage() {
               onUpdateVideoEmbed={updateVideoEmbed}
               onRemoveVideoEmbed={removeVideoEmbed}
               onRemoveAttachment={removeAttachment}
+            />
+          )}
+
+          {activeTab === 'training' && (
+            <TrainingSection
+              profile={profile}
+              onAdd={addTraining}
+              onUpdate={updateTraining}
+              onRemove={removeTraining}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
             />
           )}
 
