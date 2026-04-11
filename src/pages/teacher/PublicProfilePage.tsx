@@ -57,6 +57,12 @@ type PublicProfile = {
   gender?: string;
   phoneNumber?: string;
   address?: string;
+  academicResponsibilities?: {
+    courses?: { course: string; year: string; programme: string; subject: string }[];
+    classesHandled?: string;
+    administrativeRoles?: string;
+    committeeMemberships?: string;
+  };
 };
 
 function Section({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
@@ -241,6 +247,62 @@ export default function PublicProfilePage() {
                   </div>
                 </div>
               )}
+            </Section>
+          )}
+
+          {profile.academicResponsibilities && (
+            (profile.academicResponsibilities.courses?.length ?? 0) > 0 ||
+            profile.academicResponsibilities.classesHandled ||
+            profile.academicResponsibilities.administrativeRoles ||
+            profile.academicResponsibilities.committeeMemberships
+          ) && (
+            <Section title="Academic Responsibilities" icon={<GraduationCap size={17} />}>
+              <div style={{ display: 'grid', gap: '1rem', fontSize: '0.95rem', color: 'var(--color-text)' }}>
+                {profile.academicResponsibilities.courses?.length ? (
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Courses / Subjects Taught</div>
+                    <div style={{ display: 'grid', gap: '0.75rem' }}>
+                      {profile.academicResponsibilities.courses.map((course, idx) => {
+                        const isStringCourse = typeof course === 'string';
+                        const courseText = isStringCourse ? course : course.course;
+                        const yearText = isStringCourse ? '' : course.year;
+                        const programmeText = isStringCourse ? '' : course.programme;
+                        const subjectText = isStringCourse ? '' : course.subject;
+                        return (
+                          <div key={idx} style={{ padding: '0.75rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                            <div style={{ fontWeight: 600, marginBottom: '0.35rem' }}>{courseText || 'Untitled course'}</div>
+                            {!isStringCourse && (yearText || programmeText || subjectText) ? (
+                              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+                                {yearText && <div><strong>Year:</strong> {yearText}</div>}
+                                {programmeText && <div><strong>Programme:</strong> {programmeText}</div>}
+                                {subjectText && <div style={{ gridColumn: 'span 2' }}><strong>Subject:</strong> {subjectText}</div>}
+                              </div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+                {profile.academicResponsibilities.classesHandled && (
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Classes Handled (UG / PG / Ph.D.)</div>
+                    <div style={{ color: 'var(--color-text)', fontWeight: 500 }}>{profile.academicResponsibilities.classesHandled}</div>
+                  </div>
+                )}
+                {profile.academicResponsibilities.administrativeRoles && (
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Administrative Roles (HOD / Dean / IQAC / Warden etc.)</div>
+                    <div style={{ color: 'var(--color-text)', fontWeight: 500 }}>{profile.academicResponsibilities.administrativeRoles}</div>
+                  </div>
+                )}
+                {profile.academicResponsibilities.committeeMemberships && (
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Committee Memberships (Academic Council / BOS / etc.)</div>
+                    <div style={{ color: 'var(--color-text)', fontWeight: 500, whiteSpace: 'pre-wrap' }}>{profile.academicResponsibilities.committeeMemberships}</div>
+                  </div>
+                )}
+              </div>
             </Section>
           )}
 

@@ -186,6 +186,20 @@ const profileSchema = new mongoose.Schema(
     customDetails: [customDetailSchema],
     professionalDetails: { type: professionalDetailSchema, default: () => ({}) },
     entranceTests: { type: entranceTestSchema, default: () => ({}) },
+    academicResponsibilities: {
+      courses: {
+        type: [{
+          course: { type: String, default: '' },
+          year: { type: String, default: '' },
+          programme: { type: String, default: '' },
+          subject: { type: String, default: '' },
+        }],
+        default: []
+      },
+      classesHandled: { type: String, default: '' },
+      administrativeRoles: { type: String, default: '' },
+      committeeMemberships: { type: String, default: '' },
+    },
     documents: { type: documentsSchema, default: () => ({}) },
     media: {
       attachments: {
