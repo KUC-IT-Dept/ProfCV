@@ -18,7 +18,15 @@ const YEAR_OPTIONS = Array.from({ length: 100 }, (_, index) => `${new Date().get
 const DIVISION_OPTIONS = ['First ', 'Second ', 'Third ', 'Pass'];
 const MODE_OPTIONS = ['regular', 'distance'];
 const COUNTRY_OPTIONS = ['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other'];
-
+const INDIAN_STATES = [
+  'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh', 
+  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jharkhand', 'Karnataka', 
+  'Kerala', 'Madhya Pradesh', 'Maharashtra', 'Manipur', 'Meghalaya', 'Mizoram', 
+  'Nagaland', 'Odisha', 'Punjab', 'Rajasthan', 'Sikkim', 'Tamil Nadu', 
+  'Telangana', 'Tripura', 'Uttar Pradesh', 'Uttarakhand', 'West Bengal', 
+  'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu', 
+  'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
+];
 // Mapping the level to the specific field name for the certificate
 const CERTIFICATE_MAPPING: Record<string, { label: string; field: string }> = {
   '10th': { label: '10th Certificate', field: 'tenthcertificate' },
@@ -103,7 +111,24 @@ export default function EducationalQualificationsSection({
               <SelectField label="Division" options={DIVISION_OPTIONS} value={qualification.division} onChange={(value) => onUpdate(index, 'division', value)} placeholder="Select division" />
               <SelectField label="Mode" options={MODE_OPTIONS} value={qualification.mode} onChange={(value) => onUpdate(index, 'mode', value)} placeholder="Select mode" />
               <SelectField label="Country" options={COUNTRY_OPTIONS} value={qualification.country} onChange={(value) => onUpdate(index, 'country', value)} placeholder="Select country" />
-              <div className="form-group"><label className="form-label">State of Institution</label><input className="form-input" value={qualification.state} onChange={(e) => onUpdate(index, 'state', e.target.value)} placeholder="State" /></div>
+             <div className="form-group">
+  <label className="form-label">State / Province</label>
+  {qualification.country === 'India' ? (
+    <SelectField 
+      options={INDIAN_STATES} 
+      value={qualification.state} 
+      onChange={(value) => onUpdate(index, 'state', value)} 
+      placeholder="Select State" 
+    />
+  ) : (
+    <input 
+      className="form-input" 
+      value={qualification.state} 
+      onChange={(e) => onUpdate(index, 'state', e.target.value)} 
+      placeholder="State of institution" 
+    />
+  )}
+</div>
             </div>
 
             {/* CONDITIONAL UPLOAD AREA */}
