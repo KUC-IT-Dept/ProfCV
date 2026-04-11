@@ -6,8 +6,14 @@ import {
 } from 'lucide-react';
 import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
-import FileField from '../../components/FileField';
-import SelectField from '../../components/SelectField';
+import BasicInformationSection from './profileBuilderSections/BasicInformationSection';
+import EntranceEligibilityTestsSection from './profileBuilderSections/EntranceEligibilityTestsSection';
+import MediaAttachmentsSection from './profileBuilderSections/MediaAttachmentsSection';
+import ProfessionalDetailsSection from './profileBuilderSections/ProfessionalDetailsSection';
+import PublicationsSection from './profileBuilderSections/PublicationsSection';
+import QualificationsSection from './profileBuilderSections/QualificationsSection';
+import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
+import WorkExperienceSection from './profileBuilderSections/WorkExperienceSection';
 
 
 type Profile = {
@@ -625,7 +631,23 @@ export default function ProfileBuilderPage() {
 
   const addQual = () => {
     const nextIndex = profile.qualifications.length;
-    set('qualifications', [...profile.qualifications, { degree: '', institution: '', year: '', grade: '' }]);
+    set('qualifications', [...profile.qualifications, {
+      degree: '',
+      specialisation: '',
+      institution: '',
+      university: '',
+      yearofpassing: '',
+      cgpa: '',
+      division: '',
+      mode: '',
+      country: '',
+      state: '',
+      tenthcertificate: '',
+      twelfthcertificate: '',
+      ugcertificate: '',
+      pgcertificate: '',
+      mphilcertificate: '',
+    }]);
     openSection(`qualifications-${nextIndex}`);
   };
   const updateProfDetail = (f: keyof Profile['professionalDetails'], v: string) => {
@@ -748,7 +770,6 @@ export default function ProfileBuilderPage() {
 
   return (
     <div style={{ width: 'calc(100% - 340px)', maxWidth: 'none' }}>
-      {/* Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1>Profile Builder</h1>
@@ -787,201 +808,57 @@ export default function ProfileBuilderPage() {
         </div>
       )}
 
-      {/* Two-column layout: content + visibility sidebar */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '1.5rem' }}>
-        {/* Main builder content */}
         <div style={{ minWidth: 0 }}>
-          {/* Horizontal Tabs */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)' }}>
-            {/* Scrollable Tabs Area */}
             <div style={{ flex: 1, display: 'flex', gap: '0.25rem', overflowX: 'auto', paddingBottom: '0', msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
-              <button
-                onClick={() => setActiveTab('basic')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'basic' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('basic')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'basic' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'basic' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Basic Information
               </button>
-              <button
-                onClick={() => setActiveTab('professionalDetails')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'professionalDetails' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'professionalDetails' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('professionalDetails')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'professionalDetails' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'professionalDetails' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Professional Details
               </button>
-              <button
-                onClick={() => setActiveTab('entranceTests')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'entranceTests' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'entranceTests' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('entranceTests')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'entranceTests' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'entranceTests' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Entrance / Eligibility Tests
               </button>
-              <button
-                onClick={() => setActiveTab('workExperiences')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'workExperiences' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'workExperiences' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('workExperiences')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'workExperiences' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'workExperiences' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Work Experience ({profile.workExperiences.length})
               </button>
-              <button
-                onClick={() => setActiveTab('qualifications')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'qualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'qualifications' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('qualifications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'qualifications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'qualifications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Qualifications ({profile.qualifications.length})
               </button>
-              <button
-                onClick={() => setActiveTab('publications')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'publications' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'publications' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('publications')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'publications' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'publications' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Publications ({savedProfile.publications.length})
               </button>
-              <button
-                onClick={() => setActiveTab('projects')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('projects')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'projects' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'projects' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Research Projects ({savedProfile.projects.length})
               </button>
-              {profile.customDetails.map((c, i) => (
+              {profile.customDetails.map((customDetail, index) => (
                 <button
-                  key={i}
-                  onClick={() => setActiveTab(`custom-${i}`)}
-                  style={{
-                    padding: '0.75rem 1rem',
-                    border: 'none',
-                    background: 'none',
-                    cursor: 'pointer',
-                    fontSize: '0.875rem',
-                    fontWeight: 500,
-                    color: activeTab === `custom-${i}` ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                    borderBottom: activeTab === `custom-${i}` ? '2px solid var(--color-primary)' : 'none',
-                    transition: 'all 0.15s',
-                    whiteSpace: 'nowrap',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.375rem'
-                  }}
+                  key={index}
+                  onClick={() => setActiveTab(`custom-${index}`)}
+                  style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === `custom-${index}` ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === `custom-${index}` ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
                 >
-                  {!c.isVisible && <EyeOff size={12} color="var(--color-text-light)" />}
-                  {c.sectionTitle || `Section ${i + 1}`}
+                  {!customDetail.isVisible && <EyeOff size={12} color="var(--color-text-light)" />}
+                  {customDetail.sectionTitle || `Section ${index + 1}`}
                 </button>
               ))}
-              <button
-                onClick={() => setActiveTab('media')}
-                style={{
-                  padding: '0.75rem 1rem',
-                  border: 'none',
-                  background: 'none',
-                  cursor: 'pointer',
-                  fontSize: '0.875rem',
-                  fontWeight: 500,
-                  color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)',
-                  borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <button onClick={() => setActiveTab('media')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Media & Attachments
               </button>
             </div>
 
-            {/* Fixed Action Button */}
             <div style={{ flexShrink: 0, paddingLeft: '0.5rem', borderLeft: '1px solid var(--color-border)', marginLeft: '0.5rem' }}>
               <button
                 onClick={addCustom}
-                style={{
-                  padding: '0.5rem 0.875rem',
-                  border: '1px solid var(--color-primary)',
-                  borderRadius: 'var(--radius-sm)',
-                  background: 'var(--color-primary-light)',
-                  cursor: 'pointer',
-                  fontSize: '0.8125rem',
-                  fontWeight: 600,
-                  color: 'var(--color-primary)',
-                  transition: 'all 0.15s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.375rem'
+                style={{ padding: '0.5rem 0.875rem', border: '1px solid var(--color-primary)', borderRadius: 'var(--radius-sm)', background: 'var(--color-primary-light)', cursor: 'pointer', fontSize: '0.8125rem', fontWeight: 600, color: 'var(--color-primary)', transition: 'all 0.15s', display: 'flex', alignItems: 'center', gap: '0.375rem' }}
+                onMouseEnter={(event) => {
+                  event.currentTarget.style.background = 'var(--color-primary)';
+                  event.currentTarget.style.color = '#fff';
                 }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.background = 'var(--color-primary)';
-                  e.currentTarget.style.color = '#fff';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.background = 'var(--color-primary-light)';
-                  e.currentTarget.style.color = 'var(--color-primary)';
+                onMouseLeave={(event) => {
+                  event.currentTarget.style.background = 'var(--color-primary-light)';
+                  event.currentTarget.style.color = 'var(--color-primary)';
                 }}
                 title="Add Custom Section"
               >
@@ -990,762 +867,110 @@ export default function ProfileBuilderPage() {
             </div>
           </div>
 
-          {/* Tab Content */}
           {activeTab === 'basic' && (
-            <div className="card" style={{ padding: '1.25rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                <div>
-                  <h2 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>Basic Information</h2>
-                  <p style={{ fontSize: '0.8125rem', margin: 0 }}>View your details, then click Edit to make changes.</p>
-                </div>
-                <button className="btn btn-secondary" type="button" onClick={() => setBasicEditMode((prev) => !prev)}>
-                  Edit
-                </button>
-              </div>
-
-              {!basicEditMode ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div className="card" style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      {profile.photo ? <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={32} color="var(--color-text-light)" />}
-                    </div>
-                    <div>
-                      <h3 style={{ fontSize: '1rem', marginBottom: '0.25rem' }}>{profile.name || 'Unnamed profile'}</h3>
-                      <p style={{ margin: 0 }}>{profile.headline || 'No headline added yet'}</p>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="card" style={{ padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Biography</div>
-                      <div style={{ whiteSpace: 'pre-wrap', color: 'var(--color-text)' }}>{profile.bio || 'No biography added yet'}</div>
-                    </div>
-                    <div className="card" style={{ padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Subjects</div>
-                      <div style={{ color: 'var(--color-text)' }}>{profile.subjects.length > 0 ? profile.subjects.join(', ') : 'No subjects added yet'}</div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="card" style={{ padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>
-                        Personal Information
-                      </div>
-
-                      <div style={{
-                        display: 'grid',
-                        gridTemplateColumns: '1fr 1fr',
-                        gap: '0.5rem',
-                        color: 'var(--color-text)'
-                      }}>
-                        <div><strong>Full Name:</strong> {profile.name || 'Not set'}</div>
-                        <div><strong>Date of Birth:</strong> {profile.dob || 'Not set'}</div>
-                        <div><strong>Gender:</strong> {profile.gender || 'Not set'}</div>
-                        <div><strong>Blood Group:</strong> {profile.bloodGroup || 'Not set'}</div>
-                        <div><strong>Nationality:</strong> {profile.nationality || 'Not set'}</div>
-                        <div><strong>State & City:</strong> {profile.stateCity || 'Not set'}</div>
-                        <div><strong>Permanent Address:</strong> {profile.permanentAddress || 'Not set'}</div>
-                        <div><strong>Current Address:</strong> {profile.currentAddress || 'Not set'}</div>
-                        <div><strong>Mobile Number:</strong> {profile.mobileNumber || 'Not set'}</div>
-                        <div><strong>Alternate Phone:</strong> {profile.alternatePhone || 'Not set'}</div>
-                        <div><strong>Official Email:</strong> {profile.officialEmail || 'Not set'}</div>
-                        <div><strong>Personal Email:</strong> {profile.personalEmail || 'Not set'}</div>
-                        <div><strong>Aadhaar:</strong> {profile.aadhaar || 'Not set'}</div>
-                        <div><strong>Passport:</strong> {profile.passport || 'Not set'}</div>
-                        <div><strong>Religion:</strong> {profile.religion || 'Not set'}</div>
-                        <div><strong>Category:</strong> {profile.category || 'Not set'}</div>
-                        <div><strong>Sub-category:</strong> {profile.subCategory || 'Not set'}</div>
-                        <div><strong>Differently Abled:</strong> {profile.differentlyAbled || 'Not set'}</div>
-                        <div><strong>Marital Status:</strong> {profile.maritalStatus || 'Not set'}</div>
-                        <div><strong>Spouse:</strong> {profile.spouse || 'Not set'}</div>
-                        <div><strong>Emergency Contact:</strong> {profile.emergencyContact || 'Not set'}</div>
-                        <div><strong>PAN Number:</strong> {profile.panNumber || 'Not set'}</div>
-                      </div>
-                    </div>
-                    <div className="card" style={{ padding: '1rem' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-light)', marginBottom: '0.25rem' }}>Interests</div>
-                      {profile.interests.length > 0 ? (
-                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
-                          {profile.interests.map((interest, i) => (
-                            <span key={i} style={{ padding: '0.35rem 0.65rem', borderRadius: '99px', background: 'var(--color-primary-light)', color: 'var(--color-primary)', fontSize: '0.8125rem' }}>{interest}</span>
-                          ))}
-                        </div>
-                      ) : (
-                        <div style={{ color: 'var(--color-text)' }}>No interests added yet</div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <button type="button" onClick={() => setShowPasswordModal(true)} style={{ backgroundColor: 'red', width: '220px', color: 'white', textAlign: 'center', padding: '6px 16px', fontWeight: 'bold', borderRadius: '12px', border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}>
-                      Update Password
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label className="form-label">Profile Photo</label>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginBottom: '0.5rem' }}>
-                      <div style={{ width: 80, height: 80, borderRadius: '50%', background: 'var(--color-bg)', border: '1px solid var(--color-border)', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {profile.photo ? <img src={profile.photo} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <User size={32} color="var(--color-text-light)" />}
-                      </div>
-                      <div>
-                        <label htmlFor="photo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '0.375rem', display: 'inline-flex' }}>
-                          <Upload size={14} /> {profile.photo ? 'Change Photo' : 'Upload Photo'}
-                        </label>
-                        <input id="photo-upload" type="file" accept="image/*" onChange={handlePhotoUpload} style={{ display: 'none' }} />
-                        <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>Accepted: JPG, PNG, GIF. Max 2MB.</p>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Full Name</label>
-                    <input className="form-input" value={profile.name} onChange={(e) => set('name', e.target.value)} placeholder="e.g. Dr. John Smith" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Professional Headline</label>
-                    <input className="form-input" value={profile.headline} onChange={(e) => set('headline', e.target.value)} placeholder="e.g. Associate Professor of Computer Science" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Biography</label>
-                    <textarea className="form-textarea" value={profile.bio} onChange={(e) => set('bio', e.target.value)} placeholder="Brief professional biography…" style={{ minHeight: 120 }} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Subjects Taught (comma-separated)</label>
-                    <input className="form-input" value={profile.subjects.join(', ')} onChange={(e) => set('subjects', e.target.value.split(',').map((s) => s.trim()).filter(Boolean))} placeholder="e.g. Data Structures, Machine Learning" />
-                  </div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Date of Birth</label>
-                      <input type="date" className="form-input" value={profile.dob} onChange={(e) => set('dob', e.target.value)} />
-                    </div>
-                    <div className="form-group">
-                      <label className="form-label">Gender</label>
-                      <select className="form-input" value={profile.gender} onChange={(e) => set('gender', e.target.value)}>
-                        <option value="">Select Gender</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                        <option value="Prefer not to say">Prefer not to say</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Phone Number</label>
-                    <input className="form-input" value={profile.phoneNumber} onChange={(e) => set('phoneNumber', e.target.value)} placeholder="e.g. +1 234 567 890" />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Office / Residential Address</label>
-                    <textarea className="form-textarea" value={profile.address} onChange={(e) => set('address', e.target.value)} placeholder="Enter full address…" style={{ minHeight: 80 }} />
-                  </div>
-                  <div>
-                    <div className="form-group">
-                      <label className="form-label">Blood Group</label>
-                      <input className="form-input" value={profile.bloodGroup} onChange={(e) => set('bloodGroup', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Nationality</label>
-                      <input className="form-input" value={profile.nationality} onChange={(e) => set('nationality', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">State & City</label>
-                      <input className="form-input" value={profile.stateCity} onChange={(e) => set('stateCity', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Permanent Address</label>
-                      <textarea className="form-textarea" value={profile.permanentAddress} onChange={(e) => set('permanentAddress', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Current Address</label>
-                      <textarea className="form-textarea" value={profile.currentAddress} onChange={(e) => set('currentAddress', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Mobile Number</label>
-                      <input className="form-input" value={profile.mobileNumber} onChange={(e) => set('mobileNumber', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Alternate Phone</label>
-                      <input className="form-input" value={profile.alternatePhone} onChange={(e) => set('alternatePhone', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Official Email</label>
-                      <input className="form-input" value={profile.officialEmail} onChange={(e) => set('officialEmail', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Personal Email</label>
-                      <input className="form-input" value={profile.personalEmail} onChange={(e) => set('personalEmail', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Aadhaar</label>
-                      <input className="form-input" value={profile.aadhaar} onChange={(e) => set('aadhaar', e.target.value)} />
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">PAN Number</label>
-                      <input className="form-input" value={profile.panNumber} onChange={(e) => set('panNumber', e.target.value)} />
-                    </div>
-                    <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>Interests</label>
-                    <InterestsTab interests={profile.interests} onAddInterest={(interest) => set('interests', [...profile.interests, interest])} onRemoveInterest={(i) => set('interests', profile.interests.filter((_, idx) => idx !== i))} />
-                  </div>
-                  <button type="button" onClick={() => setShowPasswordModal(true)} style={{ backgroundColor: 'red', width: '220px', color: 'white', textAlign: 'center', padding: '6px 16px', fontWeight: 'bold', borderRadius: '12px', border: 'none', cursor: 'pointer', marginTop: '0.5rem' }}>
-                    Update Password
-                  </button>
-                </div>
-              )}
-            </div>
+            <BasicInformationSection
+              profile={profile}
+              editMode={basicEditMode}
+              onToggleEdit={() => setBasicEditMode((prev) => !prev)}
+              onOpenPasswordModal={() => setShowPasswordModal(true)}
+              onSetField={set}
+              onPhotoUpload={handlePhotoUpload}
+              onAddInterest={(interest) => set('interests', [...profile.interests, interest])}
+              onRemoveInterest={(index) => set('interests', profile.interests.filter((_, currentIndex) => currentIndex !== index))}
+            />
           )}
 
           {activeTab === 'professionalDetails' && (
-            <div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>Professional Details</h3>
-                
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group">
-                    <label className="form-label">Employee ID / Staff Code</label>
-                    <input className="form-input" value={profile.professionalDetails?.employeeId || ''} onChange={(e) => updateProfDetail('employeeId', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Designation</label>
-                    <select className="form-input" value={profile.professionalDetails?.designation || ''} onChange={(e) => updateProfDetail('designation', e.target.value)}>
-                      <option value="">Select Designation</option>
-                      <option value="Assistant Professor">Assistant Professor</option>
-                      <option value="Associate Professor">Associate Professor</option>
-                      <option value="Professor">Professor</option>
-                      <option value="Senior Professor">Senior Professor</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Department</label>
-                    <input className="form-input" value={profile.professionalDetails?.department || ''} onChange={(e) => updateProfDetail('department', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">College / Institution Name</label>
-                    <input className="form-input" value={profile.professionalDetails?.institutionName || ''} onChange={(e) => updateProfDetail('institutionName', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">University Affiliated to</label>
-                    <input className="form-input" value={profile.professionalDetails?.affiliatedUniversity || ''} onChange={(e) => updateProfDetail('affiliatedUniversity', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Type of Institution</label>
-                    <select className="form-input" value={profile.professionalDetails?.institutionType || ''} onChange={(e) => updateProfDetail('institutionType', e.target.value)}>
-                      <option value="">Select Type</option>
-                      <option value="Government">Government</option>
-                      <option value="Aided">Aided</option>
-                      <option value="Private">Private</option>
-                      <option value="Deemed">Deemed</option>
-                      <option value="Central University">Central University</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Nature of Appointment</label>
-                    <select className="form-input" value={profile.professionalDetails?.natureOfAppointment || ''} onChange={(e) => updateProfDetail('natureOfAppointment', e.target.value)}>
-                      <option value="">Select Nature</option>
-                      <option value="Regular">Regular</option>
-                      <option value="Contract">Contract</option>
-                      <option value="Guest">Guest</option>
-                      <option value="Adjunct">Adjunct</option>
-                      <option value="Visiting">Visiting</option>
-                      <option value="Assistant Professor">Assistant Professor</option>
-                      <option value="Associate Professor">Associate Professor</option>
-                      <option value="Professor">Professor</option>
-                      <option value="Senior Professor">Senior Professor</option>
-                    </select>
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Date of Joining (current institution)</label>
-                    <input type="date" className="form-input" value={profile.professionalDetails?.dateOfJoining || ''} onChange={(e) => updateProfDetail('dateOfJoining', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Date of Confirmation / Regularization</label>
-                    <input type="date" className="form-input" value={profile.professionalDetails?.dateOfConfirmation || ''} onChange={(e) => updateProfDetail('dateOfConfirmation', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Pay Band / Pay Scale / CTC</label>
-                    <input className="form-input" value={profile.professionalDetails?.payBand || ''} onChange={(e) => updateProfDetail('payBand', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Bank Account Details (for salary)</label>
-                    <input className="form-input" value={profile.professionalDetails?.bankAccountDetails || ''} onChange={(e) => updateProfDetail('bankAccountDetails', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Provident Fund (PF) Number</label>
-                    <input className="form-input" value={profile.professionalDetails?.pfNumber || ''} onChange={(e) => updateProfDetail('pfNumber', e.target.value)} />
-                  </div>
-                  <div className="form-group">
-                    <label className="form-label">Service Book Number</label>
-                    <input className="form-input" value={profile.professionalDetails?.serviceBookNumber || ''} onChange={(e) => updateProfDetail('serviceBookNumber', e.target.value)} />
-                  </div>
-                </div>
-
-                <h4 style={{ fontSize: '1rem', marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>First Promotion</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label className="form-label">Date of First Promotion</label><input type="date" className="form-input" value={profile.professionalDetails?.dateOfFirstPromotion || ''} onChange={(e) => updateProfDetail('dateOfFirstPromotion', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfFirstAppointment || ''} onChange={(e) => updateProfDetail('natureOfFirstAppointment', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.firstPayBand || ''} onChange={(e) => updateProfDetail('firstPayBand', e.target.value)} /></div>
-                </div>
-
-                <h4 style={{ fontSize: '1rem', marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Second Promotion</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label className="form-label">Date of Second Promotion</label><input type="date" className="form-input" value={profile.professionalDetails?.dateOfSecondPromotion || ''} onChange={(e) => updateProfDetail('dateOfSecondPromotion', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfSecondAppointment || ''} onChange={(e) => updateProfDetail('natureOfSecondAppointment', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.secondPayBand || ''} onChange={(e) => updateProfDetail('secondPayBand', e.target.value)} /></div>
-                </div>
-
-                <h4 style={{ fontSize: '1rem', marginTop: '1.5rem', marginBottom: '1rem', color: 'var(--color-text)' }}>Third Promotion</h4>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                  <div className="form-group"><label className="form-label">Date of Third Promotion</label><input type="date" className="form-input" value={profile.professionalDetails?.dateOfThirdPromotion || ''} onChange={(e) => updateProfDetail('dateOfThirdPromotion', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={profile.professionalDetails?.natureOfThirdAppointment || ''} onChange={(e) => updateProfDetail('natureOfThirdAppointment', e.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">New Pay Band / Pay Scale</label><input className="form-input" value={profile.professionalDetails?.thirdPayBand || ''} onChange={(e) => updateProfDetail('thirdPayBand', e.target.value)} /></div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'workExperiences' && (
-            <div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '1.25rem', color: 'var(--color-primary)' }}>Work Experience</h3>
-                </div>
-                {profile.workExperiences.length === 0 && (
-                  <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
-                    No work experience added yet. Click "Add Work Exp" to begin.
-                  </div>
-                )}
-                {profile.workExperiences.map((w, i) => (
-                  <div key={i} className="card" style={{ padding: '1rem', position: 'relative' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
-                      <div className="form-group"><label className="form-label">Institution Name *</label><input className="form-input" value={w.institutionName} onChange={(e) => updateWorkExp(i, 'institutionName', e.target.value)} /></div>
-                      <div className="form-group"><label className="form-label">Designation *</label><input className="form-input" value={w.designation} onChange={(e) => updateWorkExp(i, 'designation', e.target.value)} /></div>
-                      <div className="form-group"><label className="form-label">Department *</label><input className="form-input" value={w.department} onChange={(e) => updateWorkExp(i, 'department', e.target.value)} /></div>
-                      <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={w.natureOfAppointment} onChange={(e) => updateWorkExp(i, 'natureOfAppointment', e.target.value)} /></div>
-                      <div className="form-group"><label className="form-label">From Date</label><input type="date" className="form-input" value={w.fromDate} onChange={(e) => updateWorkExp(i, 'fromDate', e.target.value)} /></div>
-                      <div className="form-group"><label className="form-label">To Date</label><input type="date" className="form-input" value={w.toDate} onChange={(e) => updateWorkExp(i, 'toDate', e.target.value)} /></div>
-                      <div className="form-group"><label className="form-label">Total Duration</label><input className="form-input" value={w.totalDuration} onChange={(e) => updateWorkExp(i, 'totalDuration', e.target.value)} placeholder="e.g. 5 Years 2 Months" /></div>
-                      <div className="form-group"><label className="form-label">Reason for Leaving</label><input className="form-input" value={w.reasonForLeaving} onChange={(e) => updateWorkExp(i, 'reasonForLeaving', e.target.value)} /></div>
-                    </div>
-                    <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeWorkExp(i)} type="button"><Trash2 size={13} /> Remove Work Experience</button>
-                  </div>
-                ))}
-                <button className="btn btn-secondary" onClick={addWorkExp} type="button" style={{ alignSelf: 'flex-start' }}><Plus size={14} /> Add Work Experience</button>
-              </div>
-            </div>
+            <ProfessionalDetailsSection profile={profile} onUpdate={updateProfDetail} />
           )}
 
           {activeTab === 'entranceTests' && (
-            <div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-                <h3 style={{ fontSize: '1.25rem', marginBottom: '0', color: 'var(--color-primary)' }}>Entrance / Eligibility Tests</h3>
-                
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>NET (National Eligibility Test)</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group"><label className="form-label">Subject</label><input className="form-input" value={profile.entranceTests?.net?.subject || ''} onChange={(e) => updateEntranceTest('net', 'subject', e.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.net?.year || ''} onChange={(e) => updateEntranceTest('net', 'year', e.target.value)} placeholder="e.g. 2021" /></div>
-                    <div className="form-group"><label className="form-label">Certificate No.</label><input className="form-input" value={profile.entranceTests?.net?.certificateNo || ''} onChange={(e) => updateEntranceTest('net', 'certificateNo', e.target.value)} /></div>
-                  </div>
-                </div>
+            <EntranceEligibilityTestsSection profile={profile} onUpdate={updateEntranceTest} />
+          )}
 
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>SET / SLET</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group"><label className="form-label">Subject</label><input className="form-input" value={profile.entranceTests?.set?.subject || ''} onChange={(e) => updateEntranceTest('set', 'subject', e.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.set?.year || ''} onChange={(e) => updateEntranceTest('set', 'year', e.target.value)} placeholder="e.g. 2022" /></div>
-                    <div className="form-group"><label className="form-label">State</label><input className="form-input" value={profile.entranceTests?.set?.state || ''} onChange={(e) => updateEntranceTest('set', 'state', e.target.value)} /></div>
-                  </div>
-                </div>
-
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>GATE</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group"><label className="form-label">Score / Percentile</label><input className="form-input" value={profile.entranceTests?.gate?.score || ''} onChange={(e) => updateEntranceTest('gate', 'score', e.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.gate?.year || ''} onChange={(e) => updateEntranceTest('gate', 'year', e.target.value)} placeholder="e.g. 2020" /></div>
-                  </div>
-                </div>
-
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>JRF (Junior Research Fellowship)</h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="form-group"><label className="form-label">Agency (UGC/CSIR/ICMR etc.)</label><input className="form-input" value={profile.entranceTests?.jrf?.agency || ''} onChange={(e) => updateEntranceTest('jrf', 'agency', e.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Year</label><input className="form-input" value={profile.entranceTests?.jrf?.year || ''} onChange={(e) => updateEntranceTest('jrf', 'year', e.target.value)} /></div>
-                  </div>
-                </div>
-
-                <div className="card" style={{ padding: '1.25rem' }}>
-                  <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--color-text)', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.5rem' }}>Any other competitive exam qualified</h4>
-                  <div className="form-group">
-                    <input className="form-input" value={profile.entranceTests?.other || ''} onChange={(e) => updateEntranceTest('other', '', e.target.value)} placeholder="e.g. GRE, CAT, IELTS, state-level exams..." />
-                  </div>
-                </div>
-              </div>
-            </div>
+          {activeTab === 'workExperiences' && (
+            <WorkExperienceSection
+              profile={profile}
+              onAdd={addWorkExp}
+              onUpdate={updateWorkExp}
+              onRemove={removeWorkExp}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
 
           {activeTab === 'qualifications' && (
-            <div>
-              {profile.qualifications.map((q, i) => {
-                const cardKey = `qualifications-${i}`;
-                const summary = [q.degree, q.institution, q.year].filter(Boolean).join(' · ') || 'Add qualification details';
-                return (
-                  <CollapsibleEditorCard
-                    key={cardKey}
-                    title={q.degree || `Qualification ${i + 1}`}
-                    summary={summary}
-                    expanded={isExpanded(cardKey)}
-                    onToggle={() => toggleSection(cardKey)}
-                  >
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                      
-                      
-                     
-                      <div className="col-span-2">
-                      <FileField label="Upload 10th certificate" name="tenthcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
-                        </div>
-                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.tenthboard} onChange={(e) => updateQual(i, 'boarduniversity', e.target.value)} placeholder="Diploma in Computer Science" /></div>
-                       <SelectField
-                       label="Year of Passing"
-                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
-                      value={q.year}
-                      onChange={(value) => updateQual(i, 'year', value)}
-                      placeholder="Select year of passing"
-                    />
-                       <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.tenthcgpa} onChange={(e) => updateQual(i, 'tenthcgpa', e.target.value)} placeholder="9.38" /></div>
-                          <SelectField
-                        label="Division/Class"
-                        options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
-                        value={q.tenthdivision}
-                        onChange={(value) => updateQual(i, 'tenthdivision', value)}
-                        placeholder="Select division/class"
-                      />
-
-
-                       
-                      <SelectField
-                        label="Mode of Study"
-                        options={['regular', 'distance']}
-                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
-                        placeholder="Select mode of study"
-                      />
-
-                       <SelectField
-                        label="Country"
-                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
-                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
-                        placeholder="Select country"
-                      />
-                       <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.tenthstate} onChange={(e) => updateQual(i, 'tenthstate', e.target.value)} placeholder="Kerala" /></div>
-                      <div className="col-span-2">
-                      <FileField label="Upload 12th certificate" name="twelfthcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
-                        </div>
-                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.twelfthboard} onChange={(e) => updateQual(i, 'twelfthboard', e.target.value)} placeholder="kerala board" /></div>
-                        <SelectField
-                       label="Year of Passing"
-                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
-                      value={q.year}
-                      onChange={(value) => updateQual(i, 'year', value)}
-                      placeholder="Select year of passing"
-                    />
-                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.twelfthcgpa} onChange={(e) => updateQual(i, 'twelfthcgpa', e.target.value)} placeholder="9.38" /></div>
-                        <SelectField
-                       label="Division/Class"
-                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
-                      value={q.twelfthdivision}
-                      onChange={(value) => updateQual(i, 'twelfthdivision', value)}
-                      placeholder="Select division/class"
-                    />
-                          <SelectField
-                        label="Mode of Study"
-                        options={['regular', 'distance']}
-                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
-                        placeholder="Select mode of study"
-                      />
-
-                        <SelectField
-                        label="Country"
-                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
-                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
-                        placeholder="Select country"
-                      />
-                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.twelfthstate} onChange={(e) => updateQual(i, 'twelfthstate', e.target.value)} placeholder="Kerala" /></div>
-                      
-                      <div className="col-span-2">
-                        <FileField label="Upload Graduation certificate" name="graduationcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
-                          </div>
-                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.graduationboard} onChange={(e) => updateQual(i, 'graduationboard', e.target.value)} placeholder="kerala university" /></div>
-                        <SelectField
-                       label="Year of Passing"
-                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
-                      value={q.year}
-                      onChange={(value) => updateQual(i, 'year', value)}
-                      placeholder="Select year of passing"
-                    />
-                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.graduationcgpa} onChange={(e) => updateQual(i, 'graduationcgpa', e.target.value)} placeholder="9.38" /></div>
-                        <SelectField
-                       label="Division/Class"
-                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
-                      value={q.graduationdivision}
-                      onChange={(value) => updateQual(i, 'graduationdivision', value)}
-                      placeholder="Select division/class"
-                    />
-
-                        <SelectField
-                        label="Mode of Study"
-                        options={['regular', 'distance']}
-                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
-                        placeholder="Select mode of study"
-                      />
-
-                        <SelectField
-                        label="Country"
-                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
-                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
-                        placeholder="Select country"
-                      />
-                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.graduationstate} onChange={(e) => updateQual(i, 'graduationstate', e.target.value)} placeholder="Kerala" /></div>
-                      
-                      <div className="col-span-2">
-                        <FileField label="Upload Post-Graduation certificate" name="postgraduationcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
-                          </div>
-                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.postgraduationboard} onChange={(e) => updateQual(i, 'postgraduationboard', e.target.value)} placeholder="kerala university" /></div>
-                        <SelectField
-                       label="Year of Passing"
-                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
-                      value={q.year}
-                      onChange={(value) => updateQual(i, 'year', value)}
-                      placeholder="Select year of passing"
-                    />
-                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.postgraduationcgpa} onChange={(e) => updateQual(i, 'postgraduationcgpa', e.target.value)} placeholder="9.38" /></div>
-                      <SelectField
-                       label="Division/Class"
-                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
-                      value={q.postgraduationdivision}
-                      onChange={(value) => updateQual(i, 'postgraduationdivision', value)}
-                      placeholder="Select division/class"
-                    />
-
-                        <SelectField
-                        label="Mode of Study"
-                        options={['regular', 'distance']}
-                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
-                        placeholder="Select mode of study"
-                      />
-
-                        <SelectField
-                        label="Country"
-                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
-                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
-                        placeholder="Select country"
-                      />
-                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.postgraduationstate} onChange={(e) => updateQual(i, 'postgraduationstate', e.target.value)} placeholder="Kerala" /></div>
-                      
-                      <div className="col-span-2">
-                        <FileField label="Upload M.Phil. certificate" name="mphilcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
-                          </div>
-                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.mphilboard} onChange={(e) => updateQual(i, 'mphilboard', e.target.value)} placeholder="kerala university" /></div>
-                       <SelectField
-                       label="Year of Passing"
-                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
-                      value={q.year}
-                      onChange={(value) => updateQual(i, 'year', value)}
-                      placeholder="Select year of passing"
-                    />
-                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.mphilcgpa} onChange={(e) => updateQual(i, 'mphilcgpa', e.target.value)} placeholder="9.38" /></div>
-                        <SelectField
-                       label="Division/Class"
-                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
-                      value={q.mphildivision}
-                      onChange={(value) => updateQual(i, 'mphildivision', value)}
-                      placeholder="Select division/class"
-                    />
-                        <SelectField
-                       label="Mode of Study"
-                      options={['regular', 'distance']}
-                      value={q.mode}
-                      onChange={(value) => updateQual(i, 'mode', value)}
-                      placeholder="Select mode of study"
-                    />
-
-                        <SelectField
-                        label="Country"
-                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
-                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
-                        placeholder="Select country"
-                      />
-                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.mphilstate} onChange={(e) => updateQual(i, 'mphilstate', e.target.value)} placeholder="Kerala" /></div>
-                     
-                      <div className="col-span-2">
-                        <FileField label="Upload Ph.D. certificate" name="phdcertificatefile" selectedFile={null} onFileSelect={(name, file) => handleFileUpload(i, name, file)} />
-                          </div>
-                      <div className="form-group"><label className="form-label">Board/University</label><input className="form-input" value={q.phdboard} onChange={(e) => updateQual(i, 'phdboard', e.target.value)} placeholder="kerala university" /></div>
-                        <SelectField
-                       label="Year of Passing"
-                      options={Array.from({ length: 100 }, (_, idx) => `${1950 + idx}`)}
-                      value={q.year}
-                      onChange={(value) => updateQual(i, 'year', value)}
-                      placeholder="Select year of passing"
-                    />
-                        <div className="form-group"><label className="form-label">percentage/CGPA</label><input className="form-input" value={q.phdcgpa} onChange={(e) => updateQual(i, 'phdcgpa', e.target.value)} placeholder="9.38" /></div>
-                       <SelectField
-                       label="Division/Class"
-                      options={['First Class with Distinction', 'First Class', 'Second Class', 'Third Class', 'Pass']}
-                      value={q.phddivision}
-                      onChange={(value) => updateQual(i, 'phddivision', value)}
-                      placeholder="Select division/class"
-                    />
-                        <SelectField
-                        label="Mode of Study"
-                        options={['regular', 'distance']}
-                        value={q.mode}                        onChange={(value) => updateQual(i, 'mode', value)}
-                        placeholder="Select mode of study"
-                      />
-
-                        <SelectField
-                        label="Country"
-                        options={['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other']}
-                        value={q.country}                        onChange={(value) => updateQual(i, 'country', value)}
-                        placeholder="Select country"
-                      />
-                        <div className="form-group"><label className="form-label">state of institution</label><input className="form-input" value={q.phdstate} onChange={(e) => updateQual(i, 'phdstate', e.target.value)} placeholder="Kerala" /></div>
-                        
-                    </div>
-                    <button className="btn btn-ghost" style={{ marginTop: '0.75rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeQual(i)} type="button"><Trash2 size={13} /> Remove</button>
-                  </CollapsibleEditorCard>
-                );
-              })}
-              <button className="btn btn-secondary" onClick={addQual} type="button"><Plus size={14} /> Add Qualification</button>
-            </div>
+            <QualificationsSection
+              profile={profile}
+              onAdd={addQual}
+              onUpdate={updateQual}
+              onRemove={removeQual}
+              onUploadCertificate={handleFileUpload}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
 
           {activeTab === 'publications' && (
-            <div>
-              {profile.publications.map((p, i) => {
-                const cardKey = `publications-${i}`;
-                const summary = [p.title, p.year, p.journal].filter(Boolean).join(' · ') || 'Add publication details';
-                return (
-                  <CollapsibleEditorCard
-                    key={cardKey}
-                    title={p.title || `Publication ${i + 1}`}
-                    summary={summary}
-                    expanded={isExpanded(cardKey)}
-                    onToggle={() => toggleSection(cardKey)}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div className="form-group">
-                        <label className="form-label">Paper Title / Name <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                        <input className="form-input" value={p.title} onChange={(e) => updatePub(i, 'title', e.target.value)} placeholder="Enter paper title…" />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">Authors List (comma-separated)</label>
-                        <input className="form-input" value={p.authors} onChange={(e) => updatePub(i, 'authors', e.target.value)} placeholder="e.g. John Doe, Jane Smith…" />
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                        <div className="form-group"><label className="form-label">Journal / Conference Name</label><input className="form-input" value={p.journal} onChange={(e) => updatePub(i, 'journal', e.target.value)} placeholder="Nature, ICML…" /></div>
-                        <div className="form-group"><label className="form-label">Organisation / Publisher</label><input className="form-input" value={p.organisation} onChange={(e) => updatePub(i, 'organisation', e.target.value)} placeholder="e.g. IEEE, Springer…" /></div>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-                        <div className="form-group"><label className="form-label">Year of Publication <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updatePub(i, 'year', e.target.value)} placeholder="2023" /></div>
-                        <div className="form-group"><label className="form-label">Month (Optional)</label><input className="form-input" value={p.month} onChange={(e) => updatePub(i, 'month', e.target.value)} placeholder="June" /></div>
-                        <div className="form-group"><label className="form-label">DOI <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.doi} onChange={(e) => updatePub(i, 'doi', e.target.value)} placeholder="10.1000/xyz123" /></div>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
-                        <div className="form-group"><label className="form-label">Volume (Optional)</label><input className="form-input" value={p.volume} onChange={(e) => updatePub(i, 'volume', e.target.value)} placeholder="Vol 12" /></div>
-                        <div className="form-group"><label className="form-label">Issue (Optional)</label><input className="form-input" value={p.issue} onChange={(e) => updatePub(i, 'issue', e.target.value)} placeholder="Issue 4" /></div>
-                        <div className="form-group"><label className="form-label">Page Numbers (Optional)</label><input className="form-input" value={p.pages} onChange={(e) => updatePub(i, 'pages', e.target.value)} placeholder="e.g. 123-145" /></div>
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">Publication URL <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                        <input className="form-input" type="url" value={p.url} onChange={(e) => updatePub(i, 'url', e.target.value)} placeholder="https://…" />
-                      </div>
-                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem', alignSelf: 'flex-start' }} onClick={() => removePub(i)} type="button"><Trash2 size={13} /> Remove Publication</button>
-                    </div>
-                  </CollapsibleEditorCard>
-                );
-              })}
-              <button className="btn btn-secondary" onClick={addPub} type="button"><Plus size={14} /> Add Publication</button>
-            </div>
+            <PublicationsSection
+              profile={profile}
+              onAdd={addPub}
+              onUpdate={updatePub}
+              onRemove={removePub}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
 
           {activeTab === 'projects' && (
-            <div>
-              {profile.projects.map((p, i) => {
-                const cardKey = `projects-${i}`;
-                const summary = [p.title, p.year].filter(Boolean).join(' · ') || 'Add project details';
-                return (
-                  <CollapsibleEditorCard
-                    key={cardKey}
-                    title={p.title || `Project ${i + 1}`}
-                    summary={summary}
-                    expanded={isExpanded(cardKey)}
-                    onToggle={() => toggleSection(cardKey)}
-                  >
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div className="form-group">
-                        <label className="form-label">Project Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                        <input className="form-input" value={p.title} onChange={(e) => updateProj(i, 'title', e.target.value)} placeholder="Research project title…" />
-                      </div>
-                      <div className="form-group"><label className="form-label">Description</label><textarea className="form-textarea" value={p.description} onChange={(e) => updateProj(i, 'description', e.target.value)} placeholder="Brief project summary…" style={{ minHeight: 80 }} /></div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                        <div className="form-group"><label className="form-label">Year <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" value={p.year} onChange={(e) => updateProj(i, 'year', e.target.value)} placeholder="2022-2023" /></div>
-                        <div className="form-group"><label className="form-label">Project URL <span style={{ color: 'var(--color-danger)' }}>*</span></label><input className="form-input" type="url" value={p.url} onChange={(e) => updateProj(i, 'url', e.target.value)} placeholder="https://…" /></div>
-                      </div>
-                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem', alignSelf: 'flex-start' }} onClick={() => removeProj(i)} type="button"><Trash2 size={13} /> Remove Project</button>
-                    </div>
-                  </CollapsibleEditorCard>
-                );
-              })}
-              <button className="btn btn-secondary" onClick={addProj} type="button"><Plus size={14} /> Add Project</button>
-            </div>
+            <ResearchProjectsSection
+              profile={profile}
+              onAdd={addProj}
+              onUpdate={updateProj}
+              onRemove={removeProj}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
 
           {activeTab.startsWith('custom-') && (
             <div>
               {(() => {
-                const idx = parseInt(activeTab.split('-')[1]);
-                const c = profile.customDetails[idx];
-                if (!c) return null;
-                const cardKey = `custom-${idx}`;
-                const preview = c.content.trim().replace(/\s+/g, ' ').slice(0, 90);
-                const summary = `${c.isVisible ? 'Visible' : 'Hidden'}${preview ? ` · ${preview}` : ''}`;
+                const index = parseInt(activeTab.split('-')[1], 10);
+                const customDetail = profile.customDetails[index];
+                if (!customDetail) return null;
+                const cardKey = `custom-${index}`;
+                const preview = customDetail.content.trim().replace(/\s+/g, ' ').slice(0, 90);
+                const summary = `${customDetail.isVisible ? 'Visible' : 'Hidden'}${preview ? ` · ${preview}` : ''}`;
+
                 return (
                   <CollapsibleEditorCard
                     key={cardKey}
-                    title={c.sectionTitle || `Section ${idx + 1}`}
+                    title={customDetail.sectionTitle || `Section ${index + 1}`}
                     summary={summary || 'Add section content'}
                     expanded={isExpanded(cardKey)}
                     onToggle={() => toggleSection(cardKey)}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
                       <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', fontSize: '0.8125rem', color: 'var(--color-text-muted)', background: 'var(--color-bg)', padding: '0.4rem 0.75rem', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                        {c.isVisible ? <Eye size={14} color="var(--color-primary)" /> : <EyeOff size={14} color="var(--color-text-light)" />}
-                        <span>{c.isVisible ? 'Visible on Profile' : 'Hidden from Profile'}</span>
-                        <input type="checkbox" checked={c.isVisible} onChange={() => updateCustom(idx, 'isVisible', !c.isVisible)} style={{ display: 'none' }} />
+                        {customDetail.isVisible ? <Eye size={14} color="var(--color-primary)" /> : <EyeOff size={14} color="var(--color-text-light)" />}
+                        <span>{customDetail.isVisible ? 'Visible on Profile' : 'Hidden from Profile'}</span>
+                        <input type="checkbox" checked={customDetail.isVisible} onChange={() => updateCustom(index, 'isVisible', !customDetail.isVisible)} style={{ display: 'none' }} />
                       </label>
                     </div>
 
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       <div className="form-group">
                         <label className="form-label">Section Title <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                        <input className="form-input" value={c.sectionTitle} onChange={(e) => updateCustom(idx, 'sectionTitle', e.target.value)} placeholder="e.g. Awards, Teaching Philosophy…" />
+                        <input className="form-input" value={customDetail.sectionTitle} onChange={(event) => updateCustom(index, 'sectionTitle', event.target.value)} placeholder="e.g. Awards, Teaching Philosophy…" />
                       </div>
                       <div className="form-group">
                         <label className="form-label">Content <span style={{ color: 'var(--color-danger)' }}>*</span></label>
-                        <textarea className="form-textarea" value={c.content} onChange={(e) => updateCustom(idx, 'content', e.target.value)} placeholder="Content…" style={{ minHeight: 200 }} />
+                        <textarea className="form-textarea" value={customDetail.content} onChange={(event) => updateCustom(index, 'content', event.target.value)} placeholder="Content…" style={{ minHeight: 200 }} />
                       </div>
                     </div>
                     <div style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', borderTop: '1px solid var(--color-border)', paddingTop: '1.25rem' }}>
-                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeCustom(idx)} type="button">
+                      <button className="btn btn-ghost" style={{ color: 'var(--color-danger)', fontSize: '0.8125rem' }} onClick={() => removeCustom(index)} type="button">
                         <Trash2 size={13} /> Remove Section
                       </button>
                     </div>
@@ -1756,54 +981,18 @@ export default function ProfileBuilderPage() {
           )}
 
           {activeTab === 'media' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div>
-                <label className="form-label" style={{ marginBottom: '0.625rem' }}>Upload Files (PDF / Images — max 5 MB each)</label>
-                <label
-                  htmlFor="file-upload"
-                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: '2px dashed var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.15s' }}
-                  onMouseEnter={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)')}
-                  onMouseLeave={e => ((e.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)')}
-                >
-                  <Upload size={20} color="var(--color-text-muted)" />
-                  <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Click to upload or drag and drop</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>JPEG, PNG, GIF, WEBP, PDF — max 5 MB</span>
-                </label>
-                <input id="file-upload" type="file" accept="image/*,.pdf" onChange={handleFileUpload} style={{ display: 'none' }} />
-                {uploadError && <div className="alert alert-error" style={{ marginTop: '0.625rem' }}><AlertCircle size={14} />{uploadError}</div>}
-                {profile.media.attachments.length > 0 && (
-                  <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                    {profile.media.attachments.map((a, i) => (
-                      <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                        <div style={{ fontSize: '0.8125rem' }}>
-                          <a href={a.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>{a.name}</a>
-                          <span style={{ color: 'var(--color-text-muted)', marginLeft: '0.5rem' }}>({a.sizeKB} KB)</span>
-                        </div>
-                        <button className="btn btn-ghost" onClick={() => removeAttachment(i)} type="button" style={{ padding: '0.25rem' }}><Trash2 size={13} color="var(--color-danger)" /></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <label className="form-label">Video Embed URLs (YouTube, Vimeo…)</label>
-                {profile.media.videoEmbeds.map((v, i) => (
-                  <div key={i} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                    <div style={{ flex: 1, position: 'relative' }}>
-                      <Link size={14} style={{ position: 'absolute', left: '0.625rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                      <input className="form-input" value={v} onChange={(e) => updateVideoEmbed(i, e.target.value)} placeholder="https://youtube.com/watch?v=…" style={{ paddingLeft: '2rem' }} />
-                    </div>
-                    <button className="btn btn-ghost" onClick={() => removeVideoEmbed(i)} type="button"><Trash2 size={13} color="var(--color-danger)" /></button>
-                  </div>
-                ))}
-                <button className="btn btn-secondary" onClick={addVideoEmbed} type="button"><Plus size={14} /> Add Video URL</button>
-              </div>
-            </div>
+            <MediaAttachmentsSection
+              profile={profile}
+              uploadError={uploadError}
+              onUploadFile={handleFileUpload}
+              onAddVideoEmbed={addVideoEmbed}
+              onUpdateVideoEmbed={updateVideoEmbed}
+              onRemoveVideoEmbed={removeVideoEmbed}
+              onRemoveAttachment={removeAttachment}
+            />
           )}
         </div>
 
-        {/* Sidebar: Visibility Settings - Fixed Right Position */}
         <div style={{ position: 'fixed', top: '5rem', right: '1.5rem', width: '280px', zIndex: 10, maxHeight: 'calc(100vh - 6rem)', overflowY: 'auto' }}>
           <VisibilityPanel
             visibility={profile.visibility}
@@ -1813,12 +1002,10 @@ export default function ProfileBuilderPage() {
         </div>
       </div>
 
-      {/* Share Modal */}
-      {showShare && user && (
-        <ShareModal userId={user.id} onClose={() => setShowShare(false)} />
-      )}
+      {showShare && user ? (
+        <ShareModal userId={user?.id ?? ''} onClose={() => setShowShare(false)} />
+      ) : null}
 
-      {/* Password Modal */}
       {showPasswordModal && (
         <UpdatePasswordModal onClose={() => setShowPasswordModal(false)} />
       )}

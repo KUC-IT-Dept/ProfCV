@@ -1,0 +1,300 @@
+0.1. Personal Information
+• 1.1. Full Name (First, Middle, Last)
+• 1.2. Date of Birth
+• 1.3. Gender
+• 1.4. Blood Group
+• 1.5. Nationality / Country
+• 1.6. State & City of Residence
+• 1.7. Permanent Address
+• 1.8. Current Address
+• 1.9. Mobile Number (Personal)
+• 1.10. Alternate Phone Number
+• 1.11. Official Email ID
+• 1.12. Personal Email ID
+• 1.13. Aadhaar / National ID Number
+• 1.14. Passport Number (if any)
+• 1.15. Religion
+• 1.16. Category (General / OBC / SC / ST / EWS / Other)
+• 1.17. Sub-category (if applicable)
+• 1.18. Differently Abled (Yes/No) — type of disability if yes
+• 1.19. Marital Status
+• 1.20. Spouse Name & Occupation (optional)
+• 1.21. Emergency Contact Name & Number
+• 1.22. PAN Number
+
+2. Educational Qualifications
+• 2.1. Degree / Qualification Name
+• 2.2. Specialization / Subject
+• 2.3. Institution / University Name
+• 2.4. Board / University
+• 2.5. Year of Passing
+• 2.6. Percentage / CGPA
+
+• 2.7. Division (First / Second / Third)
+• 2.8. Mode (Regular / Distance)
+• 2.9. Country & State of Institution
+• 2.10. 10th certificate
+• 2.11. Institution / University Name
+• 2.12. Board / University
+• 2.13. Year of Passing
+• 2.14. Percentage / CGPA
+• 2.15. Division (First / Second / Third)
+• 2.16. Mode (Regular / Distance)
+• 2.17. Country & State of Institution
+• 2.18. 12 th certificate
+• 2.19. Institution / University Name
+• 2.20. Board / University
+• 2.21. Year of Passing
+• 2.22. Percentage / CGPA
+• 2.23. Division (First / Second / Third)
+• 2.24. Mode (Regular / Distance)
+• 2.25. Country & State of Institution
+• 2.26. UG certificate
+• 2.27. Institution / University Name
+• 2.28. Board / University
+• 2.29. Year of Passing
+• 2.30. Percentage / CGPA
+• 2.31. Division (First / Second / Third)
+• 2.32. Mode (Regular / Distance)
+• 2.33. Country & State of Institution
+• 2.34. PG certificate
+• 2.35. Institution / University Name
+• 2.36. Board / University
+• 2.37. Year of Passing
+• 2.38. Percentage / CGPA
+
+• 2.39. Division (First / Second / Third)
+• 2.40. Mode (Regular / Distance)
+• 2.41. Country & State of Institution
+• 2.42. Mphil certificate
+• 2.43. Institution / University Name
+• 2.44. Board / University
+• 2.45. Year of Passing
+• 2.46. Percentage / CGPA
+• 2.47. Division (First / Second / Third)
+• 2.48. Mode (Regular / Distance)
+• 2.49. Country & State of Institution
+• 2.50. PhD certificate
+• 2.51. Institution / University Name
+• 2.52. Board / University
+• 2.53. Year of Passing
+• 2.54. Percentage / CGPA
+• 2.55. Division (First / Second / Third)
+• 2.56. Mode (Regular / Distance)
+• 2.57. Country & State of Institution
+• 2.58. PDF certificate
+• 2.59. Institution / University Name
+• 2.60. Board / University
+• 2.61. Year of Passing
+• 2.62. Percentage / CGPA
+• 2.63. Division (First / Second / Third)
+• 2.64. Mode (Regular / Distance)
+• 2.65. Country & State of Institution
+
+3. Entrance / Eligibility Tests
+• 3.1. NET (National Eligibility Test) — Subject, Year, Certificate No.
+• 3.2. SET / SLET — Subject, Year, State
+• 3.3. GATE — Score, Year
+
+• 3.4. JRF (Junior Research Fellowship) — Agency, Year
+• 3.5. Any other competitive exam qualified
+
+4. Professional / Employment Details
+• 4.1. 1Employee ID / Staff Code
+• 4.1.2. Designation (Assistant Professor / Associate Professor / Professor)
+• 4.1.3. Department
+• 4.1.4. College / Institution Name
+• 4.1.5. University Affiliated to
+• 4.1.6. Type of Institution (Government / Aided / Private / Deemed / Central University)
+• 4.1.7. Nature of Appointment (Regular / Contract / Guest / Adjunct / Visiting/Assistant
+Professor/ Associate Professor/ Professor/ Senior Professor )
+• 4.1.8. Date of Joining (current institution)
+• 4.1.9. Date of Confirmation / Regularization
+• 4.1.10. Pay Band / Pay Scale / CTC
+• 4.1.11. Bank Account Details (for salary)
+• 4.1.12. Provident Fund (PF) Number
+• 4.1. 13. Service Book Number
+• 4.2.1. Date of First promotion
+• 4.2.2. Nature of Appointment (Regular / Contract / Guest / Adjunct / Visiting/Assistant
+Professor/ Associate Professor/ Professor/ Senior Professor )
+• 4.2.3 . New Pay Band / Pay Scale
+• 4.3.1. Date of Second promotion
+• 4.3.2.Nature of Appointment (Regular / Contract / Guest / Adjunct / Visiting/Assistant
+Professor/ Associate Professor/ Professor/ Senior Professor )
+• 4.3.3. New Pay Band / Pay Scale
+• 4.4.1 Date of Third promotion
+• 4.4.2. Nature of Appointment (Regular / Contract / Guest / Adjunct / Visiting/Assistant
+Professor/ Associate Professor/ Professor/ Senior Professor )
+• 4.4.3. New Pay Band / Pay Scale
+
+5. 1 . Work Experience 1
+
+• 5.1.1. Institution Name
+• 5.1.2. Designation
+• 5.1.3. Department
+• 5.1.4. From Date – To Date
+• 5.1.5. Total Duration
+• 5.1.6. Nature of Appointment
+• 5.1.7. Reason for Leaving
+
+5. 2 . Work Experience 2
+• 5.2. 1. Institution Name
+• 5.2.2. Designation
+• 5.2.3. Department
+• 5.2.4. From Date – To Date
+• 5.2.5. Total Duration
+• 5.2.6. Nature of Appointment
+• 5.2.7. Reason for Leaving
+•
+
+5. 3 . Work Experience 3
+• 5.3. 1. Institution Name
+• 5.3.2. Designation
+• 5.3.3. Department
+• 5.3.4. From Date – To Date
+• 5.3.5. Total Duration
+• 5.3.6. Nature of Appointment
+• 5.3.7. Reason for Leaving
+
+6. Research & Publications
+6.0 . Total number of publications.
+
+6.1. Journal Articles
+• 6.1.1.1. Title of Paper
+• 6.1.1.2. Journal Name
+• 6.1.1.3. ISSN Number
+• 6.1.1.4. Volume, Issue, Page Numbers
+• 6.1.1.5. Year of Publication
+• 6.1.1.6. Indexed in (SCI / Scopus / UGC-CARE / Web of Science / Others)
+• 6.1.1.7. Impact Factor
+• 6.1.1.8. Co-authors
+• 6.1.1.9. DOI / Link
+( facilities to open any number of pages like this. – to enter all publications)
+
+model:
+• 6.1.2.1. Title of Paper
+• 6.1.2. 2. Journal Name
+• 6.1.2.3. ISSN Number
+• 6.1.2.4. Volume, Issue, Page Numbers
+• 6.1.2.5. Year of Publication
+• 6.1.2.6. Indexed in (SCI / Scopus / UGC-CARE / Web of Science / Others)
+• 6.1.2.7. Impact Factor
+• 6.1.2.8. Co-authors
+• 6.1.2.9. DOI / Link
+
+6.2. Book Chapters
+• 6.2.1.1. Chapter Title
+• 6.2.1.2. Book Title
+• 6.2.1.3. Publisher
+• 6.2.1.4. ISBN
+• 6.2.1.5. Year
+• 6.2.1.6. Editors
+• ( facilities to open any number of pages like this. – to enter all publications)
+
+• model starting with 6.2.1.1 …………...
+
+6.3. Books Authored / Edited
+• 6.3.1.1. Book Title
+• 6.3.1.2. Publisher
+• 6.3.1. 3. ISBN
+• 6.3.1.4. Year
+• 6.3.1.5. Type (Authored / Edited / Co-authored)
+• ( facilities to open any number of pages like this. – to enter all publications)
+
+model starting with 6.3.2.1 …………………………….
+
+6.4. Conference Papers
+• 6.4.1.1. Paper Title
+• 6.4.1.2. Conference Name
+• 6.4.1.3. National / International
+• 6.4.1.4. Venue & Date
+• 6.4.1.5. Organized by
+• 6.4.1.6. Published in Proceedings (Yes/No)
+• ( facilities to open any number of pages like this. – to enter all publications)
+
+again starting with 6.4.2.1 ……………..
+
+7. Awards & Honours
+• 7.1.1. Award / Fellowship Name
+• 7.1.2. Awarding Body / Organization
+• 7.1. 3. Level (Institution / State / National / International)
+• 7.1.4. Year Received
+• 7.1.5. Description
+• ( facilities to open any number of pages like this. – to enter all publications)
+model starting with 7.2.1
+
+8. Research Projects
+• 8.1.1. Project Title
+• 8.1.2. Funding Agency (DST / UGC / ICSSR / CSIR / NBHM/ etc.)
+• 8.1.3. Role (Principal Investigator / Co-PI)
+• 8.1.4. Sanctioned Amount
+• 8.1.5. Duration (From – To)
+• 8.1.6. Status (Ongoing / Completed)
+• 8.1.7. Project Reference Number
+• ( facilities to open any number of pages like this. – to enter all publications)
+next project starts with 8.2.1
+
+9. Ph.D. / Research Supervision
+• 9.1. Number of Ph.D. students Awarded
+• 9.2 Names of completed students.
+• 9.2. Number of Ph.D. students Ongoing
+• 9.3. Number of M.Phil. students Guided
+• 9.4. Student Names, Topics, Year (optional detail)
+
+10. Academic Responsibilities
+• 10.1. Courses / Subjects Taught> year –programmes- subject
+• 10.2. Classes Handled (UG / PG / Ph.D.)
+• 10.3. Administrative Roles (HOD / Dean / IQAC / Warden etc.)
+• 10.4. Committee Memberships (Academic Council / BOS / etc.)
+
+11. Professional Memberships
+• 11.1.1. Professional Body / Association Name
+• 11.1.2. Membership Type (Life / Annual)
+• 11.1.3. Membership ID
+• 11.1.4. Year of Joining
+• ( facilities to open any number of pages like this. – to enter all )
+next membership with 11.2.1 ……
+
+12. Training, FDP & Workshops
+• 12.1. 1. Program Name
+• 12.1.2. Type (FDP / Workshop / Seminar / MOOC / Refresher / Orientation)
+• 12.1.3. Organized by
+• 12.1.4. Duration / Dates
+• 12.1.5. Mode (Online / Offline)
+• 12.1.6. Certificate (Yes/No)
+• ( facilities to open any number of pages like this. – to enter all )
+next training starts with 12.2.1 ………….
+
+13. Online Courses & Certifications
+• 13.1. 1. Course Name
+• 13.1. 2. Platform (SWAYAM / Coursera / NPTEL / etc.)
+• 13.1. 3. Duration
+• 13.1.4. Score / Grade
+• 13.1.5. Certificate Number
+• 13.1.6. Year
+next one starts with number 13.2.1
+
+14. International Experience
+• 14.1.1. Country Visited
+• 14.1.2. Purpose (Conference / Research / Collaboration / Teaching)
+• 14.1.3. Institution Name
+• 14.1.4. Duration
+• 14.1.5. Funding Source
+next one starts with 14.2.1 ……….
+
+15. Documents to Upload
+• 15.1. Passport-size Photograph
+• 15.2. Signature
+• 15.3. Date of Birth Proof
+• 15.4. Category Certificate (SC/ST/OBC)
+• 15.5. All Degree Certificates & Marksheets
+
+• 15.6. NET/SET/JRF Certificate
+• 15.7. Experience Certificates
+• 15.8. Appointment Orders
+• 15.9. Award Certificates
+• 15.10. Publication Proofs
+• 15.11. Aadhaar Card / National ID
+• 15.12. PAN Card
+
+
