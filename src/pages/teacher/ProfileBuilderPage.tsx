@@ -473,6 +473,7 @@ export default function ProfileBuilderPage() {
   const [showShare, setShowShare] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [visSaving, setVisSaving] = useState(false);
+  const [photoPreviewUrl, setPhotoPreviewUrl] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>('basic');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [basicEditMode, setBasicEditMode] = useState(false);
@@ -544,10 +545,22 @@ export default function ProfileBuilderPage() {
   const toggleSection = (key: string) => setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const save = useCallback(async () => {
-    // Validation
-    const missingPubs = profile.publications.some(p => !p.title || !p.year || !p.doi || !p.url);
-    const missingProjects = profile.projects.some(p => !p.title || !p.year || !p.url);
-    const missingCustom = profile.customDetails.some(c => !c.sectionTitle || !c.content);
+    const isFilledPublication = (pub: typeof profile.publications[number]) =>
+      !!pub.title?.trim() || !!pub.authors?.trim() || !!pub.journal?.trim() || !!pub.organisation?.trim() || !!pub.year?.trim() || !!pub.volume?.trim() || !!pub.issue?.trim() || !!pub.month?.trim() || !!pub.pages?.trim() || !!pub.doi?.trim() || !!pub.url?.trim();
+
+    const isFilledProject = (proj: typeof profile.projects[number]) =>
+      !!proj.title?.trim() || !!proj.description?.trim() || !!proj.year?.trim() || !!proj.url?.trim();
+
+    const isFilledCustom = (custom: typeof profile.customDetails[number]) =>
+      !!custom.sectionTitle?.trim() || !!custom.content?.trim();
+
+    const publicationsToSave = profile.publications.filter(isFilledPublication);
+    const projectsToSave = profile.projects.filter(isFilledProject);
+    const customDetailsToSave = profile.customDetails.filter(isFilledCustom);
+
+    const missingPubs = publicationsToSave.some(p => !p.title || !p.year || !p.doi || !p.url);
+    const missingProjects = projectsToSave.some(p => !p.title || !p.year || !p.url);
+    const missingCustom = customDetailsToSave.some(c => !c.sectionTitle || !c.content);
 
     if (missingPubs || missingProjects || missingCustom) {
       setError('Please fill in all mandatory fields (marked with *) for Publications, Research Projects, and Custom Sections.');
@@ -559,16 +572,24 @@ export default function ProfileBuilderPage() {
     setSaveStatus('saving');
     setError('');
     try {
-      await api.put('/profile/me', profile);
+      const profileToSave = {
+        ...profile,
+        publications: publicationsToSave,
+        projects: projectsToSave,
+        customDetails: customDetailsToSave,
+      };
+      await api.put('/profile/me', profileToSave);
       // Update AuthContext if name or photo has changed
       if ((profile.name && profile.name !== user?.name) || (profile.photo && profile.photo !== user?.photo)) {
         updateUser({ name: profile.name, photo: profile.photo });
       }
       setSaveStatus('saved');
       setTimeout(() => setSaveStatus('idle'), 2500);
-    } catch {
+    } catch (err: any) {
       setSaveStatus('error');
-      setError('An error occurred while saving your profile.');
+      const message = err?.response?.data?.message || 'An error occurred while saving your profile.';
+      setError(message);
+      console.error('[ProfileBuilderPage.save] error', err);
     }
   }, [profile, user, updateUser]);
 
@@ -786,22 +807,32 @@ export default function ProfileBuilderPage() {
     setUploadError('');
     const file = e.target.files?.[0];
     if (!file) return;
-    if (file.size > 2 * 1024 * 1024) {
-      setUploadError(`"${file.name}" exceeds the 2 MB limit. Please upload a smaller image.`);
-      e.target.value = '';
-      return;
-    }
+
+    const previewUrl = URL.createObjectURL(file);
+    setPhotoPreviewUrl(previewUrl);
+
     const form = new FormData();
     form.append('file', file);
     try {
-      const res = await api.post('/profile/me/photo', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-      const photoUrl = res.data.photoUrl;
-      set('photo', photoUrl);
-      updateUser({ photo: photoUrl });
+      const res = await api.post('/profile/me/photo', form);
+      let photoUrl = res.data.photoUrl;
+      if (photoUrl && !photoUrl.startsWith('http')) {
+        photoUrl = `${window.location.origin}${photoUrl}`;
+      }
+      const updatedProfile = { ...profile, photo: photoUrl || previewUrl };
+      setProfile(updatedProfile);
+      updateUser({ photo: photoUrl || previewUrl });
+      if (photoUrl) {
+        setPhotoPreviewUrl(null);
+      }
     } catch (err: any) {
       setUploadError(err?.response?.data?.message ?? 'Photo upload failed.');
+    } finally {
+      if (!e.target.files?.[0]) {
+        setPhotoPreviewUrl(null);
+      }
+      e.target.value = '';
     }
-    e.target.value = '';
   };
 
   return (
@@ -934,6 +965,7 @@ export default function ProfileBuilderPage() {
               onOpenPasswordModal={() => setShowPasswordModal(true)}
               onSetField={set}
               onPhotoUpload={handlePhotoUpload}
+              photoPreviewUrl={photoPreviewUrl}
               onAddInterest={(interest) => set('interests', [...profile.interests, interest])}
               onRemoveInterest={(index) => set('interests', profile.interests.filter((_, currentIndex) => currentIndex !== index))}
             />

@@ -51,7 +51,8 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   const {
     name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
-    projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
+    projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address,
+    mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
   } = req.body;
   try {
     // Update User document if name is provided
@@ -64,7 +65,8 @@ const updateMyProfile = async (req, res) => {
       {
         $set: {
           bio, headline, photo, subjects, workExperiences, qualifications, publications,
-          projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
+          projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address,
+          mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
         }
       },
       { new: true, upsert: true, runValidators: true }
