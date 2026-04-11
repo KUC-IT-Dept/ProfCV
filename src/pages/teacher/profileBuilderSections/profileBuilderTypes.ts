@@ -129,6 +129,14 @@ export type Attachment = {
   sizeKB: number;
 };
 
+export type InternationalExperience = {
+  countryVisited: string;
+  purpose: string;
+  institutionName: string;
+  duration: string;
+  fundingSource: string;
+};
+
 export type Profile = {
   name: string;
   bio: string;
@@ -138,6 +146,7 @@ export type Profile = {
   qualifications: Qualification[];
   publications: Publication[];
   projects: Project[];
+  internationalExperiences: InternationalExperience[];
   customDetails: CustomDetail[];
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
@@ -180,6 +189,7 @@ export const EMPTY_PROFILE: Profile = {
   qualifications: [],
   publications: [],
   projects: [],
+  internationalExperiences: [],
   customDetails: [],
   interests: [],
   photo: '',

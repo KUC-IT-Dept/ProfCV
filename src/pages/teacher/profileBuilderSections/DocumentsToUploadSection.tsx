@@ -1,70 +1,106 @@
-import React from 'react';
-import { Link, Plus, Trash2, Upload } from 'lucide-react';
+﻿import { useRef } from 'react';
+import { Link, Plus, Trash2, Upload, FileText } from 'lucide-react';
 import { Profile } from './profileBuilderTypes';
 
 type DocumentsToUploadSectionProps = {
   profile: Profile;
   uploadError: string;
-  onUploadFile: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  onUploadDocument: (field: keyof Profile['documents'], file: File) => void;
   onAddVideoEmbed: () => void;
   onUpdateVideoEmbed: (index: number, value: string) => void;
   onRemoveVideoEmbed: (index: number) => void;
-  onRemoveAttachment: (index: number) => void;
 };
+
+const DOCUMENT_FIELDS = [
+  { key: 'passportPhoto', label: '15.1. Passport-size Photograph', accept: 'image/*' },
+  { key: 'signature', label: '15.2. Signature', accept: 'image/*' },
+  { key: 'dobProof', label: '15.3. Date of Birth Proof', accept: 'image/*,.pdf' },
+  { key: 'categoryCertificate', label: '15.4. Category Certificate (SC/ST/OBC)', accept: 'image/*,.pdf' },
+  { key: 'degreeCertificates', label: '15.5. All Degree Certificates & Marksheets', accept: 'image/*,.pdf' },
+  { key: 'netSetJrfCertificate', label: '15.6. NET/SET/JRF Certificate', accept: 'image/*,.pdf' },
+  { key: 'experienceCertificates', label: '15.7. Experience Certificates', accept: 'image/*,.pdf' },
+  { key: 'appointmentOrders', label: '15.8. Appointment Orders', accept: 'image/*,.pdf' },
+  { key: 'awardCertificates', label: '15.9. Award Certificates', accept: 'image/*,.pdf' },
+  { key: 'publicationProofs', label: '15.10. Publication Proofs', accept: 'image/*,.pdf' },
+  { key: 'aadhaarCard', label: '15.11. Aadhaar Card / National ID', accept: 'image/*,.pdf' },
+  { key: 'panCard', label: '15.12. PAN Card', accept: 'image/*,.pdf' },
+] as const;
 
 export default function DocumentsToUploadSection({
   profile,
   uploadError,
-  onUploadFile,
+  onUploadDocument,
   onAddVideoEmbed,
   onUpdateVideoEmbed,
   onRemoveVideoEmbed,
-  onRemoveAttachment,
 }: DocumentsToUploadSectionProps) {
+  const fileInputs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
+  const handleFileChange = (field: keyof Profile['documents'], event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      onUploadDocument(field, file);
+    }
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
       <div>
-        <label className="form-label" style={{ marginBottom: '0.625rem' }}>Upload Files (PDF / Images — max 5 MB each)</label>
-        <label
-          htmlFor="file-upload"
-          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', border: '2px dashed var(--color-border)', borderRadius: 'var(--radius-md)', padding: '1.5rem', cursor: 'pointer', transition: 'border-color 0.15s' }}
-          onMouseEnter={(event) => ((event.currentTarget as HTMLElement).style.borderColor = 'var(--color-primary)')}
-          onMouseLeave={(event) => ((event.currentTarget as HTMLElement).style.borderColor = 'var(--color-border)')}
-        >
-          <Upload size={20} color="var(--color-text-muted)" />
-          <span style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Click to upload or drag and drop</span>
-          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-light)' }}>JPEG, PNG, GIF, WEBP, PDF — max 5 MB</span>
-        </label>
-        <input id="file-upload" type="file" accept="image/*,.pdf" onChange={onUploadFile} style={{ display: 'none' }} />
-        {uploadError && <div className="alert alert-error" style={{ marginTop: '0.625rem' }}>{uploadError}</div>}
-        {profile.media.attachments.length > 0 && (
-          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            {profile.media.attachments.map((attachment, index) => (
-              <div key={`${attachment.name}-${index}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: 'var(--color-bg)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
-                <div style={{ fontSize: '0.8125rem' }}>
-                  <a href={attachment.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', fontWeight: 500 }}>{attachment.name}</a>
-                  <span style={{ color: 'var(--color-text-muted)', marginLeft: '0.5rem' }}>({attachment.sizeKB} KB)</span>
+        <div style={{ marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--color-text)', marginBottom: '0.25rem' }}>15. Documents to Upload</h3>
+          <p style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Supported formats: Images (JPEG, PNG, etc.) and PDF. Max 5 MB each.</p>
+        </div>
+
+        {uploadError && <div className="alert alert-error" style={{ marginBottom: '1rem' }}>{uploadError}</div>}
+
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' }}>
+          {DOCUMENT_FIELDS.map((docField) => {
+            const url = profile.documents?.[docField.key as keyof Profile['documents']];
+            return (
+              <div key={docField.key} style={{ padding: '1rem', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-md)', background: 'var(--color-bg)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                <label className="form-label" style={{ fontWeight: 500, margin: 0 }}>{docField.label}</label>
+
+                {url ? (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: 'var(--color-surface)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                      <FileText size={16} color="var(--color-primary)" style={{ flexShrink: 0 }} />
+                      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: '0.8125rem', color: 'var(--color-primary)', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                        View Document
+                      </a>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', padding: '0.5rem 0' }}>Not uploaded yet.</div>
+                )}
+
+                <div style={{ marginTop: 'auto' }}>
+                  <input
+                    type="file"
+                    accept={docField.accept}
+                    id={`file-${docField.key}`}
+                    style={{ display: 'none' }}
+                    ref={(el) => { fileInputs.current[docField.key] = el; }}
+                    onChange={(e) => {
+                      handleFileChange(docField.key as keyof Profile['documents'], e);
+                      if (e.target) e.target.value = '';
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '0.5rem' }}
+                    onClick={() => fileInputs.current[docField.key]?.click()}
+                  >
+                    <Upload size={14} style={{ marginRight: '0.375rem' }} />
+                    {url ? 'Replace' : 'Upload'}
+                  </button>
                 </div>
-                <button className="btn btn-ghost" onClick={() => onRemoveAttachment(index)} type="button" style={{ padding: '0.25rem' }}><Trash2 size={13} color="var(--color-danger)" /></button>
               </div>
-            ))}
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
 
-      <div>
-        <label className="form-label">Video Embed URLs (YouTube, Vimeo…)</label>
-        {profile.media.videoEmbeds.map((videoUrl, index) => (
-          <div key={`${index}-${videoUrl}`} style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <div style={{ flex: 1, position: 'relative' }}>
-              <Link size={14} style={{ position: 'absolute', left: '0.625rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-              <input className="form-input" value={videoUrl} onChange={(event) => onUpdateVideoEmbed(index, event.target.value)} placeholder="https://youtube.com/watch?v=…" style={{ paddingLeft: '2rem' }} />
-            </div>
-            <button className="btn btn-ghost" onClick={() => onRemoveVideoEmbed(index)} type="button"><Trash2 size={13} color="var(--color-danger)" /></button>
-          </div>
-        ))}
-        <button className="btn btn-secondary" onClick={onAddVideoEmbed} type="button"><Plus size={14} /> Add Video URL</button>
-      </div>
     </div>
   );
-}
+}  

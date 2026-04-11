@@ -612,6 +612,16 @@ export default function ProfileBuilderPage() {
   };
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
+  const addIntExp = () => {
+    const nextIndex = profile.internationalExperiences.length;
+    set('internationalExperiences', [...profile.internationalExperiences, { countryVisited: '', purpose: '', institutionName: '', duration: '', fundingSource: '' }]);
+    openSection(`internationalExperiences-${nextIndex}`);
+  };
+  const updateIntExp = (i: number, f: keyof Profile['internationalExperiences'][number], v: string) => {
+    const arr = [...profile.internationalExperiences]; arr[i] = { ...arr[i], [f]: v }; set('internationalExperiences', arr);
+  };
+  const removeIntExp = (i: number) => set('internationalExperiences', profile.internationalExperiences.filter((_, idx) => idx !== i));
+
   const addCustom = () => {
     const newIdx = profile.customDetails.length;
     set('customDetails', [...profile.customDetails, { sectionTitle: '', content: '', isVisible: true }]);
@@ -628,6 +638,23 @@ export default function ProfileBuilderPage() {
     const arr = [...profile.media.videoEmbeds]; arr[i] = v; set('media', { ...profile.media, videoEmbeds: arr });
   };
   const removeVideoEmbed = (i: number) => set('media', { ...profile.media, videoEmbeds: profile.media.videoEmbeds.filter((_, idx) => idx !== i) });
+
+  const handleDocumentUpload = async (field: keyof typeof profile.documents, file: File) => {
+    setUploadError('');
+    if (file.size > 5 * 1024 * 1024) {
+      setUploadError(`"${file.name}" exceeds the 5 MB limit.`);
+      return;
+    }
+    const form = new FormData();
+    form.append('file', file);
+    try {
+      const res = await api.post(`/profile/me/document/${field}`, form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const fileUrl = res.data.fileUrl;
+      set('documents', { ...profile.documents, [field]: fileUrl });
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.message ?? 'Upload failed.');
+    }
+  };
 
   const handleFileUpload = async (
     arg1: React.ChangeEvent<HTMLInputElement> | number,
@@ -681,8 +708,6 @@ export default function ProfileBuilderPage() {
     }
     e.target.value = '';
   };
-
-  const removeAttachment = (i: number) => set('media', { ...profile.media, attachments: profile.media.attachments.filter((_, idx) => idx !== i) });
 
   return (
     <div style={{ width: 'calc(100% - 340px)', maxWidth: 'none' }}>
@@ -879,17 +904,23 @@ export default function ProfileBuilderPage() {
             <OnlineCoursesCertificationsSection profile={profile} />
           )}
           {activeTab === 'internationalExperience' && (
-            <InternationalExperienceSection profile={profile} />
+            <InternationalExperienceSection
+              profile={profile}
+              onAdd={addIntExp}
+              onUpdate={updateIntExp}
+              onRemove={removeIntExp}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
           {activeTab === 'documentsToUpload' && (
             <DocumentsToUploadSection
               profile={profile}
               uploadError={uploadError}
-              onUploadFile={handleFileUpload}
+              onUploadDocument={handleDocumentUpload}
               onAddVideoEmbed={addVideoEmbed}
               onUpdateVideoEmbed={updateVideoEmbed}
               onRemoveVideoEmbed={removeVideoEmbed}
-              onRemoveAttachment={removeAttachment}
             />
           )}
 
