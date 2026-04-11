@@ -51,7 +51,7 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   const {
     name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
-    projects, awards, customDetails, professionalDetails, entranceTests, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
+    projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
   } = req.body;
   try {
     // Update User document if name is provided
@@ -64,7 +64,7 @@ const updateMyProfile = async (req, res) => {
       {
         $set: {
           bio, headline, photo, subjects, workExperiences, qualifications, publications,
-          projects, awards, customDetails, professionalDetails, entranceTests, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
+          projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
         }
       },
       { new: true, upsert: true, runValidators: true }
@@ -225,6 +225,7 @@ const getPublicProfile = async (req, res) => {
       projects: vis.projects !== false ? profile.projects : undefined,
       customDetails: vis.customDetails !== false ? profile.customDetails : undefined,
       professionalDetails: vis.professionalDetails !== false ? profile.professionalDetails : undefined,
+      academicResponsibilities: profile.academicResponsibilities || undefined,
       entranceTests: vis.entranceTests !== false ? profile.entranceTests : undefined,
       media: vis.media === true ? profile.media : undefined,
       photo: vis.photo !== false ? profile.photo : undefined,

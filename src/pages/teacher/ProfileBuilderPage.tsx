@@ -90,6 +90,17 @@ type Profile = {
     jrf: { agency: string; year: string; };
     other: string;
   };
+  academicResponsibilities: {
+    courses: {
+      course: string;
+      year: string;
+      programme: string;
+      subject: string;
+    }[];
+    classesHandled: string;
+    administrativeRoles: string;
+    committeeMemberships: string;
+  };
 };
 
 type Visibility = {
@@ -170,6 +181,12 @@ const EMPTY_PROFILE: Profile = {
     gate: { score: '', year: '' },
     jrf: { agency: '', year: '' },
     other: '',
+  },
+  academicResponsibilities: {
+    courses: [],
+    classesHandled: '',
+    administrativeRoles: '',
+    committeeMemberships: '',
   },
 };
 
@@ -500,6 +517,19 @@ export default function ProfileBuilderPage() {
           jrf: { agency: '', year: '' },
           other: '',
         }, p.entranceTests || {}),
+        academicResponsibilities: Object.assign({}, EMPTY_PROFILE.academicResponsibilities, p.academicResponsibilities || {}, {
+          courses: (p.academicResponsibilities?.courses || []).map((item: any) => {
+            if (typeof item === 'string') {
+              return { course: item, year: '', programme: '', subject: '' };
+            }
+            return {
+              course: item.course || '',
+              year: item.year || '',
+              programme: item.programme || '',
+              subject: item.subject || '',
+            };
+          }),
+        }),
       };
       setProfile(initialProfile);
     }).catch(() => { });
@@ -626,6 +656,36 @@ export default function ProfileBuilderPage() {
     const arr = [...profile.internationalExperiences]; arr[i] = { ...arr[i], [f]: v }; set('internationalExperiences', arr);
   };
   const removeIntExp = (i: number) => set('internationalExperiences', profile.internationalExperiences.filter((_, idx) => idx !== i));
+
+  const addAcademicCourse = () => {
+    const academic = profile.academicResponsibilities;
+    set('academicResponsibilities', {
+      ...academic,
+      courses: [...academic.courses, { course: '', year: '', programme: '', subject: '' }],
+    });
+  };
+
+  const updateAcademicCourse = (index: number, field: 'course' | 'year' | 'programme' | 'subject', value: string) => {
+    const academic = profile.academicResponsibilities;
+    const courses = [...academic.courses];
+    courses[index] = { ...courses[index], [field]: value };
+    set('academicResponsibilities', { ...academic, courses });
+  };
+
+  const removeAcademicCourse = (index: number) => {
+    const academic = profile.academicResponsibilities;
+    set('academicResponsibilities', {
+      ...academic,
+      courses: academic.courses.filter((_, idx) => idx !== index),
+    });
+  };
+
+  const updateAcademicResponsibility = (field: 'classesHandled' | 'administrativeRoles' | 'committeeMemberships', value: string) => {
+    set('academicResponsibilities', {
+      ...profile.academicResponsibilities,
+      [field]: value,
+    });
+  };
 
   const addTraining = () => {
     const trainings = (profile as any).trainings || [];
@@ -928,7 +988,13 @@ export default function ProfileBuilderPage() {
             <PhdResearchSupervisionSection profile={profile} />
           )}
           {activeTab === 'academicResponsibilities' && (
-            <AcademicResponsibilitiesSection profile={profile} />
+            <AcademicResponsibilitiesSection
+              profile={profile}
+              onAddCourse={addAcademicCourse}
+              onUpdateCourse={updateAcademicCourse}
+              onRemoveCourse={removeAcademicCourse}
+              onSetField={updateAcademicResponsibility}
+            />
           )}
           {activeTab === 'professionalMemberships' && (
             <ProfessionalMembershipsSection profile={profile} />

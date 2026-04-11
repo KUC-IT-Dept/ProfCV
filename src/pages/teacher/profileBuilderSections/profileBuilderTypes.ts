@@ -137,6 +137,13 @@ export type InternationalExperience = {
   fundingSource: string;
 };
 
+export type AcademicCourse = {
+  course: string;
+  year: string;
+  programme: string;
+  subject: string;
+};
+
 export type Profile = {
   name: string;
   bio: string;
@@ -154,6 +161,12 @@ export type Profile = {
   visibility: Visibility;
   photo?: string;
   dob: string;
+  academicResponsibilities: {
+    courses: AcademicCourse[];
+    classesHandled: string;
+    administrativeRoles: string;
+    committeeMemberships: string;
+  };
   gender: string;
   phoneNumber: string;
   address: string;
