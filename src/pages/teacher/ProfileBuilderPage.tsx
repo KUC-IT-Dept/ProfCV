@@ -20,7 +20,6 @@ import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSe
 import PhdResearchSupervisionSection from './profileBuilderSections/PhdResearchSupervisionSection';
 import AcademicResponsibilitiesSection from './profileBuilderSections/AcademicResponsibilitiesSection';
 import ProfessionalMembershipsSection from './profileBuilderSections/ProfessionalMembershipsSection';
-import TrainingFdpWorkshopsSection from './profileBuilderSections/TrainingFdpWorkshopsSection';
 import OnlineCoursesCertificationsSection from './profileBuilderSections/OnlineCoursesCertificationsSection';
 import InternationalExperienceSection from './profileBuilderSections/InternationalExperienceSection';
 import DocumentsToUploadSection from './profileBuilderSections/DocumentsToUploadSection';
@@ -813,9 +812,6 @@ export default function ProfileBuilderPage() {
               <button onClick={() => setActiveTab('phdResearchSupervision')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'phdResearchSupervision' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'phdResearchSupervision' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 9. Ph.D. / Research Supervision
               </button>
-              <button onClick={() => setActiveTab('training')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'training' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'training' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
-                Training, FDP & Workshops
-              </button>
               {profile.customDetails.map((customDetail, index) => (
                 <button
                   key={index}
@@ -956,7 +952,14 @@ export default function ProfileBuilderPage() {
             />
           )}
           {activeTab === 'trainingFdpWorkshops' && (
-            <TrainingFdpWorkshopsSection profile={profile} />
+            <TrainingSection
+              profile={profile}
+              onAdd={addTraining}
+              onUpdate={updateTraining}
+              onRemove={removeTraining}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
           {activeTab === 'onlineCoursesCertifications' && (
             <OnlineCoursesCertificationsSection profile={profile} />
@@ -979,17 +982,6 @@ export default function ProfileBuilderPage() {
               onAddVideoEmbed={addVideoEmbed}
               onUpdateVideoEmbed={updateVideoEmbed}
               onRemoveVideoEmbed={removeVideoEmbed}
-            />
-          )}
-
-          {activeTab === 'training' && (
-            <TrainingSection
-              profile={profile}
-              onAdd={addTraining}
-              onUpdate={updateTraining}
-              onRemove={removeTraining}
-              isExpanded={isExpanded}
-              onToggle={toggleSection}
             />
           )}
 
