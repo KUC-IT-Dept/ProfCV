@@ -9,13 +9,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import PersonalInformationSection from './profileBuilderSections/PersonalInformationSection';
 import EducationalQualificationsSection from './profileBuilderSections/EducationalQualificationsSection';
 import EntranceEligibilityTestsSection from './profileBuilderSections/EntranceEligibilityTestsSection';
-import MediaAttachmentsSection from './profileBuilderSections/MediaAttachmentsSection';
-import DocumentsSection from './profileBuilderSections/DocumentsSection';
-import ProfessionalDetailsSection from './profileBuilderSections/ProfessionalDetailsSection';
-import PublicationsSection from './profileBuilderSections/PublicationsSection';
-import QualificationsSection from './profileBuilderSections/QualificationsSection';
-import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
-import ResearchSupervisionSection from './profileBuilderSections/ResearchSupervisionSection';
 import TrainingSection from './profileBuilderSections/TrainingSection';
 
 import ProfessionalEmploymentDetailsSection from './profileBuilderSections/ProfessionalEmploymentDetailsSection';
@@ -39,6 +32,7 @@ type Profile = {
   qualifications: Qualification[];
   publications: Publication[];
   projects: Project[];
+  internationalExperiences: InternationalExperience[];
   customDetails: CustomDetail[];
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
@@ -127,11 +121,12 @@ type Qualification = {
 type WorkExperience = { institutionName: string; designation: string; department: string; fromDate: string; toDate: string; totalDuration: string; natureOfAppointment: string; reasonForLeaving: string; };
 type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
 type Project = { title: string; description: string; year: string; url: string };
+type InternationalExperience = { countryVisited: string; purpose: string; institutionName: string; duration: string; fundingSource: string; };
 type CustomDetail = { sectionTitle: string; content: string; isVisible: boolean };
 type Attachment = { name: string; url: string; fileType: string; sizeKB: number };
 const EMPTY_PROFILE: Profile = {
   name: '', bio: '', headline: '', subjects: [],
-  workExperiences: [], qualifications: [], publications: [], projects: [],
+  workExperiences: [], qualifications: [], publications: [], projects: [], internationalExperiences: [],
   customDetails: [], interests: [], photo: '',
   dob: '', gender: '', phoneNumber: '', address: '',
   subCategory: '',
@@ -471,6 +466,7 @@ export default function ProfileBuilderPage() {
         workExperiences: p.workExperiences || [],
         qualifications: p.qualifications || [], publications: p.publications || [],
         projects: p.projects || [],
+        internationalExperiences: p.internationalExperiences || [],
         customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
         interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
@@ -543,7 +539,7 @@ export default function ProfileBuilderPage() {
     }
   }, [profile, user, updateUser]);
 
-  const set = (key: keyof Profile, val: any) => setProfile((p) => ({ ...p, [key]: val }));
+  const set = (key: keyof Profile | 'trainings', val: any) => setProfile((p) => ({ ...(p as any), [key]: val } as Profile));
 
   const toggleVisibility = async (key: keyof Visibility) => {
     const newVis = { ...profile.visibility, [key]: !profile.visibility[key] };
@@ -821,6 +817,7 @@ export default function ProfileBuilderPage() {
               ))}
               <button onClick={() => setActiveTab('media')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'media' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'media' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Media & Attachments
+              </button>
 
               <button onClick={() => setActiveTab('academicResponsibilities')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'academicResponsibilities' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'academicResponsibilities' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 10. Academic Responsibilities

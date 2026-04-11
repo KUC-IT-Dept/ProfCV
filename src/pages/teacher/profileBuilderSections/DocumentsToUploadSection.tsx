@@ -1,5 +1,5 @@
 ﻿import { useRef } from 'react';
-import { Link, Plus, Trash2, Upload, FileText } from 'lucide-react';
+import { Upload, FileText } from 'lucide-react';
 import { Profile } from './profileBuilderTypes';
 
 type DocumentsToUploadSectionProps = {
@@ -30,9 +30,9 @@ export default function DocumentsToUploadSection({
   profile,
   uploadError,
   onUploadDocument,
-  onAddVideoEmbed,
-  onUpdateVideoEmbed,
-  onRemoveVideoEmbed,
+  onAddVideoEmbed: _onAddVideoEmbed,
+  onUpdateVideoEmbed: _onUpdateVideoEmbed,
+  onRemoveVideoEmbed: _onRemoveVideoEmbed,
 }: DocumentsToUploadSectionProps) {
   const fileInputs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
