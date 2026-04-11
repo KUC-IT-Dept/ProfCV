@@ -15,6 +15,7 @@ import PublicationsSection from './profileBuilderSections/PublicationsSection';
 import QualificationsSection from './profileBuilderSections/QualificationsSection';
 import ResearchProjectsSection from './profileBuilderSections/ResearchProjectsSection';
 import ResearchSupervisionSection from './profileBuilderSections/ResearchSupervisionSection';
+import TrainingSection from './profileBuilderSections/TrainingSection';
 import WorkExperienceSection from './profileBuilderSections/WorkExperienceSection';
 
 
@@ -714,6 +715,21 @@ export default function ProfileBuilderPage() {
   };
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
+  const addTraining = () => {
+    const trainings = (profile as any).trainings || [];
+    const nextIndex = trainings.length;
+    set('trainings', [...trainings, { programName: '', type: '', organizedBy: '', durationDates: '', mode: '', certificate: '' }]);
+    openSection(`trainings-${nextIndex}`);
+  };
+  const updateTraining = (i: number, f: string, v: string) => {
+    const trainings = (profile as any).trainings || [];
+    const arr = [...trainings]; arr[i] = { ...arr[i], [f]: v }; set('trainings', arr);
+  };
+  const removeTraining = (i: number) => {
+    const trainings = (profile as any).trainings || [];
+    set('trainings', trainings.filter((_: any, idx: number) => idx !== i));
+  };
+
   const addCustom = () => {
     const newIdx = profile.customDetails.length;
     set('customDetails', [...profile.customDetails, { sectionTitle: '', content: '', isVisible: true }]);
@@ -878,6 +894,9 @@ export default function ProfileBuilderPage() {
               <button onClick={() => setActiveTab('researchSupervision')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'researchSupervision' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'researchSupervision' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
                 Research Supervision
               </button>
+              <button onClick={() => setActiveTab('training')} style={{ padding: '0.75rem 1rem', border: 'none', background: 'none', cursor: 'pointer', fontSize: '0.875rem', fontWeight: 500, color: activeTab === 'training' ? 'var(--color-primary)' : 'var(--color-text-muted)', borderBottom: activeTab === 'training' ? '2px solid var(--color-primary)' : 'none', transition: 'all 0.15s', whiteSpace: 'nowrap' }}>
+                Training, FDP & Workshops
+              </button>
               {profile.customDetails.map((customDetail, index) => (
                 <button
                   key={index}
@@ -983,6 +1002,17 @@ export default function ProfileBuilderPage() {
 
           {activeTab === 'researchSupervision' && (
             <ResearchSupervisionSection />
+          )}
+
+          {activeTab === 'training' && (
+            <TrainingSection
+              profile={profile}
+              onAdd={addTraining}
+              onUpdate={updateTraining}
+              onRemove={removeTraining}
+              isExpanded={isExpanded}
+              onToggle={toggleSection}
+            />
           )}
 
           {activeTab.startsWith('custom-') && (
