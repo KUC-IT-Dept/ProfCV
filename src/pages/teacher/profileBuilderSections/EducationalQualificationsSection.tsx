@@ -115,6 +115,7 @@ export default function EducationalQualificationsSection({
   <label className="form-label">State / Province</label>
   {qualification.country === 'India' ? (
     <SelectField 
+      label="State / Province"
       options={INDIAN_STATES} 
       value={qualification.state} 
       onChange={(value) => onUpdate(index, 'state', value)} 

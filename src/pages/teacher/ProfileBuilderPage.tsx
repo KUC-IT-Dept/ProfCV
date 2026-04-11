@@ -107,7 +107,7 @@ type Profile = {
 type Visibility = {
   bio: boolean; qualifications: boolean; publications: boolean;
   projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
-  professionalDetails: boolean; entranceTests: boolean; workExperiences: boolean;
+  professionalDetails: boolean; professionalMemberships: boolean; entranceTests: boolean; workExperiences: boolean;
   photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
@@ -165,7 +165,7 @@ const EMPTY_PROFILE: Profile = {
   visibility: {
     bio: true, qualifications: true, publications: true,
     projects: true, subjects: true, customDetails: true, media: false, interests: true,
-    professionalDetails: true, entranceTests: true, workExperiences: true,
+    professionalDetails: true, professionalMemberships: true, entranceTests: true, workExperiences: true,
     photo: true, dob: false, gender: false, phoneNumber: false, address: false,
   },
   professionalDetails: {
@@ -199,6 +199,7 @@ const VISIBILITY_SECTIONS = [
   { key: 'workExperiences', label: 'Work Experience' },
   { key: 'qualifications', label: 'Qualifications' },
   { key: 'professionalDetails', label: 'Professional Details' },
+  { key: 'professionalMemberships', label: 'Professional Memberships' },
   { key: 'entranceTests', label: 'Entrance / Eligibility Tests' },
   { key: 'publications', label: 'Publications' },
   { key: 'projects', label: 'Research Projects' },

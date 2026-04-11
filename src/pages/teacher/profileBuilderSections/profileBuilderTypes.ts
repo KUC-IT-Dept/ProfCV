@@ -41,6 +41,7 @@ export type Visibility = {
   media: boolean;
   interests: boolean;
   professionalDetails: boolean;
+  professionalMemberships: boolean;
   entranceTests: boolean;
   workExperiences: boolean;
   photo: boolean;
@@ -302,6 +303,12 @@ export const EMPTY_PROFILE: Profile = {
     gate: { score: '', year: '' },
     jrf: { agency: '', year: '' },
     other: '',
+  },
+  academicResponsibilities: {
+    courses: [],
+    classesHandled: '',
+    administrativeRoles: '',
+    committeeMemberships: '',
   },
 };
 
