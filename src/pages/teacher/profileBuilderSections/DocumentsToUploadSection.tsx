@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, Plus, Trash2, Upload } from 'lucide-react';
 import { Profile } from './profileBuilderTypes';
 
-type MediaAttachmentsSectionProps = {
+type DocumentsToUploadSectionProps = {
   profile: Profile;
   uploadError: string;
   onUploadFile: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -12,7 +12,7 @@ type MediaAttachmentsSectionProps = {
   onRemoveAttachment: (index: number) => void;
 };
 
-export default function MediaAttachmentsSection({
+export default function DocumentsToUploadSection({
   profile,
   uploadError,
   onUploadFile,
@@ -20,7 +20,7 @@ export default function MediaAttachmentsSection({
   onUpdateVideoEmbed,
   onRemoveVideoEmbed,
   onRemoveAttachment,
-}: MediaAttachmentsSectionProps) {
+}: DocumentsToUploadSectionProps) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
       <div>

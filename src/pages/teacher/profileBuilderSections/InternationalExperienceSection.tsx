@@ -1,5 +1,7 @@
+import { Profile } from './profileBuilderTypes';
 import SectionShell from './SectionShell';
 
-export default function InternationalExperienceSection() {
-  return <SectionShell title="Int. Experience" description="International experience and exposure will be placed here." />;
+type Props = { profile: Profile; };
+export default function InternationalExperienceSection(_props: Props) {
+  return <SectionShell title="InternationalExperience" description="InternationalExperience details will be added here." />;
 }
