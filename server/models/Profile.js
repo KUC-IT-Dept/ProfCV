@@ -120,6 +120,21 @@ const workExperienceSchema = new mongoose.Schema({
   reasonForLeaving: String,
 });
 
+const documentsSchema = new mongoose.Schema({
+  passportPhoto: String,
+  signature: String,
+  dobProof: String,
+  categoryCertificate: String,
+  degreeCertificates: String,
+  netSetJrfCertificate: String,
+  experienceCertificates: String,
+  appointmentOrders: String,
+  awardCertificates: String,
+  publicationProofs: String,
+  aadhaarCard: String,
+  panCard: String
+}, { _id: false });
+
 const visibilitySchema = new mongoose.Schema({
   bio: { type: Boolean, default: true },
   professionalDetails: { type: Boolean, default: true },
@@ -132,8 +147,7 @@ const visibilitySchema = new mongoose.Schema({
   researchSupervision: { type: Boolean, default: true },
   subjects: { type: Boolean, default: true },
   customDetails: { type: Boolean, default: true },
-  media: { type: Boolean, default: false },
-  interests: { type: Boolean, default: true },
+  media: { type: Boolean, default: false },    documents: { type: Boolean, default: false },  interests: { type: Boolean, default: true },
   photo: { type: Boolean, default: true },
   phoneNumber: { type: Boolean, default: false },
   address: { type: Boolean, default: false },
@@ -172,6 +186,7 @@ const profileSchema = new mongoose.Schema(
     customDetails: [customDetailSchema],
     professionalDetails: { type: professionalDetailSchema, default: () => ({}) },
     entranceTests: { type: entranceTestSchema, default: () => ({}) },
+    documents: { type: documentsSchema, default: () => ({}) },
     media: {
       attachments: {
         type: [attachmentSchema],

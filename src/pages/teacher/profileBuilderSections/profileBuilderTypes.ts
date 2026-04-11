@@ -107,6 +107,21 @@ export type CustomDetail = {
   isVisible: boolean;
 };
 
+export type Documents = {
+  passportPhoto: string;
+  signature: string;
+  dobProof: string;
+  categoryCertificate: string;
+  degreeCertificates: string;
+  netSetJrfCertificate: string;
+  experienceCertificates: string;
+  appointmentOrders: string;
+  awardCertificates: string;
+  publicationProofs: string;
+  aadhaarCard: string;
+  panCard: string;
+};
+
 export type Attachment = {
   name: string;
   url: string;
@@ -126,6 +141,7 @@ export type Profile = {
   customDetails: CustomDetail[];
   interests: string[];
   media: { attachments: Attachment[]; videoEmbeds: string[] };
+  documents: Documents;
   visibility: Visibility;
   photo?: string;
   dob: string;
@@ -191,6 +207,20 @@ export const EMPTY_PROFILE: Profile = {
   religion: '',
   category: '',
   media: { attachments: [], videoEmbeds: [] },
+  documents: {
+    passportPhoto: '',
+    signature: '',
+    dobProof: '',
+    categoryCertificate: '',
+    degreeCertificates: '',
+    netSetJrfCertificate: '',
+    experienceCertificates: '',
+    appointmentOrders: '',
+    awardCertificates: '',
+    publicationProofs: '',
+    aadhaarCard: '',
+    panCard: '',
+  },
   visibility: {
     bio: true,
     qualifications: true,

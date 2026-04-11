@@ -51,7 +51,7 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   const {
     name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
-    projects, customDetails, professionalDetails, entranceTests, media, interests, dob, gender, phoneNumber, address
+    projects, awards, customDetails, professionalDetails, entranceTests, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
   } = req.body;
   try {
     // Update User document if name is provided
@@ -64,7 +64,7 @@ const updateMyProfile = async (req, res) => {
       {
         $set: {
           bio, headline, photo, subjects, workExperiences, qualifications, publications,
-          projects, customDetails, professionalDetails, entranceTests, media, interests, dob, gender, phoneNumber, address
+          projects, awards, customDetails, professionalDetails, entranceTests, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address
         }
       },
       { new: true, upsert: true, runValidators: true }
@@ -152,7 +152,44 @@ const uploadPhoto = [
     }
   },
 ];
+/** POST /api/profile/me/document/:docKey */
+const uploadDocument = [
+  upload.single('file'),
+  async (req, res) => {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+    const { docKey } = req.params;
+    const validKeys = [
+      'passportPhoto', 'signature', 'dobProof', 'categoryCertificate', 
+      'degreeCertificates', 'netSetJrfCertificate', 'experienceCertificates', 
+      'appointmentOrders', 'awardCertificates', 'publicationProofs', 
+      'aadhaarCard', 'panCard'
+    ];
+    if (!validKeys.includes(docKey)) {
+      return res.status(400).json({ message: 'Invalid document key.' });
+    }
+    
+    const fileUrl = `/uploads/${req.file.filename}`;
+    try {
+      const updateQuery = {};
+      updateQuery[`documents.${docKey}`] = fileUrl;
 
+      const profile = await Profile.findOneAndUpdate(
+        { user: req.user.id },
+        { $set: updateQuery },
+        { new: true, upsert: true }
+      );
+
+      return res.status(200).json({
+        message: 'Document uploaded successfully.',
+        fileUrl,
+        profile,
+      });
+    } catch (err) {
+      console.error('[profileController.uploadDocument]', err);
+      return res.status(500).json({ message: 'Server error during document upload.' });
+    }
+  },
+];
 /** GET /api/profile/:userId  (HOD / VC / SUPERADMIN) */
 const getProfileByUser = async (req, res) => {
   try {
@@ -210,6 +247,7 @@ module.exports = {
   updateVisibility,
   uploadAttachment,
   uploadPhoto,
+  uploadDocument,
   getProfileByUser,
   getPublicProfile,
 };
