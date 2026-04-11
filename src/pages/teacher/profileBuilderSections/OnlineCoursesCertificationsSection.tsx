@@ -139,8 +139,13 @@ export default function OnlineCoursesCertificationsSection(_props: Props) {
           </div>
         ))}
 
-        <button className="btn btn-secondary" type="button" onClick={addEntry}>
-          Add Online Course / Certification
+        <button
+          className="btn btn-secondary"
+          type="button"
+          onClick={addEntry}
+          style={{ alignSelf: 'flex-start', display: 'inline-flex' }}
+        >
+          + Add Online Courses and Certifications
         </button>
       </div>
     </SectionShell>
