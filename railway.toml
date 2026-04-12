@@ -1,7 +1,8 @@
 [build]
 builder = "NIXPACKS"
 watchPatterns = ["server/**"]
+buildCommand = "cd server && npm ci"
 
 [deploy]
-startCommand = "cd server && npm install && npm start"
+startCommand = "cd server && npm start"
 restartPolicyType = "ON_FAILURE"
