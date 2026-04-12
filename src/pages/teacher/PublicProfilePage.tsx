@@ -433,7 +433,7 @@ export default function PublicProfilePage() {
                 {profile.publications.map((p, i) => (
                   <div key={i} style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #BFDBFE', marginBottom: '0.5rem' }}>
                     <div style={{ fontWeight: 600, color: 'var(--color-text)', fontSize: '1rem' }}>
-                      {p.url ? <a href={p.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{p.title}</a> : p.title}
+                      {p.url ? <a href={getImageUrl(p.url)} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{p.title}</a> : p.title}
                     </div>
                     {p.authors && <div style={{ fontSize: '0.875rem', color: 'var(--color-text)', fontStyle: 'italic', marginTop: '0.125rem' }}>{p.authors}</div>}
                     <div style={{ fontSize: '0.8125rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>
@@ -464,7 +464,7 @@ export default function PublicProfilePage() {
                 {profile.projects.map((p, i) => (
                   <div key={i} style={{ paddingLeft: '0.75rem', borderLeft: '3px solid #BBF7D0' }}>
                     <div style={{ fontWeight: 600, color: 'var(--color-text)' }}>
-                      {p.url ? <a href={p.url} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{p.title}</a> : p.title}
+                      {p.url ? <a href={getImageUrl(p.url)} target="_blank" rel="noreferrer" style={{ color: 'var(--color-primary)', textDecoration: 'none' }}>{p.title}</a> : p.title}
                       {p.year && <span style={{ fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: '0.5rem', fontSize: '0.875rem' }}>({p.year})</span>}
                     </div>
                     {p.description && <div style={{ fontSize: '0.875rem', color: 'var(--color-text-muted)', marginTop: '0.25rem' }}>{p.description}</div>}
@@ -489,7 +489,7 @@ export default function PublicProfilePage() {
             <Section title="Attachments" icon={<Paperclip size={17} />}>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                 {profile.media.attachments.map((a, i) => (
-                  <a key={i} href={a.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontSize: '0.875rem', textDecoration: 'none' }}>
+                  <a key={i} href={getImageUrl(a.url)} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--color-primary)', fontSize: '0.875rem', textDecoration: 'none' }}>
                     📄 {a.name} <span style={{ color: 'var(--color-text-muted)', fontSize: '0.75rem' }}>({a.sizeKB} KB)</span>
                   </a>
                 ))}
