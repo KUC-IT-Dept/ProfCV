@@ -33,7 +33,7 @@ process.on('unhandledRejection', (reason) => {
 });
 
 // ── Middleware ────────────────────────────────────────────────────────────────
-const allowAllOrigins = String(process.env.CORS_ALLOW_ALL || 'false').toLowerCase() === 'true';
+const allowAllOrigins = String(process.env.CORS_ALLOW_ALL || 'true').toLowerCase() !== 'false';
 
 const allowedOrigins = new Set([
   'http://localhost:5173',
