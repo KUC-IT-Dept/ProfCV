@@ -18,7 +18,10 @@ const FileField: React.FC<FileFieldProps> = ({ label, name, selectedFile, onFile
           id={name}
           className="hidden"
           onChange={(e) => {
-            if (e.target.files?.[0]) onFileSelect(name, e.target.files[0]);
+            if (e.target.files?.[0]) {
+              onFileSelect(name, e.target.files[0]);
+              e.target.value = ''; // Reset input to allow re-uploading same file
+            }
           }}
         />
         <label
@@ -28,10 +31,10 @@ const FileField: React.FC<FileFieldProps> = ({ label, name, selectedFile, onFile
           <span className="text-gray-400 text-sm truncate">
             {selectedFile ? selectedFile.name : "Choose file..."}
           </span>
-          <svg 
-            className="w-4 h-4 text-gray-400" 
-            fill="none" 
-            stroke="currentColor" 
+          <svg
+            className="w-4 h-4 text-gray-400"
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />

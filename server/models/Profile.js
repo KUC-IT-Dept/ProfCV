@@ -1,10 +1,23 @@
 const mongoose = require('mongoose');
 
 const qualificationSchema = new mongoose.Schema({
+  educationlevel: String, // mapped from degree
   degree: String,
+  specialisation: String,
   institution: String,
-  year: String,
-  grade: String,
+  university: String,
+  yearofpassing: String,
+  cgpa: String,
+  division: String,
+  mode: String,
+  country: String,
+  state: String,
+  tenthcertificate: String,
+  twelfthcertificate: String,
+  ugcertificate: String,
+  pgcertificate: String,
+  mphilcertificate: String,
+  phdcertificate: String,
 });
 
 const publicationSchema = new mongoose.Schema({
@@ -74,28 +87,36 @@ const professionalDetailSchema = new mongoose.Schema({
   employeeId: String,
   designation: String,
   department: String,
+  collegeName: String, // mapped from institutionName
   institutionName: String,
+  universityAffiliation: String, // mapped from affiliatedUniversity
   affiliatedUniversity: String,
-  institutionType: String, // Government / Aided / Private / Deemed / Central University
-  natureOfAppointment: String, // Regular / Contract / Guest etc
+  institutionType: String,
+  appointmentNature: String, // mapped from natureOfAppointment
+  natureOfAppointment: String,
   dateOfJoining: String,
   dateOfConfirmation: String,
+  payScale: String, // mapped from payBand
   payBand: String,
+  accountNumber: String,
+  ifscCode: String,
+  bankName: String,
+  branchName: String,
   bankAccountDetails: String,
   pfNumber: String,
   serviceBookNumber: String,
-
-  // First promotion
+  promotions: [{
+    date: String,
+    nature: String,
+    payScale: String
+  }],
+  // Migration support for old fields
   dateOfFirstPromotion: String,
   natureOfFirstAppointment: String,
   firstPayBand: String,
-
-  // Second promotion
   dateOfSecondPromotion: String,
   natureOfSecondAppointment: String,
   secondPayBand: String,
-
-  // Third promotion
   dateOfThirdPromotion: String,
   natureOfThirdAppointment: String,
   thirdPayBand: String,
@@ -155,7 +176,7 @@ const visibilitySchema = new mongoose.Schema({
   researchSupervision: { type: Boolean, default: true },
   subjects: { type: Boolean, default: true },
   customDetails: { type: Boolean, default: true },
-  media: { type: Boolean, default: false },    documents: { type: Boolean, default: false },  interests: { type: Boolean, default: true },
+  media: { type: Boolean, default: false }, documents: { type: Boolean, default: false }, interests: { type: Boolean, default: true },
   photo: { type: Boolean, default: true },
   phoneNumber: { type: Boolean, default: false },
   address: { type: Boolean, default: false },
