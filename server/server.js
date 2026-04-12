@@ -4,6 +4,10 @@ const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
 
+// Fail database operations quickly if Mongo is unavailable instead of hanging requests.
+mongoose.set('bufferCommands', false);
+mongoose.set('bufferTimeoutMS', 5000);
+
 const authRoutes = require('./routes/auth');
 const profileRoutes = require('./routes/profile');
 const directoryRoutes = require('./routes/directory');
@@ -57,7 +61,17 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/directory', directoryRoutes);
 
 // ── Health check ──────────────────────────────────────────────────────────────
-app.get('/api/health', (_req, res) => res.json({ status: 'ok' }));
+const mongoStateLabel = {
+  0: 'disconnected',
+  1: 'connected',
+  2: 'connecting',
+  3: 'disconnecting'
+};
+
+app.get('/api/health', (_req, res) => {
+  const dbState = mongoStateLabel[mongoose.connection.readyState] || 'unknown';
+  return res.json({ status: 'ok', dbState });
+});
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
 app.use((err, _req, res, _next) => {
@@ -74,17 +88,25 @@ app.use((err, _req, res, _next) => {
 
 // ── Database & Server Start ───────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
-mongoose
-  .connect(MONGO_URI)
-  .then(() => {
-    console.log('✅ MongoDB connected');
-    app.listen(PORT, () => {
-      console.log(`🚀 Prof CV API server running on http://localhost:${PORT}`);
+app.listen(PORT, () => {
+  console.log(`🚀 Prof CV API server running on http://localhost:${PORT}`);
+});
+
+if (!MONGO_URI) {
+  console.error('❌ Missing MongoDB URI. Set MONGO_URI or MONGODB_URI in environment variables.');
+} else {
+  mongoose
+    .connect(MONGO_URI)
+    .then(() => {
+      console.log('✅ MongoDB connected');
+    })
+    .catch((err) => {
+      console.error('❌ MongoDB connection failed:', err.message);
     });
-  })
-  .catch((err) => {
-    console.error('❌ MongoDB connection failed:', err.message);
-    process.exit(1);
-  });
+}
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('⚠ MongoDB disconnected');
+});
