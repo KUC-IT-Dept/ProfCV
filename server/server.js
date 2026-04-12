@@ -15,6 +15,8 @@ const directoryRoutes = require('./routes/directory');
 const app = express();
 
 // ── Middleware ────────────────────────────────────────────────────────────────
+const allowAllOrigins = String(process.env.CORS_ALLOW_ALL || 'false').toLowerCase() === 'true';
+
 const allowedOrigins = new Set([
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -29,6 +31,7 @@ const netlifyPreviewPattern = /^https:\/\/[a-z0-9-]+--profcv-kuc\.netlify\.app$/
 
 function isAllowedOrigin(origin) {
   if (!origin) return true;
+  if (allowAllOrigins) return true;
   if (allowedOrigins.has(origin)) return true;
   if (netlifyPreviewPattern.test(origin)) return true;
   return false;
@@ -45,6 +48,10 @@ const corsOptions = {
   credentials: true,
   optionsSuccessStatus: 204
 };
+
+if (allowAllOrigins) {
+  console.warn('⚠ CORS_ALLOW_ALL is enabled. Allowing all origins.');
+}
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
