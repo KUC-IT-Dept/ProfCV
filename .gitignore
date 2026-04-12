@@ -12,6 +12,17 @@ dist
 dist-ssr
 *.local
 
+# Environment files
+.env
+.env.*
+server/.env
+server/.env.*
+!.env.example
+!server/.env.example
+
+# Generated seed upload assets
+server/public/uploads/seed/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

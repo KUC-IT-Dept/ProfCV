@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "node --watch server.js",
     "start": "node server.js",
-    "seed": "node seed.js"
+    "seed": "node seed.js",
+    "seed:profiles": "node seedProfiles.js",
+    "seed:all": "node seed.js && node seedProfiles.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

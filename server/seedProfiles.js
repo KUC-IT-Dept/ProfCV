@@ -1,343 +1,698 @@
 /**
- * seedProfiles.js — Seeds rich Profile documents for every user in the DB.
- * Run: node server/seedProfiles.js
- * Safe to re-run — upserts by userId so no duplicates.
+ * seedProfiles.js
+ *
+ * Seeds form-aligned profile data for all users in the database.
+ * - Safe to re-run (upserts by user id)
+ * - Creates reusable placeholder upload assets (PDF + PNG)
+ *
+ * Usage:
+ *   node seedProfiles.js
  */
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
+
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
 const mongoose = require('mongoose');
 const User = require('./models/User');
 const Profile = require('./models/Profile');
 
-async function seed() {
-  await mongoose.connect(process.env.MONGO_URI);
-  console.log('✅ Connected to MongoDB\n');
+const UPLOAD_SUBDIR = 'seed';
+const UPLOAD_DIR = path.join(__dirname, 'public', 'uploads', UPLOAD_SUBDIR);
 
-  const users = await User.find({});
+const TINY_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO8Bf8cAAAAASUVORK5CYII=';
+
+const TINY_PDF_TEXT = [
+  '%PDF-1.1',
+  '1 0 obj',
+  '<< /Type /Catalog /Pages 2 0 R >>',
+  'endobj',
+  '2 0 obj',
+  '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+  'endobj',
+  '3 0 obj',
+  '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 144] /Contents 4 0 R /Resources << >> >>',
+  'endobj',
+  '4 0 obj',
+  '<< /Length 44 >>',
+  'stream',
+  'BT /F1 12 Tf 72 100 Td (ProfCV Seed Asset) Tj ET',
+  'endstream',
+  'endobj',
+  'xref',
+  '0 5',
+  '0000000000 65535 f ',
+  '0000000010 00000 n ',
+  '0000000060 00000 n ',
+  '0000000117 00000 n ',
+  '0000000228 00000 n ',
+  'trailer',
+  '<< /Root 1 0 R /Size 5 >>',
+  'startxref',
+  '320',
+  '%%EOF',
+].join('\n');
+
+const SUBJECTS_BY_DEPARTMENT = {
+  'Computer Science': [
+    'Data Structures',
+    'Operating Systems',
+    'Cloud Computing',
+    'Machine Learning',
+    'Compiler Design',
+    'Distributed Systems',
+    'DBMS',
+    'Computer Networks',
+  ],
+  Physics: [
+    'Quantum Mechanics',
+    'Electromagnetism',
+    'Statistical Mechanics',
+    'Condensed Matter Physics',
+    'Computational Physics',
+    'Astrophysics',
+  ],
+  default: [
+    'Research Methodology',
+    'Academic Writing',
+    'Professional Ethics',
+    'Interdisciplinary Studies',
+    'Data Interpretation',
+  ],
+};
+
+const INTEREST_POOL = [
+  'AI',
+  'ML',
+  'IoT',
+  'Data Visualization',
+  'STEM Outreach',
+  'Open Source',
+  'Academic Leadership',
+  'Policy Research',
+  'Sustainable Computing',
+  'Quantum Materials',
+  'Science Communication',
+  'EdTech',
+];
+
+const INDIAN_STATES = [
+  'Karnataka',
+  'Tamil Nadu',
+  'Maharashtra',
+  'Delhi',
+  'Telangana',
+  'Kerala',
+  'Gujarat',
+  'Rajasthan',
+];
+
+const INSTITUTIONS = [
+  'ProfCV University',
+  'National Institute of Technology',
+  'Indian Institute of Science',
+  'Institute of Advanced Studies',
+  'Center for Applied Research',
+  'Global University of Science',
+];
+
+const UNIVERSITIES = [
+  'Anna University',
+  'IIT Bombay',
+  'IIT Madras',
+  'University of Delhi',
+  'JNTU Hyderabad',
+  'Savitribai Phule Pune University',
+  'Calcutta University',
+  'Osmania University',
+];
+
+const JOURNALS = [
+  'IEEE Transactions on Education',
+  'ACM Transactions on Computing Education',
+  'Journal of Applied Research in Higher Education',
+  'Computers and Education',
+  'International Journal of Advanced Research',
+  'Springer Nature Scientific Reports',
+];
+
+const ORGANISATIONS = ['IEEE', 'ACM', 'Springer', 'Elsevier', 'Taylor & Francis', 'Wiley'];
+
+const FUNDING_AGENCIES = ['DST', 'UGC', 'AICTE', 'ICSSR', 'CSIR', 'NBHM'];
+
+const MEMBERSHIP_BODIES = [
+  'IEEE',
+  'ACM',
+  'Indian Society for Technical Education',
+  'Computer Society of India',
+  'Indian Physics Association',
+  'Royal Society of Chemistry',
+];
+
+const YOUTUBE_LINKS = [
+  'https://www.youtube.com/watch?v=aircAruvnKk',
+  'https://www.youtube.com/watch?v=WiTgn5QH_HU',
+  'https://www.youtube.com/watch?v=IMdPTUf6AnI',
+  'https://www.youtube.com/watch?v=jNQXAC9IVRw',
+  'https://www.youtube.com/watch?v=5MgBikgcWnY',
+  'https://www.youtube.com/watch?v=6Jfk8ic3KVk',
+];
+
+function ensureUploadDir() {
+  if (!fs.existsSync(UPLOAD_DIR)) {
+    fs.mkdirSync(UPLOAD_DIR, { recursive: true });
+  }
+}
+
+function hashString(value) {
+  let hash = 0;
+  for (let i = 0; i < value.length; i += 1) {
+    hash = (hash << 5) - hash + value.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash);
+}
+
+function slugify(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+}
+
+function pick(list, seed, offset = 0) {
+  return list[(seed + offset) % list.length];
+}
+
+function sample(list, count, seed) {
+  const selected = [];
+  for (let i = 0; i < count; i += 1) {
+    selected.push(pick(list, seed, i * 3));
+  }
+  return [...new Set(selected)].slice(0, count);
+}
+
+function writeAsset(filename, type) {
+  const absolutePath = path.join(UPLOAD_DIR, filename);
+  if (!fs.existsSync(absolutePath)) {
+    if (type === 'png') {
+      fs.writeFileSync(absolutePath, Buffer.from(TINY_PNG_BASE64, 'base64'));
+    } else {
+      fs.writeFileSync(absolutePath, TINY_PDF_TEXT, 'utf8');
+    }
+  }
+  return `/uploads/${UPLOAD_SUBDIR}/${filename}`;
+}
+
+function buildAssets(slug) {
+  return {
+    photo: writeAsset(`${slug}-photo.png`, 'png'),
+    signature: writeAsset(`${slug}-signature.png`, 'png'),
+    passportPhoto: writeAsset(`${slug}-passport-photo.png`, 'png'),
+    dobProof: writeAsset(`${slug}-dob-proof.pdf`, 'pdf'),
+    categoryCertificate: writeAsset(`${slug}-category-certificate.pdf`, 'pdf'),
+    degreeCertificates: writeAsset(`${slug}-degree-certificates.pdf`, 'pdf'),
+    netSetJrfCertificate: writeAsset(`${slug}-net-set-jrf-certificate.pdf`, 'pdf'),
+    experienceCertificates: writeAsset(`${slug}-experience-certificates.pdf`, 'pdf'),
+    appointmentOrders: writeAsset(`${slug}-appointment-orders.pdf`, 'pdf'),
+    awardCertificates: writeAsset(`${slug}-award-certificates.pdf`, 'pdf'),
+    publicationProofs: writeAsset(`${slug}-publication-proofs.pdf`, 'pdf'),
+    aadhaarCard: writeAsset(`${slug}-aadhaar-card.pdf`, 'pdf'),
+    panCard: writeAsset(`${slug}-pan-card.pdf`, 'pdf'),
+    cv: writeAsset(`${slug}-cv.pdf`, 'pdf'),
+    researchStatement: writeAsset(`${slug}-research-statement.pdf`, 'pdf'),
+    teachingPortfolio: writeAsset(`${slug}-teaching-portfolio.pdf`, 'pdf'),
+    profileImage: writeAsset(`${slug}-profile-image.png`, 'png'),
+  };
+}
+
+function roleSummary(role) {
+  if (role === 'SUPERADMIN') return 'Platform Administration and Institutional Data Governance';
+  if (role === 'VC') return 'Higher Education Leadership and Strategic Research Governance';
+  if (role === 'HOD') return 'Academic Administration, Faculty Development, and Curriculum Planning';
+  return 'Teaching, Research, Mentoring, and Academic Service';
+}
+
+function buildQualifications(seed, assets, department) {
+  const state = pick(INDIAN_STATES, seed);
+  const ugYear = 2008 + (seed % 8);
+  const pgYear = ugYear + 2;
+  const phdYear = pgYear + 4;
+
+  return [
+    {
+      educationlevel: 'Undergraduate',
+      degree: `B.Tech in ${department || 'Engineering'}`,
+      specialisation: `${department || 'General Studies'}`,
+      institution: pick(INSTITUTIONS, seed, 1),
+      university: pick(UNIVERSITIES, seed, 1),
+      yearofpassing: String(ugYear),
+      year: String(ugYear),
+      cgpa: `${8 + (seed % 2)}.${(seed % 9) + 1}/10`,
+      grade: 'First Class with Distinction',
+      division: 'First',
+      mode: 'regular',
+      country: 'India',
+      state,
+      tenthcertificate: assets.degreeCertificates,
+      twelfthcertificate: assets.degreeCertificates,
+      ugcertificate: assets.degreeCertificates,
+      pgcertificate: '',
+      mphilcertificate: '',
+      phdcertificate: '',
+    },
+    {
+      educationlevel: 'Postgraduate',
+      degree: `M.Tech in ${department || 'Applied Sciences'}`,
+      specialisation: `${department || 'Research Studies'}`,
+      institution: pick(INSTITUTIONS, seed, 2),
+      university: pick(UNIVERSITIES, seed, 2),
+      yearofpassing: String(pgYear),
+      year: String(pgYear),
+      cgpa: `${8 + ((seed + 1) % 2)}.${((seed + 3) % 9) + 1}/10`,
+      grade: 'Distinction',
+      division: 'First',
+      mode: 'regular',
+      country: 'India',
+      state,
+      tenthcertificate: assets.degreeCertificates,
+      twelfthcertificate: assets.degreeCertificates,
+      ugcertificate: assets.degreeCertificates,
+      pgcertificate: assets.degreeCertificates,
+      mphilcertificate: '',
+      phdcertificate: '',
+    },
+    {
+      educationlevel: 'Ph.D.',
+      degree: `Ph.D. in ${department || 'Interdisciplinary Studies'}`,
+      specialisation: `${department || 'Advanced Research'}`,
+      institution: pick(INSTITUTIONS, seed, 3),
+      university: pick(UNIVERSITIES, seed, 3),
+      yearofpassing: String(phdYear),
+      year: String(phdYear),
+      cgpa: 'Awarded',
+      grade: 'Awarded',
+      division: 'First',
+      mode: 'regular',
+      country: 'India',
+      state,
+      tenthcertificate: assets.degreeCertificates,
+      twelfthcertificate: assets.degreeCertificates,
+      ugcertificate: assets.degreeCertificates,
+      pgcertificate: assets.degreeCertificates,
+      mphilcertificate: assets.degreeCertificates,
+      phdcertificate: assets.degreeCertificates,
+    },
+  ];
+}
+
+function buildWorkExperiences(seed, department) {
+  return [
+    {
+      institutionName: pick(INSTITUTIONS, seed, 0),
+      designation: 'Assistant Professor',
+      department: department || 'Interdisciplinary Studies',
+      fromDate: `201${seed % 6}-07-01`,
+      toDate: `201${(seed % 6) + 2}-06-30`,
+      totalDuration: '2 years',
+      natureOfAppointment: 'Regular',
+      reasonForLeaving: 'Career progression',
+    },
+    {
+      institutionName: 'ProfCV University',
+      designation: 'Associate Professor',
+      department: department || 'Interdisciplinary Studies',
+      fromDate: `201${(seed % 5) + 3}-07-01`,
+      toDate: '',
+      totalDuration: 'Present',
+      natureOfAppointment: 'Regular',
+      reasonForLeaving: '',
+    },
+  ];
+}
+
+function buildPublications(seed, slug, role) {
+  const count = role === 'TEACHER' ? 4 : role === 'HOD' ? 3 : 2;
+  const publicationTypes = [
+    'Journal Articles',
+    'Conference Papers',
+    'Book Chapters',
+    'Books Authored / Edited',
+  ];
+
+  return Array.from({ length: count }, (_, idx) => {
+    const year = 2025 - idx;
+    return {
+      publicationType: pick(publicationTypes, seed, idx),
+      title: `Form-Aligned Research Study ${idx + 1} by ${slug.replace(/-/g, ' ')}`,
+      authors: `${slug.replace(/-/g, ' ')} et al.`,
+      journal: pick(JOURNALS, seed, idx),
+      organisation: pick(ORGANISATIONS, seed, idx),
+      volume: `${10 + idx}`,
+      issue: `${(idx % 4) + 1}`,
+      month: pick(['January', 'March', 'June', 'September'], seed, idx),
+      year: String(year),
+      pages: `${100 + idx * 12}-${108 + idx * 12}`,
+      doi: `10.${1200 + (seed % 700)}/${slug}.paper.${idx + 1}`,
+      url: `https://example.org/publications/${slug}-${idx + 1}`,
+      issn: `2345-67${(idx + 1) % 10}${(idx + 4) % 10}`,
+      indexedIn: 'Scopus',
+      impactFactor: `${(2.1 + idx * 0.3).toFixed(2)}`,
+      conferenceName: idx % 2 === 0 ? 'International Academic Research Conference' : '',
+      nationalInternational: idx % 2 === 0 ? 'International' : 'National',
+      venueDate: idx % 2 === 0 ? `Bengaluru, ${year}` : '',
+      organizedBy: idx % 2 === 0 ? pick(ORGANISATIONS, seed, idx + 1) : '',
+      publishedInProceedings: idx % 2 === 0 ? 'Yes' : 'No',
+    };
+  });
+}
+
+function buildProjects(seed, slug, role) {
+  const count = role === 'TEACHER' ? 3 : 2;
+  return Array.from({ length: count }, (_, idx) => {
+    const fromYear = 2020 + idx;
+    const toYear = fromYear + 2;
+    const status = idx % 2 === 0 ? 'Ongoing' : 'Completed';
+    const amount = `INR ${(8 + idx * 2).toFixed(1)} Lakhs`;
+
+    return {
+      title: `Academic Project ${idx + 1} - ${slug}`,
+      description:
+        'A seeded project entry aligned to the Profile Builder form, including funding, role, duration, and project metadata.',
+      year: `${fromYear}-${toYear}`,
+      url: `https://example.org/projects/${slug}-${idx + 1}`,
+      fundingAgency: pick(FUNDING_AGENCIES, seed, idx),
+      role: idx % 2 === 0 ? 'Principal Investigator' : 'Co-PI',
+      amount,
+      sanctionedAmount: amount,
+      duration: `${fromYear} to ${toYear}`,
+      durationFrom: `${fromYear}-04-01`,
+      durationTo: `${toYear}-03-31`,
+      status,
+      referenceNumber: `PCV-${slug.toUpperCase()}-${fromYear}-${idx + 1}`,
+    };
+  });
+}
+
+function buildProfessionalDetails(seed, department) {
+  const joinYear = 2010 + (seed % 8);
+  return {
+    employeeId: `PCV-${9000 + (seed % 999)}`,
+    designation: pick(['Assistant Professor', 'Associate Professor', 'Professor'], seed),
+    department: department || 'Interdisciplinary Studies',
+    institutionName: 'ProfCV University',
+    affiliatedUniversity: pick(UNIVERSITIES, seed),
+    institutionType: pick(['Government', 'Aided', 'Private', 'Deemed', 'Central University'], seed),
+    natureOfAppointment: 'Regular',
+    dateOfJoining: `${joinYear}-07-01`,
+    dateOfConfirmation: `${joinYear + 2}-07-01`,
+    payBand: `PB-${3 + (seed % 2)} / AGP ${(7000 + (seed % 4) * 1000)}`,
+    bankAccountDetails: `A/C XXXX${(1000 + (seed % 9000)).toString()}`,
+    pfNumber: `PF-${100000 + (seed % 900000)}`,
+    serviceBookNumber: `SB-${20000 + (seed % 80000)}`,
+    dateOfFirstPromotion: `${joinYear + 4}-07-01`,
+    natureOfFirstAppointment: 'Regular',
+    firstPayBand: 'PB-3 / AGP 8000',
+    dateOfSecondPromotion: `${joinYear + 8}-07-01`,
+    natureOfSecondAppointment: 'Regular',
+    secondPayBand: 'PB-4 / AGP 9000',
+    dateOfThirdPromotion: `${joinYear + 12}-07-01`,
+    natureOfThirdAppointment: 'Regular',
+    thirdPayBand: 'PB-4 / AGP 10000',
+
+    // Additional keys currently used by UI section component.
+    collegeName: 'ProfCV University',
+    universityAffiliation: pick(UNIVERSITIES, seed, 1),
+    appointmentNature: 'Regular',
+    payScale: `Level-${10 + (seed % 4)}`,
+    accountNumber: `12345678${1000 + (seed % 9000)}`,
+    ifscCode: `PROF000${100 + (seed % 900)}`,
+    bankName: 'State Bank of India',
+    branchName: pick(['City Branch', 'Main Campus Branch', 'University Branch'], seed),
+    promotions: [
+      { date: `${joinYear + 4}-07-01`, nature: 'Associate Professor', payScale: 'Level-13A' },
+      { date: `${joinYear + 8}-07-01`, nature: 'Professor', payScale: 'Level-14' },
+    ],
+  };
+}
+
+function buildProfileForUser(user) {
+  const slug = slugify(user.email.split('@')[0]);
+  const seed = hashString(user.email);
+  const department = user.department || 'General';
+  const assets = buildAssets(slug);
+  const roleText = roleSummary(user.role);
+
+  const subjects = sample(
+    SUBJECTS_BY_DEPARTMENT[department] || SUBJECTS_BY_DEPARTMENT.default,
+    user.role === 'TEACHER' ? 5 : 3,
+    seed
+  );
+
+  const interests = sample(INTEREST_POOL, 5, seed + 3);
+
+  return {
+    bio: `${user.name} works in ${department} and focuses on ${roleText}. This profile is seeded with realistic sample data to match the Profile Builder form sections for demos and QA.`,
+    headline: `${user.role} | ${department} | ${roleText}`,
+    photo: assets.photo,
+
+    // Personal information section
+    dob: `${1976 + (seed % 15)}-0${(seed % 8) + 1}-1${seed % 9}`,
+    gender: pick(['Male', 'Female', 'Other'], seed),
+    phoneNumber: `+91-98${100000 + (seed % 899999)}`,
+    address: `${10 + (seed % 50)}, Knowledge Park Road, ${pick(['Bengaluru', 'Chennai', 'Hyderabad', 'Pune'], seed)}`,
+    mobileNumber: `+91-99${100000 + ((seed + 31) % 899999)}`,
+    alternatePhone: `+91-97${100000 + ((seed + 73) % 899999)}`,
+    officialEmail: user.email,
+    personalEmail: `${slug}@mailinator.example`,
+    aadhaar: `XXXX-XXXX-${1000 + (seed % 9000)}`,
+    passport: `P${1000000 + (seed % 9000000)}`,
+    nationality: 'Indian',
+    stateCity: `${pick(INDIAN_STATES, seed)} / ${pick(['Bengaluru', 'Chennai', 'Pune', 'Delhi'], seed, 2)}`,
+    permanentAddress: `${pick(INDIAN_STATES, seed, 1)} - Permanent Residence`,
+    currentAddress: `${pick(['Faculty Quarters', 'University Township', 'Research Park'], seed)} Block ${1 + (seed % 9)}`,
+    religion: pick(['Hindu', 'Muslim', 'Christian', 'Sikh', 'Jain'], seed),
+    category: pick(['General', 'OBC', 'SC', 'ST'], seed),
+    subCategory: pick(['N/A', 'Women', 'PwD', 'EWS'], seed),
+    differentlyAbled: pick(['No', 'Yes'], seed),
+    maritalStatus: pick(['Married', 'Single'], seed),
+    spouse: pick(['Not Applicable', 'Working Professional', 'Academic'], seed),
+    emergencyContact: `+91-96${100000 + ((seed + 11) % 899999)}`,
+    panNumber: `ABCDE${1000 + (seed % 9000)}F`,
+    bloodGroup: pick(['A+', 'B+', 'AB+', 'O+', 'A-', 'O-'], seed),
+
+    subjects,
+    interests,
+    qualifications: buildQualifications(seed, assets, department),
+    workExperiences: buildWorkExperiences(seed, department),
+    publications: buildPublications(seed, slug, user.role),
+    projects: buildProjects(seed, slug, user.role),
+
+    internationalExperiences: [
+      {
+        countryVisited: pick(['Germany', 'USA', 'UK', 'Japan', 'France'], seed),
+        purpose: 'Conference',
+        institutionName: pick(INSTITUTIONS, seed, 4),
+        duration: '2 weeks',
+        fundingSource: pick(['University Grant', 'DST', 'Self'], seed),
+      },
+      {
+        countryVisited: pick(['Singapore', 'Canada', 'Australia', 'Netherlands'], seed, 3),
+        purpose: 'Research',
+        institutionName: pick(INSTITUTIONS, seed, 5),
+        duration: '1 month',
+        fundingSource: pick(['SERB Grant', 'Host Institution', 'Institutional Fund'], seed, 2),
+      },
+    ],
+
+    professionalMemberships: [
+      {
+        bodyName: pick(MEMBERSHIP_BODIES, seed),
+        membershipType: 'Life',
+        membershipId: `MEM-${10000 + (seed % 90000)}`,
+        yearOfJoining: String(2014 + (seed % 8)),
+      },
+      {
+        bodyName: pick(MEMBERSHIP_BODIES, seed, 2),
+        membershipType: 'Annual',
+        membershipId: `MEM-${20000 + (seed % 70000)}`,
+        yearOfJoining: String(2018 + (seed % 5)),
+      },
+    ],
+
+    trainings: [
+      {
+        programName: 'Outcome Based Education FDP',
+        type: 'FDP',
+        organizedBy: 'IQAC and Academic Staff College',
+        durationDates: 'Jan 15-20, 2025',
+        mode: 'Online',
+        certificate: 'Yes',
+      },
+      {
+        programName: 'Research Methodology Workshop',
+        type: 'Workshop',
+        organizedBy: 'Research and Development Cell',
+        durationDates: 'Aug 05-08, 2024',
+        mode: 'Offline',
+        certificate: 'Yes',
+      },
+    ],
+
+    customDetails: [
+      {
+        sectionTitle: 'Awards and Recognition',
+        content: 'Best Faculty Mentor Award (2024), Department Excellence Award (2023), and invited keynote sessions at national conferences.',
+        isVisible: true,
+      },
+      {
+        sectionTitle: 'Administrative Contributions',
+        content: 'Member of Board of Studies, NAAC criteria committee contributor, and mentor for institutional innovation projects.',
+        isVisible: true,
+      },
+    ],
+
+    professionalDetails: buildProfessionalDetails(seed, department),
+
+    entranceTests: {
+      net: { subject: department, year: String(2008 + (seed % 8)), certificateNo: `NET-${1000 + (seed % 9000)}` },
+      set: { subject: department, year: String(2007 + (seed % 8)), state: pick(INDIAN_STATES, seed, 2) },
+      gate: { score: `${500 + (seed % 300)}`, year: String(2006 + (seed % 10)) },
+      jrf: { agency: pick(['UGC', 'CSIR', 'DBT'], seed), year: String(2009 + (seed % 7)) },
+      other: 'Completed institutional pedagogical certification and research ethics training.',
+    },
+
+    academicResponsibilities: {
+      courses: [
+        { course: subjects[0] || 'Core Subject', year: '2024', programme: 'UG', subject: department },
+        { course: subjects[1] || 'Elective Subject', year: '2025', programme: 'PG', subject: department },
+      ],
+      classesHandled: 'UG and PG classes, including project supervision and lab mentoring.',
+      administrativeRoles: user.role === 'HOD' ? 'Head of Department, Timetable Coordinator' : 'Class Coordinator, Program Committee Member',
+      committeeMemberships: 'Board of Studies, Examination Committee, Research Advisory Committee',
+    },
+
+    awards: [
+      {
+        name: 'Excellence in Teaching Award',
+        awardingBody: 'ProfCV University',
+        level: 'Institution',
+        year: '2024',
+        description: 'Recognized for high student feedback and innovative course delivery.',
+      },
+      {
+        name: 'Best Research Paper Presenter',
+        awardingBody: 'National Academic Forum',
+        level: 'National',
+        year: '2023',
+        description: 'Awarded for impactful presentation in annual research symposium.',
+      },
+    ],
+
+    researchSupervision: {
+      phdAwardedCount: String(1 + (seed % 4)),
+      phdOngoingCount: String(2 + (seed % 5)),
+      mphilGuidedCount: String(seed % 3),
+      completedStudentsNames: 'A. Kumar, P. Nair, R. Singh',
+      studentDetails: 'Topics include applied AI, cloud systems, and educational analytics.',
+    },
+
+    documents: {
+      passportPhoto: assets.passportPhoto,
+      signature: assets.signature,
+      dobProof: assets.dobProof,
+      categoryCertificate: assets.categoryCertificate,
+      degreeCertificates: assets.degreeCertificates,
+      netSetJrfCertificate: assets.netSetJrfCertificate,
+      experienceCertificates: assets.experienceCertificates,
+      appointmentOrders: assets.appointmentOrders,
+      awardCertificates: assets.awardCertificates,
+      publicationProofs: assets.publicationProofs,
+      aadhaarCard: assets.aadhaarCard,
+      panCard: assets.panCard,
+    },
+
+    media: {
+      attachments: [
+        { name: `${slug}-cv.pdf`, url: assets.cv, fileType: 'application/pdf', sizeKB: 220 },
+        { name: `${slug}-research-statement.pdf`, url: assets.researchStatement, fileType: 'application/pdf', sizeKB: 180 },
+        { name: `${slug}-teaching-portfolio.pdf`, url: assets.teachingPortfolio, fileType: 'application/pdf', sizeKB: 260 },
+        { name: `${slug}-profile-image.png`, url: assets.profileImage, fileType: 'image/png', sizeKB: 95 },
+      ],
+      videoEmbeds: [pick(YOUTUBE_LINKS, seed), pick(YOUTUBE_LINKS, seed, 2)],
+    },
+
+    visibility: {
+      bio: true,
+      professionalDetails: true,
+      entranceTests: true,
+      workExperiences: true,
+      qualifications: true,
+      professionalMemberships: true,
+      publications: true,
+      awards: true,
+      projects: true,
+      researchSupervision: true,
+      subjects: true,
+      customDetails: true,
+      media: true,
+      documents: false,
+      interests: true,
+      photo: true,
+      phoneNumber: false,
+      address: false,
+      dob: false,
+      gender: false,
+    },
+  };
+}
+
+async function seedProfiles() {
+  await mongoose.connect(process.env.MONGO_URI);
+  ensureUploadDir();
+
+  console.log('Connected to MongoDB');
+  const users = await User.find({}).lean();
+
   if (users.length === 0) {
-    console.error('❌ No users found. Run `node server/seed.js` first.');
+    console.error('No users found. Run seed.js first.');
     process.exit(1);
   }
 
-  const byEmail = {};
-  users.forEach(u => { byEmail[u.email] = u; });
+  let created = 0;
+  let updated = 0;
 
-  const profiles = [
-    // ─────────────────────────────────────────────────────────────────────────
-    // Dr. Jane Smith — teacher@profcv.edu (TEACHER, CS)
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'teacher@profcv.edu',
-      bio: 'Dr. Jane Smith is an Associate Professor in the Department of Computer Science with over 12 years of experience in academia and industry. Her research focuses on distributed systems, cloud computing, and human-computer interaction. She is a recipient of the National Science Foundation CAREER Award and has led numerous funded research projects.',
-      headline: 'Associate Professor of Computer Science | Distributed Systems & Cloud Research',
-      subjects: ['Data Structures & Algorithms', 'Distributed Systems', 'Cloud Computing', 'Operating Systems', 'Advanced Algorithms'],
-      qualifications: [
-        { degree: 'Ph.D. in Computer Science', institution: 'MIT (Massachusetts Institute of Technology)', year: '2013', grade: 'Summa Cum Laude' },
-        { degree: 'M.S. in Computer Science', institution: 'Stanford University', year: '2009', grade: 'GPA: 4.0/4.0' },
-        { degree: 'B.Tech in Computer Engineering', institution: 'IIT Delhi', year: '2007', grade: 'First Class with Distinction' },
-      ],
-      publications: [
-        { title: 'AutoScale: Intelligent Workload-Aware Auto-Scaling in Distributed Cloud Environments', journal: 'IEEE Transactions on Cloud Computing', year: '2023', doi: '10.1109/TCC.2023.1234567', url: 'https://ieeexplore.ieee.org/document/1234567' },
-        { title: 'Latency-Optimal Data Placement in Edge-Cloud Hybrid Architectures', journal: 'ACM SIGCOMM 2022', year: '2022', doi: '10.1145/3544216.3544219', url: 'https://dl.acm.org/doi/10.1145/3544216' },
-        { title: 'Fault-Tolerant Consensus in Byzantine Distributed Ledgers', journal: 'Journal of Parallel and Distributed Computing', year: '2021', doi: '10.1016/j.jpdc.2021.03.012', url: 'https://www.sciencedirect.com/science/article/pii/S0743731521' },
-        { title: 'A Survey on Container Orchestration in Kubernetes-based Microservice Architectures', journal: 'ACM Computing Surveys', year: '2020', doi: '10.1145/3388440', url: 'https://dl.acm.org/doi/10.1145/3388440' },
-        { title: 'Energy-Efficient Task Scheduling in Heterogeneous Cloud Data Centers', journal: 'Future Generation Computer Systems', year: '2019', doi: '10.1016/j.future.2019.01.044', url: 'https://www.sciencedirect.com/science/article/pii/S0167739X19' },
-      ],
-      projects: [
-        { title: 'CloudSense: Real-Time Anomaly Detection in Multi-Cloud Deployments', description: 'A funded NSF project developing ML-driven anomaly detection pipelines for multi-cloud environments. Achieved 94.7% detection accuracy across 1M+ events/sec. Collaborators: MIT CSAIL, Google Cloud Research.', year: '2022', url: 'https://github.com/janesmith/cloudsense' },
-        { title: 'EdgeMesh: Federated Learning over Heterogeneous Edge Networks', description: 'Designed a privacy-preserving federated learning framework deployable on resource-constrained IoT edge nodes. Published at ICLR 2023 workshop. Funded by DARPA.', year: '2023', url: 'https://edgemesh.cs.profcv.edu' },
-        { title: 'Adaptive Resource Broker for Green HPC Clusters', description: 'Built a DVFS-aware resource broker reducing energy consumption by 38% in high-performance computing clusters while maintaining 99.9% SLA compliance.', year: '2020', url: 'https://github.com/janesmith/green-hpc' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Awards & Honors', content: '• NSF CAREER Award (2021) — $512,000 for distributed systems research\n• Best Paper Award — IEEE Cloud 2022\n• Excellence in Teaching Award — Dept. of CS, 2020 & 2022\n• Women in Tech Research Fellowship — ACM-W, 2018\n• Outstanding Dissertation Award — MIT EECS Department, 2013' },
-        { sectionTitle: 'Professional Service', content: '• Program Committee Member — OSDI 2023, EuroSys 2022, ATC 2021\n• Reviewer — IEEE TPDS, ACM TOCS, USENIX ATC\n• Session Chair — SOSP 2022\n• Mentor — CRA-WP Grad Cohort for Women 2019–Present' },
-        { sectionTitle: 'Invited Talks & Keynotes', content: '• Keynote: "Rethinking Resource Management in the Age of Edge AI" — CloudConf 2023, San Francisco\n• Invited Talk: "Byzantine Fault Tolerance at Scale" — Dagstuhl Seminar 23101, Germany, 2023\n• Panel Speaker: "Women Leaders in Systems Research" — USENIX LISA 2022' },
-        { sectionTitle: 'Grants & Funding', content: '• NSF CNS-2134567: $512,000 — Intelligent Auto-Scaling for Distributed Systems (PI) 2021–2025\n• DARPA HR001123C0042: $1.2M — Federated Learning on Edge Networks (Co-PI) 2022–2024\n• Google Faculty Research Award: $60,000 — Cloud Workload Characterization (PI) 2020' },
-        { sectionTitle: 'PhD Students Supervised', content: '• Alex Chen (2020–Present) — Thesis: Serverless Cold-Start Optimization\n• Priya Nair (2019–2023) — Thesis: Byzantine-Resilient Consensus (Now: Postdoc @ CMU)\n• Rahul Gupta (2018–2022) — Thesis: Energy-Aware HPC Scheduling (Now: Google Research)' },
-      ],
-      media: {
-        attachments: [
-          { name: 'Dr_Jane_Smith_CV_2024.pdf', url: '/uploads/dr_jane_smith_cv.pdf', fileType: 'application/pdf', sizeKB: 248 },
-          { name: 'Research_Statement_2024.pdf', url: '/uploads/research_statement.pdf', fileType: 'application/pdf', sizeKB: 185 },
-          { name: 'Teaching_Portfolio.pdf', url: '/uploads/teaching_portfolio.pdf', fileType: 'application/pdf', sizeKB: 312 },
-        ],
-        videoEmbeds: [
-          'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
-          'https://www.youtube.com/watch?v=9bZkp7q19f0',
-        ],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Prof. Alan Turing — turing@profcv.edu (TEACHER, CS)
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'turing@profcv.edu',
-      bio: 'Prof. Turing is a Full Professor of Computer Science specializing in theoretical computer science, computational complexity, and artificial intelligence. He has published over 70 peer-reviewed papers and his work on decidability has been cited over 8,000 times. He serves as the Director of the Theoretical AI Lab.',
-      headline: 'Full Professor | Theoretical CS, Complexity Theory & AI Foundations',
-      subjects: ['Theory of Computation', 'Computational Complexity', 'Artificial Intelligence', 'Discrete Mathematics', 'Machine Learning Theory'],
-      qualifications: [
-        { degree: 'D.Phil. in Mathematics', institution: 'University of Oxford', year: '1998', grade: 'First Class' },
-        { degree: 'M.Sc. in Computer Science', institution: 'University of Cambridge', year: '1994', grade: 'Distinction' },
-        { degree: 'B.Sc. in Mathematics & CS', institution: 'University of Edinburgh', year: '1992', grade: 'First Class Honours' },
-      ],
-      publications: [
-        { title: 'On the Computational Limits of Large Language Models: A Complexity-Theoretic Perspective', journal: 'Journal of the ACM', year: '2023', doi: '10.1145/3580305.3599323', url: 'https://dl.acm.org/doi/10.1145/3580305' },
-        { title: 'Circuit Complexity Lower Bounds for Transformer Architectures', journal: 'STOC 2022 Proceedings', year: '2022', doi: '10.1145/3519935.3520040', url: 'https://dl.acm.org/doi/10.1145/3519935' },
-        { title: 'PAC-Learning with Approximate Oracles under Distribution Shift', journal: 'NeurIPS 2021', year: '2021', doi: '10.48550/arXiv.2109.12345', url: 'https://proceedings.neurips.cc/paper/2021' },
-        { title: 'Decidability Boundaries in Neural Network Verification', journal: 'LICS 2020', year: '2020', doi: '10.1145/3373718.3394779', url: 'https://dl.acm.org/doi/10.1145/3373718' },
-      ],
-      projects: [
-        { title: 'THEORAI: Complexity-Theoretic Foundations of Modern AI Systems', description: 'An ERC-funded project investigating when and why deep learning generalizes, using tools from computational complexity, PAC-learning, and information theory.', year: '2021', url: 'https://theorai.cs.profcv.edu' },
-        { title: 'Formal Verification of Safety-Critical Neural Networks', description: 'Developing decidable fragments of neural network property verification using SAT/SMT solvers and abstract interpretation. Collaboration with Airbus Research.', year: '2023', url: 'https://nn-verify.cs.profcv.edu' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Awards & Recognition', content: '• Turing Award Nominee — ACM (2022)\n• Royal Academy of Engineering Fellowship — FREng (2019)\n• EATCS Presburger Award (2015)\n• Best Paper — FOCS 2018, STOC 2014\n• ERC Advanced Grant: €2.5M (2021)' },
-        { sectionTitle: 'Editorial Boards', content: '• Editor-in-Chief — Computational Complexity (Springer), 2020–Present\n• Associate Editor — SIAM Journal on Computing, 2017–Present\n• Guest Editor — Special Issue on AI Theory, Journal of the ACM, 2023' },
-        { sectionTitle: 'Patents', content: '• US Patent 11,234,567: "Method for Efficient SAT-Based Verification of Recurrent Neural Networks" (2022)\n• EU Patent EP3,987,654: "Complexity-Aware Neural Architecture Search Algorithm" (2021)' },
-      ],
-      media: {
-        attachments: [
-          { name: 'Professor_Turing_Full_CV.pdf', url: '/uploads/turing_cv.pdf', fileType: 'application/pdf', sizeKB: 420 },
-          { name: 'THEORAI_Project_Summary.pdf', url: '/uploads/theorai_summary.pdf', fileType: 'application/pdf', sizeKB: 156 },
-        ],
-        videoEmbeds: [
-          'https://www.youtube.com/watch?v=aircAruvnKk',
-        ],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Dr. Marie Curie — curie@profcv.edu (TEACHER, Physics)
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'curie@profcv.edu',
-      bio: 'Dr. Marie Curie is an Assistant Professor in the Department of Physics. Her experimental research focuses on quantum materials, superconductivity, and 2D heterostructures. She completed a prestigious Marie Skłodowska-Curie Fellowship at CERN before joining the faculty. She runs the Quantum Materials Lab with state-of-the-art cryogenic equipment.',
-      headline: 'Assistant Professor of Physics | Quantum Materials & Superconductivity Lab',
-      subjects: ['Quantum Mechanics', 'Condensed Matter Physics', 'Electromagnetism', 'Statistical Mechanics', 'Laboratory Physics I & II'],
-      qualifications: [
-        { degree: 'Ph.D. in Experimental Physics', institution: 'ETH Zürich', year: '2017', grade: 'Summa Cum Laude' },
-        { degree: 'M.Sc. in Physics', institution: 'University of Paris-Saclay', year: '2013', grade: 'Mention Très Bien' },
-        { degree: 'B.Sc. in Physics', institution: 'University of Warsaw', year: '2011', grade: 'First Class Honours' },
-      ],
-      publications: [
-        { title: 'Unconventional Superconductivity in Twisted Bilayer Graphene at 1.1° Magic Angle', journal: 'Nature Physics', year: '2023', doi: '10.1038/s41567-023-02156-7', url: 'https://www.nature.com/articles/s41567-023-02156' },
-        { title: 'Topological Phase Transitions in WTe₂/MoSe₂ van der Waals Heterostructures', journal: 'Physical Review Letters', year: '2022', doi: '10.1103/PhysRevLett.128.186802', url: 'https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.128.186802' },
-        { title: 'High-Temperature Superconductivity in Hydrogen Sulfide Under Megabar Pressure', journal: 'Science', year: '2021', doi: '10.1126/science.abh3164', url: 'https://www.science.org/doi/10.1126/science.abh3164' },
-      ],
-      projects: [
-        { title: 'Quantum Materials Lab: 2D Heterostructure Engineering', description: 'Designing and characterizing novel 2D material heterostructures for quantum computing applications. Funded by DST-SERB with ₹2.4 Cr grant. Access to 4K dilution refrigerator and UHV-STM.', year: '2021', url: 'https://qmlab.physics.profcv.edu' },
-        { title: 'High-Entropy Alloys for Room-Temperature Superconductivity', description: 'Exploring compositionally complex alloy spaces using combinatorial materials science and DFT simulations to identify candidates for room-temperature superconductivity.', year: '2023', url: 'https://github.com/mcurie/hea-supercon' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Fellowships & Awards', content: '• Marie Skłodowska-Curie Individual Fellowship — European Commission (2018–2020)\n• DST INSPIRE Faculty Award (2021)\n• L\'Oréal-UNESCO For Women in Science National Fellowship (2022)\n• Best Poster — Condensed Matter Physics Conference, APS March Meeting 2023' },
-        { sectionTitle: 'Lab Equipment & Facilities', content: '• Dilution Refrigerator (Oxford Instruments Triton 200) — Base temperature: 7 mK\n• UHV-STM/AFM System (Omicron) — Atomic resolution imaging\n• Molecular Beam Epitaxy (MBE) — 2D material growth\n• PPMS (Physical Property Measurement System) — Quantum Design' },
-        { sectionTitle: 'Science Outreach', content: '• "Physics for All" — Annual public lecture series for school students (2021–Present)\n• Women in STEM mentoring program — Mentored 15 undergraduate women (2022–Present)\n• Science communicator for CSIR social media channels (50K followers)' },
-      ],
-      media: {
-        attachments: [
-          { name: 'Curie_CV_April2024.pdf', url: '/uploads/curie_cv.pdf', fileType: 'application/pdf', sizeKB: 198 },
-          { name: 'QML_Lab_Brochure.pdf', url: '/uploads/qml_brochure.pdf', fileType: 'application/pdf', sizeKB: 2450 },
-        ],
-        videoEmbeds: [
-          'https://www.youtube.com/watch?v=WiTgn5QH_HU',
-        ],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Prof. Isaac Newton — newton@profcv.edu (TEACHER, Physics)
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'newton@profcv.edu',
-      bio: 'Prof. Isaac Newton is a Professor of Applied Physics and the founding director of the Centre for Computational Astrophysics. With 25 years of research experience, he has contributed foundational work in gravitational wave detection, numerical relativity, and planetary dynamics simulations. He is a Fellow of the Royal Society.',
-      headline: 'Professor of Applied Physics | Gravitational Waves, Astrophysics & Numerical Relativity',
-      subjects: ['Classical Mechanics', 'Mathematical Physics', 'Astrophysics', 'General Relativity', 'Computational Physics'],
-      qualifications: [
-        { degree: 'Ph.D. in Astrophysics', institution: 'Caltech', year: '1999', grade: 'Highest Distinction' },
-        { degree: 'M.Sc. in Applied Mathematics', institution: 'University of Cambridge', year: '1995', grade: 'First Class' },
-        { degree: 'B.Sc. in Physics', institution: 'Trinity College, Dublin', year: '1993', grade: 'First Class Honours' },
-      ],
-      publications: [
-        { title: 'Multi-Messenger Astrophysics: Correlating LIGO-O4 Events with Fermi-GBM Gamma-Ray Bursts', journal: 'The Astrophysical Journal Letters', year: '2023', doi: '10.3847/2041-8213/acb7f9', url: 'https://iopscience.iop.org/article/10.3847/2041-8213/acb7f9' },
-        { title: 'Spinning Black Hole Mergers in Dense Star Clusters: A Monte Carlo Study', journal: 'Monthly Notices of the Royal Astronomical Society', year: '2022', doi: '10.1093/mnras/stac1892', url: 'https://academic.oup.com/mnras/article/515/2/2802' },
-        { title: 'Numerical Relativity Simulations of Binary Neutron Star Mergers with Exotic Equations of State', journal: 'Physical Review D', year: '2021', doi: '10.1103/PhysRevD.104.084060', url: 'https://journals.aps.org/prd/abstract/10.1103/PhysRevD.104.084060' },
-        { title: 'Early-Warning Gravitational Wave Detection using Neural Network Matched Filtering', journal: 'Nature Astronomy', year: '2020', doi: '10.1038/s41550-020-01295-8', url: 'https://www.nature.com/articles/s41550-020-01295' },
-      ],
-      projects: [
-        { title: 'LIGO-India Science Data Analysis Pipeline', description: 'Leading the software and data analysis working group for the upcoming LIGO-India (INDIGO) detector. Developing matched-filter template banks and Bayesian parameter estimation frameworks.', year: '2022', url: 'https://www.ligo-india.in' },
-        { title: 'N-Body Simulations of Galaxy Cluster Formation with Dark Matter Self-Interaction', description: 'Running petascale hydrodynamical cosmological simulations on the PARAM Ganga supercomputer to constrain dark matter self-interaction cross-sections.', year: '2023', url: 'https://github.com/inewton/nbody-tidm' },
-        { title: 'Exoplanet Atmospheric Characterization via Transit Spectroscopy', description: 'Collaborating with JWST teams to characterize atmospheres of 12 confirmed exoplanets in the habitable zone using near-infrared transmission spectroscopy.', year: '2021', url: 'https://exoatm.physics.profcv.edu' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Honours & Fellowships', content: '• Fellow of the Royal Society — FRS (2018)\n• Fellow of the American Physical Society — FAPS (2015)\n• Shanti Swarup Bhatnagar Prize in Physical Sciences (2017)\n• J.C. Bose National Fellowship (2019)\n• Infosys Prize in Physical Sciences (2016)' },
-        { sectionTitle: 'PhD Students & Postdocs (Current)', content: '• Sunita Rao (PhD 2021–Present) — LIGO matched-filter algorithms\n• Diego Gomez (PhD 2022–Present) — Dark matter simulations\n• Dr. Ankita Verma (Postdoc 2023–Present) — Binary neutron star EOS\n• Dr. Kwame Asante (Postdoc 2022–Present) — Multi-messenger astrophysics' },
-        { sectionTitle: 'Popular Science & Media', content: '• "Listening to the Universe" — TEDx Talk, 1.2M views (2021)\n• Regular contributor: Scientific American, Physics Today, Resonance Journal\n• BBC Radio 4 interview: "Gravitational Waves and the New Astronomy" (2020)\n• Book: "Ripples in Spacetime: A Primer on Gravitational Waves" (OUP, 2022, ISBN: 978-0-19-886123-4)' },
-        { sectionTitle: 'Computational Resources', content: '• PI-level access: PARAM Ganga HPC (1.66 PetaFLOP/s) — DST allocation 2023\n• LIGO Computing Grid — 40,000 CPU cores, dedicated allocation\n• AWS Research Credits: $150,000/year (2022–2024)\n• National Supercomputing Mission (NSM) allocation — 5M CPU-hours/year' },
-      ],
-      media: {
-        attachments: [
-          { name: 'Newton_Academic_CV.pdf', url: '/uploads/newton_cv.pdf', fileType: 'application/pdf', sizeKB: 534 },
-          { name: 'Research_Overview_Slides.pdf', url: '/uploads/newton_research_slides.pdf', fileType: 'application/pdf', sizeKB: 3120 },
-        ],
-        videoEmbeds: [
-          'https://www.youtube.com/watch?v=IMdPTUf6AnI',
-          'https://www.youtube.com/watch?v=jey_CzIOfYE',
-        ],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // HOD CS — hod_cs@profcv.edu
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'hod_cs@profcv.edu',
-      bio: 'Head of the Department of Computer Science with extensive experience in academic administration, curriculum design, and faculty development. Research expertise in software engineering, formal methods, and CS education.',
-      headline: 'Head of Department — Computer Science | Software Engineering & Formal Methods',
-      subjects: ['Software Engineering', 'Formal Methods', 'Program Verification', 'CS Education'],
-      qualifications: [
-        { degree: 'Ph.D. in Software Engineering', institution: 'Carnegie Mellon University', year: '2005', grade: 'Distinction' },
-        { degree: 'M.Sc. in Computer Science', institution: 'IISc Bangalore', year: '2001', grade: 'First Rank' },
-        { degree: 'B.E. in Computer Engineering', institution: 'BITS Pilani', year: '1999', grade: 'CGPA 9.7/10' },
-      ],
-      publications: [
-        { title: 'Model-Driven Engineering for Reliable Distributed Software Systems', journal: 'IEEE Transactions on Software Engineering', year: '2022', doi: '10.1109/TSE.2022.3187654', url: 'https://ieeexplore.ieee.org/document/9821562' },
-        { title: 'Formal Specification and Verification of RESTful Microservice Contracts', journal: 'ICSE 2021', year: '2021', doi: '10.1109/ICSE43902.2021.00012', url: 'https://ieeexplore.ieee.org/document/9402036' },
-      ],
-      projects: [
-        { title: 'CS Curriculum Redesign 2024: Industry-Academia Integration', description: 'Leading a comprehensive redesign of the CS undergraduate curriculum integrating industry mentorship, capstone projects with 25 partner companies, and a new AI/ML specialization track.', year: '2024', url: 'https://cs.profcv.edu/curriculum2024' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Administrative Roles', content: '• Head of Department, Computer Science — 2019–Present\n• Board of Studies Chair — School of Engineering, 2020–Present\n• Member, Academic Council — University, 2021–Present\n• Coordinator, NBA Accreditation — CS Dept, 2022 (Accredited with Distinction)' },
-        { sectionTitle: 'Industry Collaborations', content: '• Academic Partner: Microsoft Research India, Google, Adobe Systems, TCS Research\n• MoU Signed: 12 industry partners for internship and research collaboration\n• Industry Advisory Board: 8 CXO-level members from top tech companies' },
-      ],
-      media: {
-        attachments: [
-          { name: 'HOD_CS_Profile.pdf', url: '/uploads/hod_cs_profile.pdf', fileType: 'application/pdf', sizeKB: 187 },
-        ],
-        videoEmbeds: [],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // HOD Physics — hod_phy@profcv.edu
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'hod_phy@profcv.edu',
-      bio: "Head of the Department of Physics with a distinguished career in experimental condensed matter physics. Leads the department's strategic research initiatives and has established three fully equipped research labs. A passionate advocate for interdisciplinary science education.",
-      headline: 'Head of Department — Physics | Condensed Matter & Materials Science',
-      subjects: ['Condensed Matter Physics', 'Materials Science', 'Solid State Physics', 'Advanced Quantum Mechanics'],
-      qualifications: [
-        { degree: 'Ph.D. in Condensed Matter Physics', institution: 'IISc Bangalore', year: '2000', grade: 'Excellent' },
-        { degree: 'M.Sc. in Physics', institution: 'University of Hyderabad', year: '1996', grade: 'First Class, Gold Medalist' },
-        { degree: 'B.Sc. in Physics', institution: 'Presidency College, Chennai', year: '1994', grade: 'First Class with Distinction' },
-      ],
-      publications: [
-        { title: 'Giant Magnetoresistance in Perovskite Manganite Thin Films: Substrate Strain Engineering', journal: 'Physical Review B', year: '2022', doi: '10.1103/PhysRevB.106.174421', url: 'https://journals.aps.org/prb/abstract/10.1103/PhysRevB.106.174421' },
-        { title: 'Spin-Orbit Coupling Driven Topological Transitions in Oxide Heterointerfaces', journal: 'Advanced Materials', year: '2021', doi: '10.1002/adma.202105643', url: 'https://onlinelibrary.wiley.com/doi/10.1002/adma.202105643' },
-      ],
-      projects: [
-        { title: 'Centre for Advanced Materials Research (CAMR)', description: 'Established and directing the CAMR with ₹15 Cr DST-FIST funding. Hosts researchers from 3 departments and has produced 45 publications since inception in 2019.', year: '2019', url: 'https://camr.physics.profcv.edu' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Administrative Contributions', content: '• Head of Department, Physics — 2020–Present\n• Coordinator, NAAC Self-Study Report — Natural Sciences Cluster, 2023\n• Dean Academic Affairs (Acting) — 2021 Q3\n• Member, Equipment Purchase Committee — University, 2019–Present' },
-        { sectionTitle: 'Research Group', content: '• 4 PhD Students (active)\n• 2 Postdoctoral Researchers\n• 3 M.Sc. Project Students\n• Annual group publications: 6–8 papers in high-impact journals' },
-      ],
-      media: {
-        attachments: [
-          { name: 'HOD_Physics_CV.pdf', url: '/uploads/hod_physics_cv.pdf', fileType: 'application/pdf', sizeKB: 204 },
-        ],
-        videoEmbeds: ['https://www.youtube.com/watch?v=Q1ni5f2g1gE'],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // VC — vc@profcv.edu
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'vc@profcv.edu',
-      bio: 'The Vice Chancellor brings over 30 years of experience in higher education leadership, strategic planning, and research governance. Has led institutional transformations resulting in the university entering the QS World University Rankings Top 500. A published scholar in educational policy and research management.',
-      headline: 'Vice Chancellor | Strategic Leadership in Higher Education & Research Governance',
-      subjects: ['Higher Education Policy', 'Research Management', 'Academic Leadership'],
-      qualifications: [
-        { degree: 'Ph.D. in Education Policy', institution: 'Harvard Graduate School of Education', year: '1994', grade: 'Distinction' },
-        { degree: 'M.B.A.', institution: 'IIM Ahmedabad', year: '1990', grade: 'Gold Medalist' },
-        { degree: 'M.A. in Economics', institution: 'Delhi School of Economics', year: '1988', grade: 'First Class' },
-        { degree: 'B.A. (Honours) Economics', institution: 'St. Stephen\'s College, Delhi', year: '1986', grade: 'First Class' },
-      ],
-      publications: [
-        { title: 'Reimagining the Research University: Strategies for Global Competitiveness in Emerging Economies', journal: 'Higher Education Quarterly', year: '2023', doi: '10.1111/hequ.12423', url: 'https://onlinelibrary.wiley.com/doi/10.1111/hequ.12423' },
-        { title: 'Faculty Development and Retention Strategies in Indian Technical Universities', journal: 'Journal of Higher Education Policy and Management', year: '2021', doi: '10.1080/1360080X.2021.1934256', url: 'https://www.tandfonline.com/doi/full/10.1080/1360080X.2021.1934256' },
-      ],
-      projects: [
-        { title: 'University Excellence Initiative 2030', description: 'Flagship strategic plan: 10-year roadmap to achieve Top-200 QS ranking, ₹500 Cr research funding target, 20 Centre of Excellence, and 5 international branch campuses.', year: '2023', url: 'https://vc.profcv.edu/excellence2030' },
-        { title: 'Industry Partnership & Incubation Ecosystem', description: 'Established Technology Business Incubator recognized by DST-NSTEDB. 65+ startups incubated, ₹120 Cr equity raised by portfolio companies, 4 unicorn exits.', year: '2020', url: 'https://incubator.profcv.edu' },
-      ],
-      customDetails: [
-        { sectionTitle: 'Leadership & Governance', content: '• Vice Chancellor, Prof CV University — 2019–Present\n• Member, UGC Standing Committee on Policy (2022–Present)\n• Board Member, Association of Indian Universities (2021–Present)\n• Governing Council Member, IIM Trichy (2020–Present)\n• Advisor, Ministry of Education — NEP Implementation Committee (2020–2022)' },
-        { sectionTitle: 'Institutional Achievements Under Leadership', content: '• QS World Rankings: Entered Top 600 (2021), Top 500 (2023) — first in state history\n• Research funding: Grew from ₹45 Cr to ₹280 Cr annually (2019–2023)\n• Faculty recruited: 128 international faculty including 12 IIT/IISc alumni\n• New Schools established: AI & Data Science, Entrepreneurship, Policy Studies\n• NBA Accreditation: 18/18 eligible programs accredited (2022)' },
-        { sectionTitle: 'Speaking Engagements', content: '• World Economic Forum, Davos — Panel: "Future of Education" (2023)\n• G20 Education Working Group — Presented India\'s NEP outcomes (2023)\n• Times Higher Education Asia Summit — Keynote (2022)\n• QS Subject Focus Summit — Speaker (2021)' },
-      ],
-      media: {
-        attachments: [
-          { name: 'VC_Official_Profile.pdf', url: '/uploads/vc_profile.pdf', fileType: 'application/pdf', sizeKB: 289 },
-          { name: 'Excellence2030_Brochure.pdf', url: '/uploads/excellence2030.pdf', fileType: 'application/pdf', sizeKB: 4850 },
-        ],
-        videoEmbeds: ['https://www.youtube.com/watch?v=szXhs935q9o'],
-      },
-    },
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Super Admin — admin@profcv.edu
-    // ─────────────────────────────────────────────────────────────────────────
-    {
-      email: 'admin@profcv.edu',
-      bio: 'System Administrator for the Prof CV platform with full oversight of all institutional data, user accounts, and system configuration.',
-      headline: 'Super Administrator — Prof CV Platform',
-      subjects: [],
-      qualifications: [
-        { degree: 'M.Tech in Information Technology', institution: 'NIT Trichy', year: '2010', grade: 'First Class' },
-        { degree: 'B.E. in Computer Science', institution: 'Anna University', year: '2008', grade: 'First Class' },
-      ],
-      publications: [],
-      projects: [
-        { title: 'Prof CV Platform — System Architecture & Deployment', description: 'Designed and deployed the Prof CV MERN-stack platform serving 500+ faculty. Includes role-based access control, automated backups, and CI/CD pipeline on AWS.', year: '2024', url: 'https://admin.profcv.edu' },
-      ],
-      customDetails: [
-        { sectionTitle: 'System Access & Permissions', content: '• Full CRUD access to all user accounts and profiles\n• Database administration (MongoDB Atlas)\n• API key management and JWT configuration\n• Audit log access' },
-      ],
-      media: { attachments: [], videoEmbeds: [] },
-    },
-  ];
-
-  let created = 0, updated = 0;
-
-  for (const pd of profiles) {
-    const user = byEmail[pd.email];
-    if (!user) {
-      console.log(`  ⚠️  Skipped (user not found): ${pd.email}`);
-      continue;
-    }
-
-    const { email, ...profileData } = pd;
-
+  for (const user of users) {
+    const profileData = buildProfileForUser(user);
     const existing = await Profile.findOne({ user: user._id });
+
     if (existing) {
-      await Profile.findOneAndUpdate({ user: user._id }, { $set: profileData }, { runValidators: true });
-      console.log(`  🔄 Updated:  ${email} [${user.role}]${profileData.publications?.length ? ` — ${profileData.publications.length} pubs` : ''}`);
-      updated++;
+      await Profile.findOneAndUpdate(
+        { user: user._id },
+        { $set: profileData },
+        { runValidators: true }
+      );
+      updated += 1;
+      console.log(`Updated profile: ${user.email}`);
     } else {
       await Profile.create({ user: user._id, ...profileData });
-      console.log(`  ✅ Created:  ${email} [${user.role}]${profileData.publications?.length ? ` — ${profileData.publications.length} pubs` : ''}`);
-      created++;
+      created += 1;
+      console.log(`Created profile: ${user.email}`);
     }
+
+    // Keep user avatar in sync with seeded profile photo.
+    await User.findByIdAndUpdate(user._id, { photo: profileData.photo });
   }
 
-  console.log(`\n🌱 Profile seed complete — ${created} created, ${updated} updated.`);
+  console.log(`Seeded profiles complete. Created: ${created}, Updated: ${updated}`);
   await mongoose.disconnect();
-  console.log('🔌 Disconnected.');
+  console.log('Disconnected from MongoDB');
 }
 
-seed().catch((err) => {
-  console.error('❌ Seed error:', err.message);
+seedProfiles().catch(async (err) => {
+  console.error('Profile seed failed:', err.message);
+  try {
+    await mongoose.disconnect();
+  } catch (disconnectErr) {
+    // No-op.
+  }
   process.exit(1);
 });

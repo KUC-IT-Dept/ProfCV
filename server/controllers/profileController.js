@@ -51,7 +51,9 @@ const getMyProfile = async (req, res) => {
 const updateMyProfile = async (req, res) => {
   const {
     name, bio, headline, photo, subjects, workExperiences, qualifications, publications,
-    projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address,
+    projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
+    internationalExperiences, professionalMemberships, trainings, onlineCoursesCertifications,
+    dob, gender, phoneNumber, address,
     mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
   } = req.body;
   try {
@@ -65,7 +67,9 @@ const updateMyProfile = async (req, res) => {
       {
         $set: {
           bio, headline, photo, subjects, workExperiences, qualifications, publications,
-          projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests, dob, gender, phoneNumber, address,
+          projects, awards, customDetails, professionalDetails, entranceTests, academicResponsibilities, researchSupervision, media, documents, interests,
+          internationalExperiences, professionalMemberships, trainings, onlineCoursesCertifications,
+          dob, gender, phoneNumber, address,
           mobileNumber, alternatePhone, officialEmail, personalEmail, aadhaar, passport, nationality, stateCity, permanentAddress, currentAddress, religion, category, subCategory, differentlyAbled, maritalStatus, spouse, emergencyContact, panNumber, bloodGroup
         }
       },
@@ -85,7 +89,7 @@ const updateMyProfile = async (req, res) => {
 const updateVisibility = async (req, res) => {
   const allowed = [
     'bio', 'professionalDetails', 'entranceTests', 'workExperiences', 'qualifications', 'publications', 'projects', 'subjects',
-    'customDetails', 'media', 'interests', 'photo', 'dob', 'gender', 'phoneNumber', 'address'
+    'professionalMemberships', 'customDetails', 'media', 'interests', 'photo', 'dob', 'gender', 'phoneNumber', 'address'
   ];
   const update = {};
   allowed.forEach((key) => {

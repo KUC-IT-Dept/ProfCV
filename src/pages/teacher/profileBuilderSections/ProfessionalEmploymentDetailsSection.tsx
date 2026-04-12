@@ -1,25 +1,16 @@
-import { Plus, Trash2 } from 'lucide-react';
-import { Profile } from './profileBuilderTypes';
+import { Trash2 } from 'lucide-react';
+import type { Profile } from './profileBuilderTypes';
 import SectionShell from './SectionShell';
 import SelectField from '../../../components/SelectField';
 
 type Props = {
   profile: Profile;
-  onAdd: () => void;
-  onUpdate: (
-    f: keyof Profile['professionalDetails'],
-    v: any
-  ) => void;
-  isExpanded: boolean;
-  onToggle: () => void;
+  onUpdate: (f: keyof Profile['professionalDetails'], v: string) => void;
 };
 
 export default function ProfessionalEmploymentDetailsSection({
   profile,
-  onAdd,
-  onUpdate,
-  isExpanded,
-  onToggle
+  onUpdate
 }: Props) {
   const prof = profile.professionalDetails;
 
@@ -32,27 +23,39 @@ export default function ProfessionalEmploymentDetailsSection({
     'Government', 'Aided', 'Private', 'Deemed', 'Central University'
   ];
 
-  const PROMOTION_LABELS = ['First', 'Second', 'Third'];
+  const clearFields: Array<keyof Profile['professionalDetails']> = [
+    'employeeId',
+    'designation',
+    'department',
+    'institutionName',
+    'affiliatedUniversity',
+    'institutionType',
+    'natureOfAppointment',
+    'dateOfJoining',
+    'dateOfConfirmation',
+    'payBand',
+    'bankAccountDetails',
+    'pfNumber',
+    'serviceBookNumber',
+    'dateOfFirstPromotion',
+    'natureOfFirstAppointment',
+    'firstPayBand',
+    'dateOfSecondPromotion',
+    'natureOfSecondAppointment',
+    'secondPayBand',
+    'dateOfThirdPromotion',
+    'natureOfThirdAppointment',
+    'thirdPayBand'
+  ];
 
-  // ✅ Handle promotion updates
-  const handlePromotionChange = (
-    index: number,
-    field: 'date' | 'nature' | 'payScale',
-    value: string
-  ) => {
-    const updated = [...(prof.promotions || [])];
-    updated[index] = {
-      ...updated[index],
-      [field]: value
-    };
-    onUpdate('promotions', updated);
+  const clearProfessionalDetails = () => {
+    clearFields.forEach((field) => onUpdate(field, ''));
   };
 
   return (
     <SectionShell
-      label="Professional / Employment Details"
-      isExpanded={isExpanded}
-      onToggle={onToggle}
+      title="Professional / Employment Details"
+      description="Employment, payroll, and promotion details for your public profile and records."
     >
       <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
 
@@ -84,8 +87,8 @@ export default function ProfessionalEmploymentDetailsSection({
           <label className="form-label">College / Institution Name</label>
           <input
             className="form-input"
-            value={prof.collegeName || ''}
-            onChange={(e) => onUpdate('collegeName', e.target.value)}
+            value={prof.institutionName || ''}
+            onChange={(e) => onUpdate('institutionName', e.target.value)}
           />
         </div>
 
@@ -93,8 +96,8 @@ export default function ProfessionalEmploymentDetailsSection({
           <label className="form-label">University Affiliation</label>
           <input
             className="form-input"
-            value={prof.universityAffiliation || ''}
-            onChange={(e) => onUpdate('universityAffiliation', e.target.value)}
+            value={prof.affiliatedUniversity || ''}
+            onChange={(e) => onUpdate('affiliatedUniversity', e.target.value)}
           />
         </div>
 
@@ -108,8 +111,8 @@ export default function ProfessionalEmploymentDetailsSection({
         <SelectField
           label="Nature of Appointment"
           options={APPOINTMENT_OPTIONS}
-          value={prof.appointmentNature || ''}
-          onChange={(v) => onUpdate('appointmentNature', v)}
+          value={prof.natureOfAppointment || ''}
+          onChange={(v) => onUpdate('natureOfAppointment', v)}
         />
 
         <div className="form-group">
@@ -133,48 +136,21 @@ export default function ProfessionalEmploymentDetailsSection({
         </div>
 
         <div className="form-group">
-          <label className="form-label">Pay Scale</label>
+          <label className="form-label">Pay Band</label>
           <input
             className="form-input"
-            value={prof.payScale || ''}
-            onChange={(e) => onUpdate('payScale', e.target.value)}
+            value={prof.payBand || ''}
+            onChange={(e) => onUpdate('payBand', e.target.value)}
           />
         </div>
 
         {/* BANK DETAILS */}
         <div className="form-group">
-          <label className="form-label">Account Number</label>
+          <label className="form-label">Bank Account Details</label>
           <input
             className="form-input"
-            value={prof.accountNumber || ''}
-            onChange={(e) => onUpdate('accountNumber', e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">IFSC Code</label>
-          <input
-            className="form-input"
-            value={prof.ifscCode || ''}
-            onChange={(e) => onUpdate('ifscCode', e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Bank Name</label>
-          <input
-            className="form-input"
-            value={prof.bankName || ''}
-            onChange={(e) => onUpdate('bankName', e.target.value)}
-          />
-        </div>
-
-        <div className="form-group">
-          <label className="form-label">Branch Name</label>
-          <input
-            className="form-input"
-            value={prof.branchName || ''}
-            onChange={(e) => onUpdate('branchName', e.target.value)}
+            value={prof.bankAccountDetails || ''}
+            onChange={(e) => onUpdate('bankAccountDetails', e.target.value)}
           />
         </div>
 
@@ -201,9 +177,7 @@ export default function ProfessionalEmploymentDetailsSection({
         <button
           type="button"
           className="text-blue-600 flex items-center gap-1"
-          onClick={() => {
-            onUpdate('promotions', []);
-          }}
+          onClick={clearProfessionalDetails}
         >
           <Trash2 size={16} />
           Clear Professional Details
@@ -215,67 +189,90 @@ export default function ProfessionalEmploymentDetailsSection({
       <div className="mt-6">
         <h3 className="text-lg font-semibold mb-4">Promotional Details</h3>
 
-        {(prof.promotions || []).map((promo, index) => (
-          <div key={index} className="grid md:grid-cols-3 gap-4 mb-4 border p-4 rounded">
-
-            <div>
-              <label>Date of {PROMOTION_LABELS[index]} Promotion</label>
-              <input
-                type="date"
-                className="form-input"
-                value={promo.date || ''}
-                onChange={(e) =>
-                  handlePromotionChange(index, 'date', e.target.value)
-                }
-              />
-            </div>
-
-            <SelectField
-              label="Nature"
-              options={APPOINTMENT_OPTIONS}
-              value={promo.nature || ''}
-              onChange={(v) =>
-                handlePromotionChange(index, 'nature', v)
-              }
+        <div className="grid md:grid-cols-3 gap-4 mb-4 border p-4 rounded">
+          <div>
+            <label>Date of First Promotion</label>
+            <input
+              type="date"
+              className="form-input"
+              value={prof.dateOfFirstPromotion || ''}
+              onChange={(e) => onUpdate('dateOfFirstPromotion', e.target.value)}
             />
-
-            <div>
-              <label>New Pay Scale</label>
-              <input
-                className="form-input"
-                value={promo.payScale || ''}
-                onChange={(e) =>
-                  handlePromotionChange(index, 'payScale', e.target.value)
-                }
-              />
-            </div>
-
           </div>
-        ))}
 
-        {/* ADD PROMOTION */}
-        <button
-          className="btn btn-primary flex items-center mt-2"
-          onClick={() =>
-            onUpdate('promotions', [
-              ...(prof.promotions || []),
-              { date: '', nature: '', payScale: '' }
-            ])
-          }
-        >
-          <Plus size={16} className="mr-2" />
-          Add Promotion
-        </button>
+          <SelectField
+            label="Nature (First Promotion)"
+            options={APPOINTMENT_OPTIONS}
+            value={prof.natureOfFirstAppointment || ''}
+            onChange={(v) => onUpdate('natureOfFirstAppointment', v)}
+          />
+
+          <div>
+            <label>First Pay Band</label>
+            <input
+              className="form-input"
+              value={prof.firstPayBand || ''}
+              onChange={(e) => onUpdate('firstPayBand', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 mb-4 border p-4 rounded">
+          <div>
+            <label>Date of Second Promotion</label>
+            <input
+              type="date"
+              className="form-input"
+              value={prof.dateOfSecondPromotion || ''}
+              onChange={(e) => onUpdate('dateOfSecondPromotion', e.target.value)}
+            />
+          </div>
+
+          <SelectField
+            label="Nature (Second Promotion)"
+            options={APPOINTMENT_OPTIONS}
+            value={prof.natureOfSecondAppointment || ''}
+            onChange={(v) => onUpdate('natureOfSecondAppointment', v)}
+          />
+
+          <div>
+            <label>Second Pay Band</label>
+            <input
+              className="form-input"
+              value={prof.secondPayBand || ''}
+              onChange={(e) => onUpdate('secondPayBand', e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-4 mb-4 border p-4 rounded">
+          <div>
+            <label>Date of Third Promotion</label>
+            <input
+              type="date"
+              className="form-input"
+              value={prof.dateOfThirdPromotion || ''}
+              onChange={(e) => onUpdate('dateOfThirdPromotion', e.target.value)}
+            />
+          </div>
+
+          <SelectField
+            label="Nature (Third Promotion)"
+            options={APPOINTMENT_OPTIONS}
+            value={prof.natureOfThirdAppointment || ''}
+            onChange={(v) => onUpdate('natureOfThirdAppointment', v)}
+          />
+
+          <div>
+            <label>Third Pay Band</label>
+            <input
+              className="form-input"
+              value={prof.thirdPayBand || ''}
+              onChange={(e) => onUpdate('thirdPayBand', e.target.value)}
+            />
+          </div>
+        </div>
       </div>
-      
-      {/* ADD EMPLOYMENT */}
-      <button
-        className="btn btn-primary mt-6 flex items-center"
-        onClick={onAdd}
-      >
-        <Plus size={16} className="mr-2" />
-        Add another employment record
-      </button>
 
     </SectionShell>
   );

@@ -1,15 +1,17 @@
-import { Award, BookOpen, Rocket, FileText, Calendar } from 'lucide-react';
-import { Profile } from './profileBuilderTypes';
+import { BookOpen, Rocket, FileText, Calendar } from 'lucide-react';
+import type { Profile } from '../pages/teacher/profileBuilderSections/profileBuilderTypes';
 
 type RecentActivityProps = {
   profile: Profile;
 };
 
 export default function GlobalRecentActivity({ profile }: RecentActivityProps) {
+  const parseYear = (value: string) => Number.parseInt(value, 10) || 0;
+
   // 1. Collect everything from the profile object
   const allActivities = [
     // Qualifications
-    ...(profile.qualifications || []).map(q => ({
+    ...(profile.qualifications || []).map((q) => ({
       title: q.degree || q.educationlevel,
       subtitle: q.institution,
       date: q.yearofpassing,
@@ -18,7 +20,7 @@ export default function GlobalRecentActivity({ profile }: RecentActivityProps) {
     })),
     
     // Research Projects / Publications
-    ...(profile.publications || []).map(p => ({
+    ...(profile.publications || []).map((p) => ({
       title: p.title,
       subtitle: 'Publication',
       date: p.year,
@@ -27,10 +29,10 @@ export default function GlobalRecentActivity({ profile }: RecentActivityProps) {
     })),
 
     // Add your workshops or other sections here
-    ...(profile.projects || []).map(prj => ({
-      title: prj.name,
-      subtitle: 'Project Milestone',
-      date: prj.date || '2026',
+    ...(profile.projects || []).map((project) => ({
+      title: project.title,
+      subtitle: 'Research Project',
+      date: project.year,
       icon: <Rocket size={16} className="text-orange-500" />,
       color: 'bg-orange-50'
     }))
@@ -38,8 +40,8 @@ export default function GlobalRecentActivity({ profile }: RecentActivityProps) {
 
   // 2. Sort by year descending
   const sortedActivities = allActivities
-    .filter(a => a.title) // Only show items that have a title
-    .sort((a, b) => parseInt(b.date) - parseInt(a.date))
+    .filter((a) => a.title) // Only show items that have a title
+    .sort((a, b) => parseYear(b.date) - parseYear(a.date))
     .slice(0, 6);
 
   return (

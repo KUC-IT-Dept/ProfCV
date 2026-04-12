@@ -1,8 +1,25 @@
 const mongoose = require('mongoose');
 
 const qualificationSchema = new mongoose.Schema({
+  educationlevel: String,
   degree: String,
+  specialisation: String,
   institution: String,
+  university: String,
+  yearofpassing: String,
+  cgpa: String,
+  division: String,
+  mode: String,
+  country: String,
+  state: String,
+  tenthcertificate: String,
+  twelfthcertificate: String,
+  ugcertificate: String,
+  pgcertificate: String,
+  mphilcertificate: String,
+  phdcertificate: String,
+
+  // Legacy fields kept for backward compatibility.
   year: String,
   grade: String,
 });
@@ -44,7 +61,10 @@ const projectSchema = new mongoose.Schema({
   fundingAgency: String,
   role: { type: String, enum: ['Principal Investigator', 'Co-PI'] },
   amount: String,
+  sanctionedAmount: String,
   duration: String,
+  durationFrom: String,
+  durationTo: String,
   status: { type: String, enum: ['Ongoing', 'Completed'] },
   referenceNumber: String
 });
@@ -85,6 +105,21 @@ const professionalDetailSchema = new mongoose.Schema({
   pfNumber: String,
   serviceBookNumber: String,
 
+  // Additional fields used by the current form UI.
+  collegeName: String,
+  universityAffiliation: String,
+  appointmentNature: String,
+  payScale: String,
+  accountNumber: String,
+  ifscCode: String,
+  bankName: String,
+  branchName: String,
+  promotions: [{
+    date: String,
+    nature: String,
+    payScale: String,
+  }],
+
   // First promotion
   dateOfFirstPromotion: String,
   natureOfFirstAppointment: String,
@@ -118,6 +153,32 @@ const workExperienceSchema = new mongoose.Schema({
   totalDuration: String,
   natureOfAppointment: String,
   reasonForLeaving: String,
+});
+
+const internationalExperienceSchema = new mongoose.Schema({
+  countryVisited: String,
+  purpose: String,
+  institutionName: String,
+  duration: String,
+  fundingSource: String,
+});
+
+const trainingSchema = new mongoose.Schema({
+  programName: String,
+  type: String,
+  organizedBy: String,
+  durationDates: String,
+  mode: String,
+  certificate: String,
+});
+
+const onlineCourseCertificationSchema = new mongoose.Schema({
+  courseName: String,
+  platform: String,
+  duration: String,
+  scoreGrade: String,
+  certificateNumber: String,
+  year: String,
 });
 
 const documentsSchema = new mongoose.Schema({
@@ -155,7 +216,9 @@ const visibilitySchema = new mongoose.Schema({
   researchSupervision: { type: Boolean, default: true },
   subjects: { type: Boolean, default: true },
   customDetails: { type: Boolean, default: true },
-  media: { type: Boolean, default: false },    documents: { type: Boolean, default: false },  interests: { type: Boolean, default: true },
+  media: { type: Boolean, default: false },
+  documents: { type: Boolean, default: false },
+  interests: { type: Boolean, default: true },
   photo: { type: Boolean, default: true },
   phoneNumber: { type: Boolean, default: false },
   address: { type: Boolean, default: false },
@@ -200,10 +263,13 @@ const profileSchema = new mongoose.Schema(
     subjects: [String],
     workExperiences: [workExperienceSchema],
     qualifications: [qualificationSchema],
+    internationalExperiences: [internationalExperienceSchema],
     professionalMemberships: [professionalMembershipSchema],
     publications: [publicationSchema],
     awards: [awardSchema],
     projects: [projectSchema],
+    trainings: [trainingSchema],
+    onlineCoursesCertifications: [onlineCourseCertificationSchema],
     researchSupervision: {
       phdAwardedCount: { type: String, default: '' },
       phdOngoingCount: { type: String, default: '' },
