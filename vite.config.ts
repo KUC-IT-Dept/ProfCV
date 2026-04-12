@@ -7,11 +7,11 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://prof-cv-backend-production.up.railway.app',
         changeOrigin: true,
       },
       '/uploads': {
-        target: 'http://localhost:3001',
+        target: 'https://prof-cv-backend-production.up.railway.app',
         changeOrigin: true,
       },
     },

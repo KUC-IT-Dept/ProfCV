@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const fallbackBaseURL = import.meta.env.DEV
-  ? 'http://localhost:3001/api'
-  : 'https://profcv-production.up.railway.app/api';
+  ? 'https://prof-cv-backend-production.up.railway.app/api'
+  : 'https://prof-cv-backend-production.up.railway.app/api';
 
 const resolvedBaseURL = import.meta.env.VITE_API_URL || fallbackBaseURL;
 
