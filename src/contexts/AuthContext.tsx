@@ -35,25 +35,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Hydrate from localStorage on mount
   useEffect(() => {
+    console.info('[Auth] Hydration started');
     const storedToken = localStorage.getItem('profcv_token');
     const storedUser = localStorage.getItem('profcv_user');
     if (storedToken && storedUser) {
       try {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+        console.info('[Auth] Hydration success');
       } catch {
+        console.error('[Auth] Hydration failed: invalid stored auth state');
         localStorage.removeItem('profcv_token');
         localStorage.removeItem('profcv_user');
       }
+    } else {
+      console.info('[Auth] No stored auth state found');
     }
     setIsLoading(false);
   }, []);
 
   const login = useCallback(async (email: string, password: string) => {
+    console.info('[Auth] Login attempt', { email });
     const { data } = await api.post<{ token: string; user: AuthUser }>('/auth/login', {
       email,
       password,
     });
+
+    console.info('[Auth] Login success', { userId: data.user.id, role: data.user.role });
     localStorage.setItem('profcv_token', data.token);
     localStorage.setItem('profcv_user', JSON.stringify(data.user));
     setToken(data.token);
@@ -61,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const logout = useCallback(() => {
+    console.info('[Auth] Logout');
     localStorage.removeItem('profcv_token');
     localStorage.removeItem('profcv_user');
     setToken(null);

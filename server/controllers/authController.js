@@ -9,12 +9,25 @@ const User = require('../models/User');
 const login = async (req, res) => {
   const { email, password } = req.body;
 
+  console.info('[authController.login] Request received', {
+    email: email || null,
+    hasPassword: Boolean(password),
+    origin: req.headers.origin || 'no-origin',
+    ip: req.ip,
+  });
+
   if (!email || !password) {
+    console.warn('[authController.login] Missing credentials');
     return res.status(400).json({ message: 'Email and password are required.' });
   }
 
   try {
     const user = await User.findOne({ email: email.toLowerCase() });
+
+    console.info('[authController.login] User lookup result', {
+      email: email.toLowerCase(),
+      found: Boolean(user),
+    });
 
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials.' });
@@ -22,6 +35,7 @@ const login = async (req, res) => {
 
     // MVP: plaintext comparison — no bcrypt
     if (password !== user.password) {
+      console.warn('[authController.login] Password mismatch', { email: user.email });
       return res.status(401).json({ message: 'Invalid credentials.' });
     }
 
@@ -36,6 +50,12 @@ const login = async (req, res) => {
 
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '8h' });
 
+    console.info('[authController.login] Login success', {
+      userId: String(user._id),
+      role: user.role,
+      department: user.department,
+    });
+
     return res.status(200).json({ token, user: payload });
   } catch (err) {
     console.error('[authController.login]', err);
@@ -49,6 +69,7 @@ const login = async (req, res) => {
  */
 const getMe = async (req, res) => {
   try {
+    console.info('[authController.getMe] Request received', { userId: req.user?.id || null });
     const user = await User.findById(req.user.id).select('-password');
     if (!user) {
       return res.status(404).json({ message: 'User not found.' });
@@ -66,6 +87,12 @@ const getMe = async (req, res) => {
  */
 const updatePassword = async (req, res) => {
   const { currentPassword, newPassword } = req.body;
+
+  console.info('[authController.updatePassword] Request received', {
+    userId: req.user?.id || null,
+    hasCurrentPassword: Boolean(currentPassword),
+    hasNewPassword: Boolean(newPassword),
+  });
 
   if (!currentPassword || !newPassword) {
     return res.status(400).json({ message: 'Current and new passwords are required.' });

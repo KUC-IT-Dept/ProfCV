@@ -13,6 +13,24 @@ const profileRoutes = require('./routes/profile');
 const directoryRoutes = require('./routes/directory');
 
 const app = express();
+const DEBUG_LOGS = String(process.env.DEBUG_LOGS || 'true').toLowerCase() !== 'false';
+
+function debugLog(message, meta) {
+  if (!DEBUG_LOGS) return;
+  if (typeof meta === 'undefined') {
+    console.log(message);
+    return;
+  }
+  console.log(message, meta);
+}
+
+process.on('uncaughtException', (err) => {
+  console.error('[Process] uncaughtException', err);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('[Process] unhandledRejection', reason);
+});
 
 // ── Middleware ────────────────────────────────────────────────────────────────
 const allowAllOrigins = String(process.env.CORS_ALLOW_ALL || 'false').toLowerCase() === 'true';
@@ -29,6 +47,15 @@ const allowedOrigins = new Set([
 
 const netlifyPreviewPattern = /^https:\/\/[a-z0-9-]+--profcv-kuc\.netlify\.app$/i;
 
+debugLog('[Config] Startup options', {
+  allowAllOrigins,
+  allowedOrigins: Array.from(allowedOrigins),
+  frontendUrl: process.env.FRONTEND_URL || null,
+  corsOriginsEnv: process.env.CORS_ORIGINS || null,
+  hasJwtSecret: Boolean(process.env.JWT_SECRET),
+  hasMongoUri: Boolean(process.env.MONGO_URI || process.env.MONGODB_URI),
+});
+
 function isAllowedOrigin(origin) {
   if (!origin) return true;
   if (allowAllOrigins) return true;
@@ -39,10 +66,13 @@ function isAllowedOrigin(origin) {
 
 const corsOptions = {
   origin: function (origin, callback) {
+    const originLabel = origin || 'no-origin';
     if (isAllowedOrigin(origin)) {
+      debugLog(`[CORS] Allow origin=${originLabel}`);
       callback(null, true);
       return;
     }
+    console.warn(`[CORS] Block origin=${originLabel}`);
     callback(new Error(`Not allowed by CORS: ${origin}`));
   },
   credentials: true,
@@ -52,6 +82,28 @@ const corsOptions = {
 if (allowAllOrigins) {
   console.warn('⚠ CORS_ALLOW_ALL is enabled. Allowing all origins.');
 }
+
+app.use((req, res, next) => {
+  const startedAt = Date.now();
+  const requestMeta = {
+    method: req.method,
+    path: req.originalUrl,
+    origin: req.headers.origin || 'no-origin',
+    ip: req.ip,
+  };
+
+  debugLog('[HTTP] Incoming request', requestMeta);
+
+  res.on('finish', () => {
+    debugLog('[HTTP] Completed request', {
+      ...requestMeta,
+      status: res.statusCode,
+      durationMs: Date.now() - startedAt,
+    });
+  });
+
+  next();
+});
 
 app.use(cors(corsOptions));
 app.options('*', cors(corsOptions));
@@ -82,12 +134,27 @@ const mongoStateLabel = {
 
 app.get('/api/health', (_req, res) => {
   const dbState = mongoStateLabel[mongoose.connection.readyState] || 'unknown';
-  return res.json({ status: 'ok', dbState });
+  return res.json({ status: 'ok', dbState, timestamp: new Date().toISOString() });
+});
+
+app.use((req, res) => {
+  console.warn('[HTTP] Route not found', {
+    method: req.method,
+    path: req.originalUrl,
+    origin: req.headers.origin || 'no-origin',
+  });
+  return res.status(404).json({ message: 'Route not found.' });
 });
 
 // ── Global Error Handler ──────────────────────────────────────────────────────
-app.use((err, _req, res, _next) => {
-  console.error('[GlobalError]', err);
+app.use((err, req, res, _next) => {
+  console.error('[GlobalError]', {
+    message: err?.message,
+    stack: err?.stack,
+    method: req.method,
+    path: req.originalUrl,
+    origin: req.headers.origin || 'no-origin',
+  });
   if (typeof err.message === 'string' && err.message.startsWith('Not allowed by CORS')) {
     return res.status(403).json({ message: err.message });
   }
@@ -103,13 +170,25 @@ const PORT = Number(process.env.PORT) || 3000;
 const HOST = '0.0.0.0';
 const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
-app.listen(PORT, HOST, () => {
+debugLog('[Startup] Booting API server', {
+  host: HOST,
+  port: PORT,
+  node: process.version,
+  pid: process.pid,
+});
+
+const server = app.listen(PORT, HOST, () => {
   console.log(`🚀 Prof CV API server running on ${HOST}:${PORT}`);
+});
+
+server.on('error', (err) => {
+  console.error('[Server] listen error', err);
 });
 
 if (!MONGO_URI) {
   console.error('❌ Missing MongoDB URI. Set MONGO_URI or MONGODB_URI in environment variables.');
 } else {
+  debugLog('[Mongo] Attempting connection');
   mongoose
     .connect(MONGO_URI)
     .then(() => {
@@ -119,6 +198,14 @@ if (!MONGO_URI) {
       console.error('❌ MongoDB connection failed:', err.message);
     });
 }
+
+mongoose.connection.on('error', (err) => {
+  console.error('[Mongo] connection error event', err.message);
+});
+
+mongoose.connection.on('connected', () => {
+  debugLog('[Mongo] connected event fired');
+});
 
 mongoose.connection.on('disconnected', () => {
   console.warn('⚠ MongoDB disconnected');

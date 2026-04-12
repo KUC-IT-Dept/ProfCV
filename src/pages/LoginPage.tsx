@@ -15,12 +15,20 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.info('[LoginPage] Submit', { email });
     setError('');
     setIsLoading(true);
     try {
       await login(email, password);
+      console.info('[LoginPage] Navigation to dashboard');
       navigate('/dashboard', { replace: true });
     } catch (err: any) {
+      console.error('[LoginPage] Login failed', {
+        message: err?.message,
+        status: err?.response?.status,
+        data: err?.response?.data,
+        code: err?.code,
+      });
       setError(err?.response?.data?.message ?? 'Invalid credentials. Please try again.');
     } finally {
       setIsLoading(false);
