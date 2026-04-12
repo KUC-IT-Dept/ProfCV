@@ -1,10 +1,10 @@
 [build]
 builder = "NIXPACKS"
-watchPatterns = ["server/**"]
-buildCommand = "npm install"
+watchPatterns = ["server/**", "railway.toml", "package.json", "server/package.json"]
+buildCommand = "if [ -f server/package.json ]; then npm --prefix server ci; else npm ci; fi"
 
 [deploy]
-startCommand = "npm start"
+startCommand = "if [ -f server/package.json ]; then npm --prefix server start; else npm start; fi"
 healthcheckPath = "/api/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
