@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../../lib/axios';
+import { getImageUrl } from '../../lib/getImageUrl';
 import { GraduationCap, BookMarked, FlaskConical, BookOpen, Paperclip, Link2, User, Lightbulb, Calendar, Phone, MapPin, User2 } from 'lucide-react';
 
 type PublicProfile = {
@@ -120,7 +121,7 @@ export default function PublicProfilePage() {
         <div style={{ maxWidth: 760, margin: '0 auto', color: '#fff' }}>
           <div style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(255,255,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem', overflow: 'hidden' }}>
             {profile.photo ? (
-              <img src={profile.photo} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={getImageUrl(profile.photo)} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
               <User size={36} color="#fff" />
             )}

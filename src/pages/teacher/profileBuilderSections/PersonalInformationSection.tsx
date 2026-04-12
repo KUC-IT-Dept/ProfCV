@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Upload, User, X } from 'lucide-react';
 import { Profile } from './profileBuilderTypes';
+import { getImageUrl } from '../../../lib/getImageUrl';
 
 const DEFAULT_INTERESTS = ['AI', 'ML', 'IoT', 'MERN', 'HCI', 'Embedded Systems', 'Strategic Logic', 'Inclusive Design'];
 
@@ -228,7 +229,7 @@ export default function PersonalInformationSection({
   onAddInterest,
   onRemoveInterest,
 }: PersonalInformationSectionProps) {
-  const displayPhoto = photoPreviewUrl || profile.photo;
+  const displayPhoto = photoPreviewUrl || getImageUrl(profile.photo);
   return (
     <div className="card" style={{ padding: '1.25rem' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>

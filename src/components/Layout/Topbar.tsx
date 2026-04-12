@@ -1,6 +1,7 @@
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { Menu } from 'lucide-react';
+import { getImageUrl } from '../../lib/getImageUrl';
 
 const PAGE_TITLES: Record<string, string> = {
   '/dashboard': 'Dashboard',
@@ -47,7 +48,7 @@ export default function Topbar({ toggleSidebar }: { toggleSidebar: () => void })
           aria-hidden="true"
         >
           {user?.photo ? (
-            <img src={user.photo} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <img src={getImageUrl(user.photo)} alt={user.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
           ) : (
             user?.name?.charAt(0).toUpperCase()
           )}

@@ -1,6 +1,7 @@
 ﻿import { useRef } from 'react';
 import { Upload, FileText } from 'lucide-react';
 import { Profile } from './profileBuilderTypes';
+import { getImageUrl } from '../../../lib/getImageUrl';
 
 type DocumentsToUploadSectionProps = {
   profile: Profile;
@@ -64,7 +65,7 @@ export default function DocumentsToUploadSection({
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.75rem', background: 'var(--color-surface)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--color-border)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
                       <FileText size={16} color="var(--color-primary)" style={{ flexShrink: 0 }} />
-                      <a href={url} target="_blank" rel="noreferrer" style={{ fontSize: '0.8125rem', color: 'var(--color-primary)', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+                      <a href={getImageUrl(url)} target="_blank" rel="noreferrer" style={{ fontSize: '0.8125rem', color: 'var(--color-primary)', fontWeight: 500, whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
                         View Document
                       </a>
                     </div>
