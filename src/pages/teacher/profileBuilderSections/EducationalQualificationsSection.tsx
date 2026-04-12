@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Check } from 'lucide-react';
 import FileField from '../../../components/FileField';
 import SelectField from '../../../components/SelectField';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
@@ -51,18 +51,25 @@ export default function EducationalQualificationsSection({
     <div className="space-y-4">
       {profile.qualifications.map((qualification, index) => {
         const cardKey = `qualifications-${index}`;
+        const qualificationType = qualification.degree || qualification.educationlevel || '';
         const summary = [
-          qualification.educationlevel, 
-          qualification.institution, 
+          qualificationType,
+          qualification.institution,
           qualification.yearofpassing
         ].filter(Boolean).join(' · ') || 'Add qualification details';
 
-        const certInfo = CERTIFICATE_MAPPING[qualification.educationlevel];
+        const certInfo = CERTIFICATE_MAPPING[qualificationType];
+        const uploadFieldName = certInfo?.field || 'certificate';
+        const uploadLabel = certInfo ? `Upload ${certInfo.label}` : 'Upload certificate';
+        
+        // Get the stored file URL and create a display object
+        const storedFileUrl = (qualification as any)[uploadFieldName];
+        const displayFile = storedFileUrl ? { name: storedFileUrl.split('/').pop() || 'certificate' } as any : null;
 
         return (
           <ProfileBuilderSectionCard
             key={cardKey}
-            title={qualification.educationlevel || `Qualification ${index + 1}`}
+            title={qualificationType || `Qualification ${index + 1}`}
             summary={summary}
             expanded={isExpanded(cardKey)}
             onToggle={() => onToggle(cardKey)}
@@ -71,8 +78,8 @@ export default function EducationalQualificationsSection({
               <SelectField 
                 label="Qualification type" 
                 options={['10th', '12th', 'Undergraduate', 'Postgraduate', 'M.Phil.', 'Ph.D.', 'Other']} 
-                value={qualification.educationlevel} 
-                onChange={(value) => onUpdate(index, 'educationlevel', value)} 
+                value={qualificationType} 
+                onChange={(value) => onUpdate(index, 'degree', value)} 
                 placeholder="Select education level" 
               />
               
@@ -133,18 +140,25 @@ export default function EducationalQualificationsSection({
             </div>
 
             {/* CONDITIONAL UPLOAD AREA */}
-            <div style={{ marginTop: '1.25rem' }}>
-              {certInfo ? (
+            <div style={{ marginTop: '1.25rem', width: '100%' }}>
+              <div style={{ position: 'relative' }}>
                 <FileField 
-                  label={`Upload ${certInfo.label}`} 
-                  name={`${certInfo.field}file`} 
-                  selectedFile={null} 
-                  onFileSelect={(_, file) => onUploadCertificate(index, certInfo.field, file)} 
+                  label={uploadLabel} 
+                  name={`${uploadFieldName}file-${index}`} 
+                  selectedFile={displayFile} 
+                  onFileSelect={(_, file) => onUploadCertificate(index, uploadFieldName, file)} 
                 />
-              ) : (
-                <div style={{ padding: '1rem', border: '1px dashed #ccc', borderRadius: '8px', textAlign: 'center', color: '#666', fontSize: '0.875rem' }}>
-                  Please select a valid Qualification Type to enable certificate upload.
-                </div>
+                {displayFile && (
+                  <div style={{ position: 'absolute', right: '14px', top: '32px', display: 'flex',  flexDirection: 'row-reverse' , alignItems: 'center', gap: '0.6rem', color: '#0ad44d', fontSize: '0.8125rem', fontWeight: 500 }}>
+                  <span style={{ marginRight: '10px' }}>Uploaded</span>
+        
+                  </div>
+                )}
+              </div>
+              {!certInfo && (
+                <p style={{ marginTop: '0.5rem', fontSize: '0.8125rem', color: '#7b7979' }}>
+                  Tip: Select a specific Qualification Type for better certificate tracking.
+                </p>
               )}
             </div>
 

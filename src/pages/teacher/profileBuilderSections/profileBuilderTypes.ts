@@ -54,6 +54,7 @@ export type Visibility = {
 export type Qualification = {
   [key: string]: string;
   degree: string;
+  educationlevel: string;
   specialisation: string;
   institution: string;
   university: string;

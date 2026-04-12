@@ -114,6 +114,7 @@ type Visibility = {
 type Qualification = {
   [key: string]: string;
   degree: string;
+  educationlevel: string;
   specialisation: string;
   institution: string;
   university: string;
@@ -609,6 +610,7 @@ export default function ProfileBuilderPage() {
     const nextIndex = profile.qualifications.length;
     set('qualifications', [...profile.qualifications, {
       degree: '',
+      educationlevel: '',
       specialisation: '',
       institution: '',
       university: '',
