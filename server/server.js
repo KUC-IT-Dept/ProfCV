@@ -67,6 +67,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/directory', directoryRoutes);
 
+// Lightweight root route helps platform probes and confirms container is reachable.
+app.get('/', (_req, res) => {
+  return res.status(200).send('ProfCV API is running');
+});
+
 // ── Health check ──────────────────────────────────────────────────────────────
 const mongoStateLabel = {
   0: 'disconnected',
@@ -94,11 +99,12 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Database & Server Start ───────────────────────────────────────────────────
-const PORT = process.env.PORT || 3001;
+const PORT = Number(process.env.PORT) || 3000;
+const HOST = '0.0.0.0';
 const MONGO_URI = process.env.MONGO_URI || process.env.MONGODB_URI;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Prof CV API server running on http://localhost:${PORT}`);
+app.listen(PORT, HOST, () => {
+  console.log(`🚀 Prof CV API server running on ${HOST}:${PORT}`);
 });
 
 if (!MONGO_URI) {

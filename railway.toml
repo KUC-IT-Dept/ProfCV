@@ -5,4 +5,6 @@ buildCommand = "if [ -d server ]; then cd server; fi; npm ci"
 
 [deploy]
 startCommand = "if [ -d server ]; then cd server; fi; npm start"
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
