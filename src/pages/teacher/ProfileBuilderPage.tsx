@@ -113,6 +113,7 @@ type Visibility = {
 
 type Qualification = {
   [key: string]: string;
+  educationlevel: string;
   degree: string;
   educationlevel: string;
   specialisation: string;
@@ -129,9 +130,36 @@ type Qualification = {
   ugcertificate: string;
   pgcertificate: string;
   mphilcertificate: string;
+  phdcertificate: string;
 };
 type WorkExperience = { institutionName: string; designation: string; department: string; fromDate: string; toDate: string; totalDuration: string; natureOfAppointment: string; reasonForLeaving: string; };
-type Publication = { title: string; authors: string; journal: string; organisation: string; year: string; volume: string; issue: string; month: string; pages: string; doi: string; url: string };
+type Publication = {
+  publicationType: 'Journal Articles' | 'Book Chapters' | 'Books Authored / Edited' | 'Conference Papers' | 'Other';
+  title: string;
+  authors: string;
+  journal?: string;
+  organisation?: string;
+  year: string;
+  volume?: string;
+  issue?: string;
+  month?: string;
+  pages?: string;
+  doi: string;
+  url: string;
+  issn?: string;
+  indexedIn?: string;
+  impactFactor?: string;
+  bookTitle?: string;
+  publisher?: string;
+  isbn?: string;
+  editors?: string;
+  bookType?: string;
+  conferenceName?: string;
+  nationalInternational?: string;
+  venueDate?: string;
+  organizedBy?: string;
+  publishedInProceedings?: string;
+};
 type Project = { title: string; description: string; year: string; url: string };
 type InternationalExperience = { countryVisited: string; purpose: string; institutionName: string; duration: string; fundingSource: string; };
 type ProfessionalMembership = { bodyName: string; membershipType: string; membershipId: string; yearOfJoining: string; };
@@ -594,7 +622,12 @@ export default function ProfileBuilderPage() {
     }
   }, [profile, user, updateUser]);
 
-  const set = (key: keyof Profile | 'trainings', val: any) => setProfile((p) => ({ ...(p as any), [key]: val } as Profile));
+  const set = (f: keyof Profile | 'trainings', vOrFn: any) => {
+    setProfile((p) => {
+      const newValue = typeof vOrFn === 'function' ? vOrFn((p as any)[f]) : vOrFn;
+      return { ...p, [f]: newValue };
+    });
+  };
 
   const toggleVisibility = async (key: keyof Visibility) => {
     const newVis = { ...profile.visibility, [key]: !profile.visibility[key] };
@@ -609,6 +642,7 @@ export default function ProfileBuilderPage() {
   const addQual = () => {
     const nextIndex = profile.qualifications.length;
     set('qualifications', [...profile.qualifications, {
+      educationlevel: '',
       degree: '',
       educationlevel: '',
       specialisation: '',
@@ -625,6 +659,7 @@ export default function ProfileBuilderPage() {
       ugcertificate: '',
       pgcertificate: '',
       mphilcertificate: '',
+      phdcertificate: '',
     }]);
     openSection(`qualifications-${nextIndex}`);
   };
@@ -654,12 +689,25 @@ export default function ProfileBuilderPage() {
   };
   const removeQual = (i: number) => set('qualifications', profile.qualifications.filter((_, idx) => idx !== i));
 
-  const addPub = () => {
+  const addPub = (type: Publication['publicationType'] = 'Journal Articles') => {
     const nextIndex = profile.publications.length;
-    set('publications', [...profile.publications, { title: '', authors: '', journal: '', organisation: '', year: '', volume: '', issue: '', month: '', pages: '', doi: '', url: '' }]);
+    set('publications', [...profile.publications, {
+      publicationType: type,
+      title: '',
+      authors: '',
+      journal: '',
+      organisation: '',
+      year: '',
+      volume: '',
+      issue: '',
+      month: '',
+      pages: '',
+      doi: '',
+      url: ''
+    }]);
     openSection(`publications-${nextIndex}`);
   };
-  const updatePub = (i: number, f: keyof Publication, v: string) => {
+  const updatePub = (i: number, f: keyof Publication, v: any) => {
     const arr = [...profile.publications]; arr[i] = { ...arr[i], [f]: v }; set('publications', arr);
   };
   const removePub = (i: number) => set('publications', profile.publications.filter((_, idx) => idx !== i));
@@ -793,11 +841,11 @@ export default function ProfileBuilderPage() {
       const res = await api.post('/profile/me/attachment', form, { headers: { 'Content-Type': 'multipart/form-data' } });
       const att: Attachment = res.data.attachment;
       if (typeof arg1 === 'number' && arg2) {
-        set('qualifications', profile.qualifications.map((qualification, index) => (
+        set('qualifications', (prevQuals: Qualification[]) => prevQuals.map((qualification, index) => (
           index === arg1 ? { ...qualification, [arg2]: att.url } : qualification
         )));
       } else {
-        set('media', { ...profile.media, attachments: [...profile.media.attachments, att] });
+        set('media', (prevMedia: any) => ({ ...prevMedia, attachments: [...prevMedia.attachments, att] }));
       }
     } catch (err: any) {
       setUploadError(err?.response?.data?.message ?? 'Upload failed.');
@@ -974,7 +1022,13 @@ export default function ProfileBuilderPage() {
           )}
 
           {activeTab === 'professionalEmploymentDetails' && (
-            <ProfessionalEmploymentDetailsSection profile={profile} onUpdate={updateProfDetail} />
+            <ProfessionalEmploymentDetailsSection
+              profile={profile}
+              onUpdate={updateProfDetail}
+              onAdd={() => { }}
+              isExpanded={isExpanded('professionalDetails')}
+              onToggle={() => toggleSection('professionalDetails')}
+            />
           )}
 
           {activeTab === 'entranceTests' && (

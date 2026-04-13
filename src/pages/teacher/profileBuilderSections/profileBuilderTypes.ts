@@ -53,6 +53,7 @@ export type Visibility = {
 
 export type Qualification = {
   [key: string]: string;
+  educationlevel: string;
   degree: string;
   educationlevel: string;
   specialisation: string;
@@ -69,6 +70,7 @@ export type Qualification = {
   ugcertificate: string;
   pgcertificate: string;
   mphilcertificate: string;
+  phdcertificate: string;
 };
 
 export type WorkExperience = {
@@ -83,17 +85,31 @@ export type WorkExperience = {
 };
 
 export type Publication = {
+  publicationType: 'Journal Articles' | 'Book Chapters' | 'Books Authored / Edited' | 'Conference Papers' | 'Other';
   title: string;
   authors: string;
-  journal: string;
-  organisation: string;
+  journal?: string;
+  organisation?: string;
   year: string;
-  volume: string;
-  issue: string;
-  month: string;
-  pages: string;
+  volume?: string;
+  issue?: string;
+  month?: string;
+  pages?: string;
   doi: string;
   url: string;
+  issn?: string;
+  indexedIn?: string;
+  impactFactor?: string;
+  bookTitle?: string;
+  publisher?: string;
+  isbn?: string;
+  editors?: string;
+  bookType?: string;
+  conferenceName?: string;
+  nationalInternational?: string;
+  venueDate?: string;
+  organizedBy?: string;
+  publishedInProceedings?: string;
 };
 
 export type Project = {
