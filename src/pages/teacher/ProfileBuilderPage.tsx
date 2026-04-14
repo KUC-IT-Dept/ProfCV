@@ -115,7 +115,6 @@ type Qualification = {
   [key: string]: string;
   educationlevel: string;
   degree: string;
-  educationlevel: string;
   specialisation: string;
   institution: string;
   university: string;
@@ -644,7 +643,6 @@ export default function ProfileBuilderPage() {
     set('qualifications', [...profile.qualifications, {
       educationlevel: '',
       degree: '',
-      educationlevel: '',
       specialisation: '',
       institution: '',
       university: '',
@@ -1025,9 +1023,6 @@ export default function ProfileBuilderPage() {
             <ProfessionalEmploymentDetailsSection
               profile={profile}
               onUpdate={updateProfDetail}
-              onAdd={() => { }}
-              isExpanded={isExpanded('professionalDetails')}
-              onToggle={() => toggleSection('professionalDetails')}
             />
           )}
 

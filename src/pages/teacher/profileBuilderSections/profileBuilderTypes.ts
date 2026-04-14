@@ -55,7 +55,6 @@ export type Qualification = {
   [key: string]: string;
   educationlevel: string;
   degree: string;
-  educationlevel: string;
   specialisation: string;
   institution: string;
   university: string;
