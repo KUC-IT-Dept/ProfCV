@@ -1,10 +1,6 @@
 import axios from 'axios';
 
-const fallbackBaseURL = import.meta.env.DEV
-  ? 'https://prof-cv-backend-production.up.railway.app/api'
-  : 'https://prof-cv-backend-production.up.railway.app/api';
-
-const resolvedBaseURL = import.meta.env.VITE_API_URL || fallbackBaseURL;
+const resolvedBaseURL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: resolvedBaseURL,
