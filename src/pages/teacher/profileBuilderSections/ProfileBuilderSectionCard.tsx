@@ -6,6 +6,7 @@ type ProfileBuilderSectionCardProps = {
   summary: string;
   expanded: boolean;
   onToggle: () => void;
+  actions?: React.ReactNode;
   children: React.ReactNode;
 };
 
@@ -14,16 +15,18 @@ export default function ProfileBuilderSectionCard({
   summary,
   expanded,
   onToggle,
+  actions,
   children,
 }: ProfileBuilderSectionCardProps) {
   return (
     <div className="card" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
-      <div style={{ display: 'flex', alignItems: 'stretch', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', alignItems: 'stretch', gap: '0.75rem', flexWrap: 'wrap' }}>
         <button
           type="button"
           onClick={onToggle}
           style={{
-            flex: 1,
+            flex: '1 1 260px',
+            minWidth: 0,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -46,6 +49,12 @@ export default function ProfileBuilderSectionCard({
           </div>
           {expanded ? <ChevronUp size={14} color="var(--color-text-muted)" /> : <ChevronDown size={14} color="var(--color-text-muted)" />}
         </button>
+
+        {actions && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end', marginLeft: 'auto' }}>
+            {actions}
+          </div>
+        )}
       </div>
 
       {expanded && <div style={{ marginTop: '1rem' }}>{children}</div>}

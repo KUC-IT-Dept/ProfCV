@@ -11,9 +11,11 @@ export default function SectionShell({ title, description, children }: SectionSh
     <section className="card" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '1rem' }}>
         <h2 style={{ fontSize: '1rem', margin: 0 }}>{title}</h2>
-        <p style={{ margin: 0, color: 'var(--color-text-muted)', fontSize: '0.8125rem' }}>
-          {description || 'Space reserved for future fields and layout.'}       
-        </p>
+        {description ? (
+          <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>
+            {description}
+          </p>
+        ) : null}
       </div>
       {children ? children : (
         <div

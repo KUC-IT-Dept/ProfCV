@@ -8,10 +8,10 @@ import api from '../../lib/axios';
 import { useAuth } from '../../contexts/AuthContext';
 import PersonalInformationSection from './profileBuilderSections/PersonalInformationSection';
 import EducationalQualificationsSection from './profileBuilderSections/EducationalQualificationsSection';
-import EntranceEligibilityTestsSection from './profileBuilderSections/EntranceEligibilityTestsSection';
+import EntranceEligibilityTestsSection, { EntranceTestEntry } from './profileBuilderSections/EntranceEligibilityTestsSection';
 import TrainingSection from './profileBuilderSections/TrainingSection';
 
-import ProfessionalEmploymentDetailsSection from './profileBuilderSections/ProfessionalEmploymentDetailsSection';
+import ProfessionalEmploymentDetailsSection, { ProfEmploymentEntry } from './profileBuilderSections/ProfessionalEmploymentDetailsSection';
 
 import WorkExperienceSection from './profileBuilderSections/WorkExperienceSection';
 import ResearchPublicationsSection from './profileBuilderSections/ResearchPublicationsSection';
@@ -84,6 +84,7 @@ type Profile = {
     dateOfSecondPromotion: string; natureOfSecondAppointment: string; secondPayBand: string;
     dateOfThirdPromotion: string; natureOfThirdAppointment: string; thirdPayBand: string;
   };
+  professionalDetailEntries: ProfEmploymentEntry[];
   entranceTests: {
     net: { subject: string; year: string; certificateNo: string; };
     set: { subject: string; year: string; state: string; };
@@ -91,6 +92,7 @@ type Profile = {
     jrf: { agency: string; year: string; };
     other: string;
   };
+  entranceTestEntries: EntranceTestEntry[];
   academicResponsibilities: {
     courses: {
       course: string;
@@ -205,6 +207,7 @@ const EMPTY_PROFILE: Profile = {
     dateOfSecondPromotion: '', natureOfSecondAppointment: '', secondPayBand: '',
     dateOfThirdPromotion: '', natureOfThirdAppointment: '', thirdPayBand: '',
   },
+  professionalDetailEntries: [],
   entranceTests: {
     net: { subject: '', year: '', certificateNo: '' },
     set: { subject: '', year: '', state: '' },
@@ -212,6 +215,7 @@ const EMPTY_PROFILE: Profile = {
     jrf: { agency: '', year: '' },
     other: '',
   },
+  entranceTestEntries: [],
   academicResponsibilities: {
     courses: [],
     classesHandled: '',
@@ -543,6 +547,31 @@ export default function ProfileBuilderPage() {
         religion: p.religion || '',
         category: p.category || '',
         professionalDetails: Object.assign({}, EMPTY_PROFILE.professionalDetails, p.professionalDetails || {}),
+        professionalDetailEntries: (p.professionalDetailEntries || []).map((e: any) => ({
+          id: e.id || (Math.random().toString(36).slice(2) + Date.now().toString(36)),
+          employeeId: e.employeeId || '',
+          designation: e.designation || '',
+          department: e.department || '',
+          institutionName: e.institutionName || '',
+          affiliatedUniversity: e.affiliatedUniversity || '',
+          institutionType: e.institutionType || '',
+          natureOfAppointment: e.natureOfAppointment || '',
+          dateOfJoining: e.dateOfJoining || '',
+          dateOfConfirmation: e.dateOfConfirmation || '',
+          payBand: e.payBand || '',
+          bankAccountDetails: e.bankAccountDetails || '',
+          pfNumber: e.pfNumber || '',
+          serviceBookNumber: e.serviceBookNumber || '',
+          dateOfFirstPromotion: e.dateOfFirstPromotion || '',
+          natureOfFirstAppointment: e.natureOfFirstAppointment || '',
+          firstPayBand: e.firstPayBand || '',
+          dateOfSecondPromotion: e.dateOfSecondPromotion || '',
+          natureOfSecondAppointment: e.natureOfSecondAppointment || '',
+          secondPayBand: e.secondPayBand || '',
+          dateOfThirdPromotion: e.dateOfThirdPromotion || '',
+          natureOfThirdAppointment: e.natureOfThirdAppointment || '',
+          thirdPayBand: e.thirdPayBand || '',
+        })),
         entranceTests: Object.assign({
           net: { subject: '', year: '', certificateNo: '' },
           set: { subject: '', year: '', state: '' },
@@ -550,6 +579,18 @@ export default function ProfileBuilderPage() {
           jrf: { agency: '', year: '' },
           other: '',
         }, p.entranceTests || {}),
+        entranceTestEntries: (p.entranceTestEntries || []).map((e: any) => ({
+          id: e.id || (Math.random().toString(36).slice(2) + Date.now().toString(36)),
+          examType: e.examType || 'other',
+          subject: e.subject || '',
+          year: e.year || '',
+          certificateNo: e.certificateNo || '',
+          state: e.state || '',
+          score: e.score || '',
+          agency: e.agency || '',
+          examName: e.examName || '',
+          details: e.details || '',
+        })),
         academicResponsibilities: Object.assign({}, EMPTY_PROFILE.academicResponsibilities, p.academicResponsibilities || {}, {
           courses: (p.academicResponsibilities?.courses || []).map((item: any) => {
             if (typeof item === 'string') {
@@ -661,20 +702,41 @@ export default function ProfileBuilderPage() {
     }]);
     openSection(`qualifications-${nextIndex}`);
   };
-  const updateProfDetail = (f: keyof Profile['professionalDetails'], v: string) => {
-    setProfile((p) => ({ ...p, professionalDetails: { ...p.professionalDetails, [f]: v } }));
+
+  const addProfDetailEntry = (entry: ProfEmploymentEntry) => {
+    setProfile((p) => ({ ...p, professionalDetailEntries: [...(p.professionalDetailEntries || []), entry] }));
   };
 
-  const updateEntranceTest = (exam: 'net' | 'set' | 'gate' | 'jrf' | 'other', field: string, v: string) => {
-    setProfile((p) => {
-      const et = { ...p.entranceTests };
-      if (exam === 'other') {
-        (et as any).other = v;
-      } else {
-        (et[exam] as any) = { ...(et[exam] as any), [field]: v };
-      }
-      return { ...p, entranceTests: et };
-    });
+  const updateProfDetailEntry = (id: string, patch: Partial<ProfEmploymentEntry>) => {
+    setProfile((p) => ({
+      ...p,
+      professionalDetailEntries: (p.professionalDetailEntries || []).map((e) => e.id === id ? { ...e, ...patch } : e),
+    }));
+  };
+
+  const removeProfDetailEntry = (id: string) => {
+    setProfile((p) => ({
+      ...p,
+      professionalDetailEntries: (p.professionalDetailEntries || []).filter((e) => e.id !== id),
+    }));
+  };
+
+  const addEntranceTestEntry = (entry: EntranceTestEntry) => {
+    setProfile((p) => ({ ...p, entranceTestEntries: [...(p.entranceTestEntries || []), entry] }));
+  };
+
+  const updateEntranceTestEntry = (id: string, patch: Partial<EntranceTestEntry>) => {
+    setProfile((p) => ({
+      ...p,
+      entranceTestEntries: (p.entranceTestEntries || []).map((e) => e.id === id ? { ...e, ...patch } : e),
+    }));
+  };
+
+  const removeEntranceTestEntry = (id: string) => {
+    setProfile((p) => ({
+      ...p,
+      entranceTestEntries: (p.entranceTestEntries || []).filter((e) => e.id !== id),
+    }));
   };
 
   const addWorkExp = () => set('workExperiences', [...profile.workExperiences, { institutionName: '', designation: '', department: '', fromDate: '', toDate: '', totalDuration: '', natureOfAppointment: '', reasonForLeaving: '' }]);
@@ -716,7 +778,11 @@ export default function ProfileBuilderPage() {
     openSection(`projects-${nextIndex}`);
   };
   const updateProj = (i: number, f: keyof Project, v: string) => {
-    const arr = [...profile.projects]; arr[i] = { ...arr[i], [f]: v }; set('projects', arr);
+    set('projects', (currentProjects: Project[]) =>
+      currentProjects.map((project, index) => (
+        index === i ? { ...project, [f]: v } : project
+      ))
+    );
   };
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
@@ -731,33 +797,34 @@ export default function ProfileBuilderPage() {
   const removeIntExp = (i: number) => set('internationalExperiences', profile.internationalExperiences.filter((_, idx) => idx !== i));
 
   const addAcademicCourse = () => {
-    const academic = profile.academicResponsibilities;
-    set('academicResponsibilities', {
+    set('academicResponsibilities', (academic: Profile['academicResponsibilities']) => ({
       ...academic,
       courses: [...academic.courses, { course: '', year: '', programme: '', subject: '' }],
-    });
+    }));
   };
 
   const updateAcademicCourse = (index: number, field: 'course' | 'year' | 'programme' | 'subject', value: string) => {
-    const academic = profile.academicResponsibilities;
-    const courses = [...academic.courses];
-    courses[index] = { ...courses[index], [field]: value };
-    set('academicResponsibilities', { ...academic, courses });
+    set('academicResponsibilities', (academic: Profile['academicResponsibilities']) => {
+      const courses = academic.courses.map((course, currentIndex) => (
+        currentIndex === index ? { ...course, [field]: value } : course
+      ));
+
+      return { ...academic, courses };
+    });
   };
 
   const removeAcademicCourse = (index: number) => {
-    const academic = profile.academicResponsibilities;
-    set('academicResponsibilities', {
+    set('academicResponsibilities', (academic: Profile['academicResponsibilities']) => ({
       ...academic,
       courses: academic.courses.filter((_, idx) => idx !== index),
-    });
+    }));
   };
 
   const updateAcademicResponsibility = (field: 'classesHandled' | 'administrativeRoles' | 'committeeMemberships', value: string) => {
-    set('academicResponsibilities', {
-      ...profile.academicResponsibilities,
+    set('academicResponsibilities', (academic: Profile['academicResponsibilities']) => ({
+      ...academic,
       [field]: value,
-    });
+    }));
   };
 
   const addProfMembership = () => {
@@ -888,7 +955,6 @@ export default function ProfileBuilderPage() {
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
         <div>
           <h1>Profile Builder</h1>
-          <p>Build your academic portfolio. Changes are saved manually.</p>
         </div>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
@@ -1021,13 +1087,22 @@ export default function ProfileBuilderPage() {
 
           {activeTab === 'professionalEmploymentDetails' && (
             <ProfessionalEmploymentDetailsSection
-              profile={profile}
-              onUpdate={updateProfDetail}
+              entries={profile.professionalDetailEntries || []}
+              onAdd={addProfDetailEntry}
+              onUpdate={updateProfDetailEntry}
+              onRemove={removeProfDetailEntry}
+              onSave={save}
             />
           )}
 
           {activeTab === 'entranceTests' && (
-            <EntranceEligibilityTestsSection profile={profile} onUpdate={updateEntranceTest} />
+            <EntranceEligibilityTestsSection
+              entries={profile.entranceTestEntries || []}
+              onAdd={addEntranceTestEntry}
+              onUpdate={updateEntranceTestEntry}
+              onRemove={removeEntranceTestEntry}
+              onSave={save}
+            />
           )}
 
           {activeTab === 'workExperiences' && (
@@ -1036,6 +1111,7 @@ export default function ProfileBuilderPage() {
               onAdd={addWorkExp}
               onUpdate={updateWorkExp}
               onRemove={removeWorkExp}
+              onSave={save}
               isExpanded={isExpanded}
               onToggle={toggleSection}
             />
@@ -1048,6 +1124,7 @@ export default function ProfileBuilderPage() {
               onUpdate={updateQual}
               onRemove={removeQual}
               onUploadCertificate={handleFileUpload}
+              onSave={save}
               isExpanded={isExpanded}
               onToggle={toggleSection}
             />
