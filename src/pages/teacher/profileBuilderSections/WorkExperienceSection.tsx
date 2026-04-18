@@ -1,5 +1,4 @@
-
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Plus, Trash2, Pencil, Save } from 'lucide-react';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
 import { Profile } from './profileBuilderTypes';
@@ -25,8 +24,27 @@ function PreviewRow({ label, value }: { label: string; value?: string }) {
   );
 }
 
-export default function WorkExperienceSection({ profile, onAdd, onUpdate, onRemove, onSave, isExpanded, onToggle }: WorkExperienceSectionProps) {
+export default function WorkExperienceSection({ 
+  profile, 
+  onAdd, 
+  onUpdate, 
+  onRemove, 
+  onSave, 
+  isExpanded, 
+  onToggle 
+}: WorkExperienceSectionProps) {
   const [editingIndices, setEditingIndices] = useState<Set<number>>(new Set());
+
+  // Logic: Sort experiences by date (latest first) while tracking their original index
+  const sortedExperiences = useMemo(() => {
+    return [...profile.workExperiences]
+      .map((item, originalIndex) => ({ ...item, originalIndex }))
+      .sort((a, b) => {
+        const dateA = a.fromDate ? new Date(a.fromDate).getTime() : 0;
+        const dateB = b.fromDate ? new Date(b.fromDate).getTime() : 0;
+        return dateB - dateA; // Latest date (larger number) comes first
+      });
+  }, [profile.workExperiences]);
 
   const setEditing = (index: number, editing: boolean) => {
     setEditingIndices((prev) => {
@@ -86,12 +104,16 @@ export default function WorkExperienceSection({ profile, onAdd, onUpdate, onRemo
             <Plus size={14} /> Add Work Experience
           </button>
         </div>
+
         {profile.workExperiences.length === 0 && (
           <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--color-text-muted)', background: 'var(--color-bg)', borderRadius: 'var(--radius-md)', border: '1px dashed var(--color-border)' }}>
             No work experience added yet. Use the button above to add your first entry.
           </div>
         )}
-        {profile.workExperiences.map((workExperience, index) => {
+
+        {sortedExperiences.map((workExperience) => {
+          // Use originalIndex to ensure UI actions (Edit/Save/Update) target the right data point
+          const index = workExperience.originalIndex;
           const cardKey = `workExperiences-${index}`;
           const isEditing = editingIndices.has(index);
           const summary = [workExperience.institutionName, workExperience.designation, workExperience.fromDate].filter(Boolean).join(' · ') || 'Add work experience details';
@@ -139,18 +161,16 @@ export default function WorkExperienceSection({ profile, onAdd, onUpdate, onRemo
               )}
 
               {isExpanded(cardKey) && isEditing && (
-                <>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
-                    <div className="form-group"><label className="form-label">Institution Name *</label><input className="form-input" value={workExperience.institutionName} onChange={(event) => onUpdate(index, 'institutionName', event.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Designation *</label><input className="form-input" value={workExperience.designation} onChange={(event) => onUpdate(index, 'designation', event.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Department *</label><input className="form-input" value={workExperience.department} onChange={(event) => onUpdate(index, 'department', event.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={workExperience.natureOfAppointment} onChange={(event) => onUpdate(index, 'natureOfAppointment', event.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">From Date</label><input type="date" className="form-input" value={workExperience.fromDate} onChange={(event) => onUpdate(index, 'fromDate', event.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">To Date</label><input type="date" className="form-input" value={workExperience.toDate} onChange={(event) => onUpdate(index, 'toDate', event.target.value)} /></div>
-                    <div className="form-group"><label className="form-label">Total Duration</label><input className="form-input" value={workExperience.totalDuration} onChange={(event) => onUpdate(index, 'totalDuration', event.target.value)} placeholder="e.g. 5 Years 2 Months" /></div>
-                    <div className="form-group"><label className="form-label">Reason for Leaving</label><input className="form-input" value={workExperience.reasonForLeaving} onChange={(event) => onUpdate(index, 'reasonForLeaving', event.target.value)} /></div>
-                  </div>
-                </>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '1rem' }}>
+                  <div className="form-group"><label className="form-label">Institution Name *</label><input className="form-input" value={workExperience.institutionName} onChange={(event) => onUpdate(index, 'institutionName', event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Designation *</label><input className="form-input" value={workExperience.designation} onChange={(event) => onUpdate(index, 'designation', event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Department *</label><input className="form-input" value={workExperience.department} onChange={(event) => onUpdate(index, 'department', event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Nature of Appointment</label><input className="form-input" value={workExperience.natureOfAppointment} onChange={(event) => onUpdate(index, 'natureOfAppointment', event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">From Date</label><input type="date" className="form-input" value={workExperience.fromDate} onChange={(event) => onUpdate(index, 'fromDate', event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">To Date</label><input type="date" className="form-input" value={workExperience.toDate} onChange={(event) => onUpdate(index, 'toDate', event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Total Duration</label><input className="form-input" value={workExperience.totalDuration} onChange={(event) => onUpdate(index, 'totalDuration', event.target.value)} placeholder="e.g. 5 Years 2 Months" /></div>
+                  <div className="form-group"><label className="form-label">Reason for Leaving</label><input className="form-input" value={workExperience.reasonForLeaving} onChange={(event) => onUpdate(index, 'reasonForLeaving', event.target.value)} /></div>
+                </div>
               )}
             </ProfileBuilderSectionCard>
           );

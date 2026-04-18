@@ -104,10 +104,8 @@ export default function ResearchProjectsSection({ profile, onAdd, onUpdate, onRe
   };
 
   const handleAddProject = () => {
-    const nextIndex = profile.projects.length;
-
     onAdd();
-    setEditingIndex(nextIndex);
+    setEditingIndex(0);
     setDraftProject(createProjectDraft());
   };
 
