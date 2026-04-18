@@ -1,5 +1,5 @@
 
-import { Pencil, Plus, Save, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Save, Trash2, Search } from 'lucide-react';
 import { useState } from 'react';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
 import { Profile } from './profileBuilderTypes';
@@ -62,6 +62,7 @@ const createProjectDraft = (project?: Profile['projects'][number]): ProjectDraft
 export default function ResearchProjectsSection({ profile, onAdd, onUpdate, onRemove, isExpanded, onToggle }: ResearchProjectsSectionProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draftProject, setDraftProject] = useState<ProjectDraft | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const startEditProject = (index: number) => {
     const cardKey = `projects-${index}`;
@@ -130,7 +131,20 @@ export default function ResearchProjectsSection({ profile, onAdd, onUpdate, onRe
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <button className="btn btn-secondary" onClick={handleAddProject} type="button"><Plus size={14} /> Add Project</button>
+        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary, #2563eb)' }}>Research Projects</h3>
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ position: 'relative' }}>
+            <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+            <input
+              className="form-input"
+              style={{ paddingLeft: '2.5rem', width: '250px' }}
+              placeholder="Search projects..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          <button className="btn btn-secondary" onClick={handleAddProject} type="button"><Plus size={14} /> Add Project</button>
+        </div>
       </div>
 
       {profile.projects.length === 0 && (
@@ -139,7 +153,22 @@ export default function ResearchProjectsSection({ profile, onAdd, onUpdate, onRe
         </div>
       )}
 
-      {profile.projects.map((project, index) => {
+      {profile.projects
+        .map((project, index) => ({ project, index }))
+        .filter(({ project }) => {
+          if (!searchTerm) return true;
+          const term = searchTerm.toLowerCase();
+          const pInfo = createProjectDraft(project);
+          return (
+            pInfo.title.toLowerCase().includes(term) ||
+            pInfo.fundingAgency.toLowerCase().includes(term) ||
+            pInfo.role.toLowerCase().includes(term) ||
+            pInfo.status.toLowerCase().includes(term) ||
+            pInfo.year.toLowerCase().includes(term) ||
+            pInfo.description.toLowerCase().includes(term)
+          );
+        })
+        .map(({ project, index }) => {
         const cardKey = `projects-${index}`;
         const isEditing = editingIndex === index;
         const viewProject = isEditing && draftProject ? draftProject : createProjectDraft(project);
