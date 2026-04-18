@@ -525,7 +525,7 @@ export default function ProfileBuilderPage() {
         media: p.media || { attachments: [], videoEmbeds: [] },
         documents: p.documents || EMPTY_PROFILE.documents,
         visibility: p.visibility || EMPTY_PROFILE.visibility,
-        photo: p.photo || '',
+        photo: p.photo || p.user?.photo || '',
         dob: p.dob || '', gender: p.gender || '', phoneNumber: p.phoneNumber || '', address: p.address || '',
         subCategory: p.subCategory || '',
         differentlyAbled: p.differentlyAbled || '',
@@ -933,25 +933,32 @@ export default function ProfileBuilderPage() {
     const form = new FormData();
     form.append('file', file);
     try {
-      const res = await api.post('/profile/me/photo', form);
-      let photoUrl = res.data.photoUrl;
-      if (photoUrl && !photoUrl.startsWith('http')) {
-        photoUrl = `${window.location.origin}${photoUrl}`;
-      }
-      const updatedProfile = { ...profile, photo: photoUrl || previewUrl };
+      const res = await api.post('/profile/me/photo', form, { headers: { 'Content-Type': 'multipart/form-data' } });
+      const photoUrl =
+        res.data?.photoUrl ||
+        res.data?.fileUrl ||
+        res.data?.profile?.photo ||
+        '';
+      const updatedProfile = { ...profile, photo: photoUrl };
       setProfile(updatedProfile);
-      updateUser({ photo: photoUrl || previewUrl });
-      if (photoUrl) {
-        setPhotoPreviewUrl(null);
+      updateUser({ photo: photoUrl });
+      setPhotoPreviewUrl(photoUrl ? null : previewUrl);
+      if (!photoUrl) {
+        setUploadError('Photo uploaded, but server did not return a persistent photo URL. Please try again.');
       }
     } catch (err: any) {
       setUploadError(err?.response?.data?.message ?? 'Photo upload failed.');
+      setPhotoPreviewUrl(null);
     } finally {
-      if (!e.target.files?.[0]) {
-        setPhotoPreviewUrl(null);
-      }
       e.target.value = '';
     }
+  };
+
+  const handleRemovePhoto = async () => {
+    setPhotoPreviewUrl(null);
+    const updatedProfile = { ...profile, photo: '' };
+    setProfile(updatedProfile);
+    updateUser({ photo: '' });
   };
 
   return (
@@ -1084,6 +1091,7 @@ export default function ProfileBuilderPage() {
               onSetField={set}
               onPhotoUpload={handlePhotoUpload}
               photoPreviewUrl={photoPreviewUrl}
+              onRemovePhoto={handleRemovePhoto}
               onAddInterest={(interest) => set('interests', [...profile.interests, interest])}
               onRemoveInterest={(index) => set('interests', profile.interests.filter((_, currentIndex) => currentIndex !== index))}
             />

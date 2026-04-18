@@ -15,6 +15,7 @@ type PersonalInformationSectionProps = {
   onPhotoUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAddInterest: (interest: string) => void;
   onRemoveInterest: (index: number) => void;
+  onRemovePhoto: () => void;
 };
 
 function SubjectsEditor({
@@ -228,6 +229,7 @@ export default function PersonalInformationSection({
   onPhotoUpload,
   onAddInterest,
   onRemoveInterest,
+  onRemovePhoto,
 }: PersonalInformationSectionProps) {
   const displayPhoto = photoPreviewUrl || getImageUrl(profile.photo);
   return (
@@ -336,6 +338,16 @@ export default function PersonalInformationSection({
                 <label htmlFor="photo-upload" className="btn btn-secondary" style={{ cursor: 'pointer', marginBottom: '0.375rem', display: 'inline-flex' }}>
                   <Upload size={14} /> {displayPhoto ? 'Change Photo' : 'Upload Photo'}
                 </label>
+                {displayPhoto && (
+                  <button
+                    type="button"
+                    onClick={onRemovePhoto}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', marginLeft: '0.5rem', marginBottom: '0.375rem', display: 'inline-flex', alignItems: 'center', color: 'var(--color-danger)' }}
+                    title="Remove Photo"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
                 <input id="photo-upload" type="file" accept="image/*" onChange={onPhotoUpload} style={{ display: 'none' }} />
                 <p style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', margin: 0 }}>Accepted: JPG, PNG, GIF. Max 2MB.</p>
               </div>
