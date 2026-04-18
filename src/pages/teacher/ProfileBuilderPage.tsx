@@ -741,7 +741,7 @@ export default function ProfileBuilderPage() {
     }));
   };
 
-  const addWorkExp = () => set('workExperiences', [...profile.workExperiences, { institutionName: '', designation: '', department: '', fromDate: '', toDate: '', totalDuration: '', natureOfAppointment: '', reasonForLeaving: '' }]);
+  const addWorkExp = () => set('workExperiences', [{ institutionName: '', designation: '', department: '', fromDate: '', toDate: '', totalDuration: '', natureOfAppointment: '', reasonForLeaving: '' }, ...profile.workExperiences]);
   const updateWorkExp = (i: number, f: keyof WorkExperience, v: string) => {
     const w = [...profile.workExperiences]; w[i] = { ...w[i], [f]: v }; set('workExperiences', w);
   };
@@ -793,12 +793,15 @@ export default function ProfileBuilderPage() {
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
   const addIntExp = () => {
-    const nextIndex = profile.internationalExperiences.length;
-    set('internationalExperiences', [...profile.internationalExperiences, { countryVisited: '', purpose: '', institutionName: '', duration: '', fundingSource: '' }]);
-    openSection(`internationalExperiences-${nextIndex}`);
+    set('internationalExperiences', [{ countryVisited: '', purpose: '', institutionName: '', duration: '', fundingSource: '' }, ...profile.internationalExperiences]);
+    openSection('internationalExperiences-0');
   };
   const updateIntExp = (i: number, f: keyof Profile['internationalExperiences'][number], v: string) => {
-    const arr = [...profile.internationalExperiences]; arr[i] = { ...arr[i], [f]: v }; set('internationalExperiences', arr);
+    set('internationalExperiences', (currentExperiences: Profile['internationalExperiences']) => {
+      const arr = [...(currentExperiences || [])];
+      arr[i] = { ...(arr[i] || {}), [f]: v };
+      return arr;
+    });
   };
   const removeIntExp = (i: number) => set('internationalExperiences', profile.internationalExperiences.filter((_, idx) => idx !== i));
 
@@ -845,13 +848,19 @@ export default function ProfileBuilderPage() {
 
   const addTraining = () => {
     const trainings = (profile as any).trainings || [];
-    const nextIndex = trainings.length;
-    set('trainings', [...trainings, { programName: '', type: '', organizedBy: '', durationDates: '', mode: '', certificate: '' }]);
-    openSection(`trainings-${nextIndex}`);
+    set('trainings', [
+      { programName: '', type: '', organizedBy: '', duration: '', fromDate: '', toDate: '', mode: '', certificate: '' },
+      ...trainings,
+    ]);
+    openSection('trainings-0');
   };
   const updateTraining = (i: number, f: string, v: string) => {
-    const trainings = (profile as any).trainings || [];
-    const arr = [...trainings]; arr[i] = { ...arr[i], [f]: v }; set('trainings', arr);
+    set('trainings', (currentTrainings: any[]) => {
+      const trainings = currentTrainings || [];
+      const arr = [...trainings];
+      arr[i] = { ...(arr[i] || {}), [f]: v };
+      return arr;
+    });
   };
   const removeTraining = (i: number) => {
     const trainings = (profile as any).trainings || [];

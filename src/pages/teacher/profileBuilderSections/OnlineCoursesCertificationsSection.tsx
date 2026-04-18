@@ -65,10 +65,9 @@ export default function OnlineCoursesCertificationsSection(_props: Props) {
   };
 
   const addEntry = () => {
-    const nextIndex = entries.length;
-    setEntries((current) => [...current, { ...EMPTY_ONLINE_COURSE }]);
-    setExpandedCardKey(`course-${nextIndex}`);
-    setEditingIndex(nextIndex);
+    setEntries((current) => [{ ...EMPTY_ONLINE_COURSE }, ...current]);
+    setExpandedCardKey('course-0');
+    setEditingIndex(0);
     setDraftEntry({ ...EMPTY_ONLINE_COURSE });
   };
 

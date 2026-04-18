@@ -84,11 +84,14 @@ export default function InternationalExperienceSection({ profile, onAdd, onUpdat
   };
 
   const handleAddExperience = () => {
-    const nextIndex = experiences.length;
-
     onAdd();
-    setEditingIndex(nextIndex);
+    setEditingIndex(0);
     setDraftExperience(createExperienceDraft());
+
+    const newCardKey = 'internationalExperiences-0';
+    if (!isExpanded(newCardKey)) {
+      onToggle(newCardKey);
+    }
   };
 
   const handleRemoveExperience = (index: number) => {

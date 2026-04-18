@@ -93,11 +93,14 @@ export default function TrainingSection({ profile, onAdd, onUpdate, onRemove, is
   };
 
   const handleAddTraining = () => {
-    const nextIndex = trainings.length;
-
     onAdd();
-    setEditingIndex(nextIndex);
+    setEditingIndex(0);
     setDraftTraining(createTrainingDraft());
+
+    const newCardKey = 'trainings-0';
+    if (!isExpanded(newCardKey)) {
+      onToggle(newCardKey);
+    }
   };
 
   const handleRemoveTraining = (index: number) => {

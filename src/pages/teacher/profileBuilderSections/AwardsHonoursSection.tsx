@@ -65,10 +65,9 @@ export default function AwardsHonoursSection(_props: Props) {
   };
 
   const addAward = () => {
-    const nextIndex = awards.length;
-    setAwards((current) => [...current, { ...EMPTY_AWARD }]);
-    setExpandedCardKey(`award-${nextIndex}`);
-    setEditingIndex(nextIndex);
+    setAwards((current) => [{ ...EMPTY_AWARD }, ...current]);
+    setExpandedCardKey('award-0');
+    setEditingIndex(0);
     setDraftAward({ ...EMPTY_AWARD });
   };
 

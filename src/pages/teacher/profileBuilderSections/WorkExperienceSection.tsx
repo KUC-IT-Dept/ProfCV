@@ -38,10 +38,18 @@ export default function WorkExperienceSection({ profile, onAdd, onUpdate, onRemo
   };
 
   const handleAdd = () => {
-    const nextIndex = profile.workExperiences.length;
     onAdd();
-    setEditing(nextIndex, true);
-    onToggle(`workExperiences-${nextIndex}`);
+    setEditingIndices((prev) => {
+      const shifted = new Set<number>();
+      prev.forEach((value) => shifted.add(value + 1));
+      shifted.add(0);
+      return shifted;
+    });
+
+    const newCardKey = 'workExperiences-0';
+    if (!isExpanded(newCardKey)) {
+      onToggle(newCardKey);
+    }
   };
 
   const handleEdit = (index: number) => {
