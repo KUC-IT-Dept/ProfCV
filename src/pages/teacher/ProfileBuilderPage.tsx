@@ -1187,6 +1187,7 @@ export default function ProfileBuilderPage() {
               onAdd={addProfMembership}
               onUpdate={updateProfMembership}
               onRemove={removeProfMembership}
+              onSave={save}
               isExpanded={isExpanded}
               onToggle={toggleSection}
             />

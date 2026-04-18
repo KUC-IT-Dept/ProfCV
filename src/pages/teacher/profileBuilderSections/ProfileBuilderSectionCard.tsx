@@ -7,6 +7,7 @@ type ProfileBuilderSectionCardProps = {
   expanded: boolean;
   onToggle: () => void;
   actions?: React.ReactNode;
+  hideHeaderText?: boolean;
   children: React.ReactNode;
 };
 
@@ -16,6 +17,7 @@ export default function ProfileBuilderSectionCard({
   expanded,
   onToggle,
   actions,
+  hideHeaderText = false,
   children,
 }: ProfileBuilderSectionCardProps) {
   return (
@@ -38,15 +40,21 @@ export default function ProfileBuilderSectionCard({
             textAlign: 'left',
           }}
         >
-          <div style={{ minWidth: 0 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
-              <h3 style={{ fontSize: '0.9375rem', margin: 0 }}>{title}</h3>
-              <span style={{ fontSize: '0.7rem', color: 'var(--color-text-light)' }}>{expanded ? 'Expanded' : 'Collapsed'}</span>
+          {!hideHeaderText ? (
+            <div style={{ minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                <h3 style={{ fontSize: '0.9375rem', margin: 0 }}>{title}</h3>
+                <span style={{ fontSize: '0.7rem', color: 'var(--color-text-light)' }}>{expanded ? 'Expanded' : 'Collapsed'}</span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {summary}
+              </p>
             </div>
-            <p style={{ margin: 0, fontSize: '0.8125rem', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {summary}
-            </p>
-          </div>
+          ) : (
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontSize: '0.9375rem', margin: 0 }}>{title}</h3>
+            </div>
+          )}
           {expanded ? <ChevronUp size={14} color="var(--color-text-muted)" /> : <ChevronDown size={14} color="var(--color-text-muted)" />}
         </button>
 
