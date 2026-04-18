@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Pencil, Plus, Save, Trash2 } from 'lucide-react';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
 import { Profile } from './profileBuilderTypes';
-import SectionShell from './SectionShell';
 
 type Props = {
   profile: Profile;
@@ -160,18 +159,25 @@ export default function AcademicResponsibilitiesSection({ profile, onAddCourse, 
   };
 
   return (
-    <SectionShell
-      title="Academic Responsibilities"
-      description="Track your teaching load, academic duties and committee memberships."
-    >
-      <div style={{ display: 'grid', gap: '1rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <h3 style={{ margin: 0, fontSize: '1rem' }}>Courses / Subjects Taught</h3>
-          <button type="button" className="btn btn-secondary" onClick={addCourse}>
-            <Plus size={14} />
-            Add Academic Responsibility
-          </button>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary, #2563eb)' }}>Academic Responsibilities</h3>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Track your teaching load, academic duties and committee memberships.</p>
         </div>
+        <button
+          className="btn btn-primary"
+          type="button"
+          onClick={addCourse}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+        >
+          <Plus size={14} />
+          Add Academic Responsibility
+        </button>
+      </div>
+
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        <h4 style={{ margin: 0, fontSize: '1rem' }}>Courses / Subjects Taught</h4>
 
         {academic.courses.length === 0 ? (
           <div style={{ padding: '1rem', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
@@ -196,17 +202,17 @@ export default function AcademicResponsibilitiesSection({ profile, onAddCourse, 
                 <>
                   {isEditing ? (
                     <>
-                      <button type="button" className="btn btn-primary" onClick={() => saveCourse(index)}>
-                        <Save size={14} />
+                      <button type="button" className="btn btn-primary" onClick={() => saveCourse(index)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                        <Save size={13} />
                         Save
                       </button>
-                      <button type="button" className="btn btn-ghost" onClick={cancelEditCourse}>
+                      <button type="button" className="btn btn-ghost" onClick={cancelEditCourse} style={{ fontSize: '0.8125rem' }}>
                         Cancel
                       </button>
                     </>
                   ) : (
-                    <button type="button" className="btn btn-secondary" onClick={() => startEditCourse(index)}>
-                      <Pencil size={14} />
+                    <button type="button" className="btn btn-secondary" onClick={() => startEditCourse(index)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                      <Pencil size={13} />
                       Edit
                     </button>
                   )}
@@ -214,7 +220,7 @@ export default function AcademicResponsibilitiesSection({ profile, onAddCourse, 
                     type="button"
                     className="btn btn-ghost"
                     onClick={() => removeCourse(index)}
-                    style={{ color: 'var(--color-danger)' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--color-danger)' }}
                   >
                     <Trash2 size={13} />
                     Delete
@@ -291,17 +297,17 @@ export default function AcademicResponsibilitiesSection({ profile, onAddCourse, 
                 <>
                   {editingOther ? (
                     <>
-                      <button type="button" className="btn btn-primary" onClick={saveOther}>
-                        <Save size={14} />
+                      <button type="button" className="btn btn-primary" onClick={saveOther} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                        <Save size={13} />
                         Save
                       </button>
-                      <button type="button" className="btn btn-ghost" onClick={cancelEditOther}>
+                      <button type="button" className="btn btn-ghost" onClick={cancelEditOther} style={{ fontSize: '0.8125rem' }}>
                         Cancel
                       </button>
                     </>
                   ) : (
-                    <button type="button" className="btn btn-secondary" onClick={startEditOther}>
-                      <Pencil size={14} />
+                    <button type="button" className="btn btn-secondary" onClick={startEditOther} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                      <Pencil size={13} />
                       Edit
                     </button>
                   )}
@@ -350,6 +356,6 @@ export default function AcademicResponsibilitiesSection({ profile, onAddCourse, 
           );
         })()}
       </div>
-    </SectionShell>
+    </div>
   );
 }
