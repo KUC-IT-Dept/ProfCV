@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { Plus, Trash2, ChevronDown, Search, FileText, Link, CheckCircle, Edit, Save, Trash } from 'lucide-react';
+import { Plus, ChevronDown, Search, FileText, Link, CheckCircle, Edit, Save, Trash } from 'lucide-react';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
-import { Profile, Publication } from './profileBuilderTypes';
+import { Profile } from './profileBuilderTypes';
 
 type ResearchPublicationsSectionProps = {
   profile: Profile;
