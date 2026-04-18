@@ -2,7 +2,6 @@ import { ChevronDown, ChevronUp, Pencil, Plus, Save, Trash2 } from 'lucide-react
 import { useState } from 'react';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
 import { Profile } from './profileBuilderTypes';
-import SectionShell from './SectionShell';
 
 type Props = { profile: Profile };
 
@@ -111,6 +110,7 @@ function PreviewField({ label, value, fallback = 'Not provided' }: { label: stri
   );
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export default function PhdResearchSupervisionSection(_props: Props) {
   const [entries, setEntries] = useState<SupervisionEntry[]>([]);
   const [expandedEntries, setExpandedEntries] = useState<Set<number>>(new Set());
@@ -286,20 +286,22 @@ export default function PhdResearchSupervisionSection(_props: Props) {
   };
 
   return (
-    <SectionShell
-      title="Ph.D. / Research Supervision"
-      description="Provide Ph.D. supervision counts and optional student details."
-    >
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div>
+          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary, #2563eb)' }}>Ph.D. / Research Supervision</h3>
+          <p style={{ margin: '0.25rem 0 0', fontSize: '0.875rem', color: 'var(--color-text-muted)' }}>Provide Ph.D. supervision counts and optional student details.</p>
+        </div>
         <button
           className="btn btn-primary"
           type="button"
           onClick={addEntry}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', alignSelf: 'flex-start' }}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
         >
           <Plus size={14} />
           Add Ph.D. / Research Supervision
         </button>
+      </div>
 
         {entries.length === 0 && (
           <div style={{ padding: '1rem', border: '1px dashed var(--color-border)', borderRadius: 'var(--radius-md)', color: 'var(--color-text-muted)', fontSize: '0.875rem' }}>
@@ -314,28 +316,30 @@ export default function PhdResearchSupervisionSection(_props: Props) {
             entry.mphilGuided ? `M.Phil Guided: ${entry.mphilGuided}` : '',
           ].filter(Boolean).join(' · ') || (entry.details[0]?.studentName ? `Student: ${entry.details[0].studentName}` : 'Add supervision details');
 
+          const entryTitle = entry.details[0]?.topic || entry.details[0]?.studentName || entry.completedStudents?.split('\n')[0] || 'Ph.D. / Research Supervision';
+
           return (
             <ProfileBuilderSectionCard
               key={`supervision-entry-${entryIndex}`}
-              title={`Ph.D. / Research Supervision ${entryIndex + 1}`}
+              title={entryTitle}
               summary={entrySummary}
               expanded={isEntryExpanded(entryIndex)}
               onToggle={() => toggleEntry(entryIndex)}
               actions={(
                 <>
                   {!isEntryEditing(entryIndex) ? (
-                    <button className="btn btn-secondary" type="button" onClick={() => setEntryEditing(entryIndex, true)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                    <button className="btn btn-secondary" type="button" onClick={() => setEntryEditing(entryIndex, true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
                       <Pencil size={13} />
                       Edit
                     </button>
                   ) : (
-                    <button className="btn btn-primary" type="button" onClick={() => saveEntry(entryIndex)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                    <button className="btn btn-primary" type="button" onClick={() => saveEntry(entryIndex)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
                       <Save size={13} />
                       Save
                     </button>
                   )}
 
-                  <button className="btn btn-ghost" type="button" onClick={() => removeEntry(entryIndex)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--color-danger)' }}>
+                  <button className="btn btn-ghost" type="button" onClick={() => removeEntry(entryIndex)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--color-danger)' }}>
                     <Trash2 size={13} />
                     Delete
                   </button>
@@ -460,18 +464,18 @@ export default function PhdResearchSupervisionSection(_props: Props) {
 
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
                           {!isDetailEditing(entryIndex, detailIndex) ? (
-                            <button className="btn btn-secondary" type="button" onClick={() => setDetailEditing(entryIndex, detailIndex, true)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                            <button className="btn btn-secondary" type="button" onClick={() => setDetailEditing(entryIndex, detailIndex, true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
                               <Pencil size={13} />
                               Edit
                             </button>
                           ) : (
-                            <button className="btn btn-primary" type="button" onClick={() => saveDetail(entryIndex, detailIndex)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
+                            <button className="btn btn-primary" type="button" onClick={() => saveDetail(entryIndex, detailIndex)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem' }}>
                               <Save size={13} />
                               Save
                             </button>
                           )}
 
-                          <button className="btn btn-ghost" type="button" onClick={() => removeDetail(entryIndex, detailIndex)} style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--color-danger)' }}>
+                          <button className="btn btn-ghost" type="button" onClick={() => removeDetail(entryIndex, detailIndex)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8125rem', color: 'var(--color-danger)' }}>
                             <Trash2 size={13} />
                             Delete
                           </button>
@@ -529,6 +533,5 @@ export default function PhdResearchSupervisionSection(_props: Props) {
           );
         })}
       </div>
-    </SectionShell>
   );
 }

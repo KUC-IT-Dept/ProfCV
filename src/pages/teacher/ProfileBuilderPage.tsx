@@ -520,7 +520,9 @@ export default function ProfileBuilderPage() {
         projects: p.projects || [],
         professionalMemberships: p.professionalMemberships || [],
         internationalExperiences: p.internationalExperiences || [],
-        customDetails: (p.customDetails || []).map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
+        customDetails: (p.customDetails || [])
+          .filter((c: any) => c.sectionTitle !== 'Awards and Recognition' && c.sectionTitle !== 'Administrative Contributions')
+          .map((c: any) => ({ ...c, isVisible: c.isVisible ?? true })),
         interests: p.interests || [],
         media: p.media || { attachments: [], videoEmbeds: [] },
         documents: p.documents || EMPTY_PROFILE.documents,
