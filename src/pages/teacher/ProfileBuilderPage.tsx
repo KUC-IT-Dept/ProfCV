@@ -779,9 +779,8 @@ export default function ProfileBuilderPage() {
   const removePub = (i: number) => set('publications', profile.publications.filter((_, idx) => idx !== i));
 
   const addProj = () => {
-    const nextIndex = profile.projects.length;
-    set('projects', [...profile.projects, { title: '', description: '', year: '', url: '' }]);
-    openSection(`projects-${nextIndex}`);
+    set('projects', [{ title: '', description: '', year: '', url: '' }, ...profile.projects]);
+    openSection('projects-0');
   };
   const updateProj = (i: number, f: keyof Project, v: string) => {
     set('projects', (currentProjects: Project[]) =>
@@ -793,9 +792,8 @@ export default function ProfileBuilderPage() {
   const removeProj = (i: number) => set('projects', profile.projects.filter((_, idx) => idx !== i));
 
   const addIntExp = () => {
-    const nextIndex = profile.internationalExperiences.length;
-    set('internationalExperiences', [...profile.internationalExperiences, { countryVisited: '', purpose: '', institutionName: '', duration: '', fundingSource: '' }]);
-    openSection(`internationalExperiences-${nextIndex}`);
+    set('internationalExperiences', [{ countryVisited: '', purpose: '', institutionName: '', duration: '', fundingSource: '' }, ...profile.internationalExperiences]);
+    openSection(`internationalExperiences-0`);
   };
   const updateIntExp = (i: number, f: keyof Profile['internationalExperiences'][number], v: string) => {
     const arr = [...profile.internationalExperiences]; arr[i] = { ...arr[i], [f]: v }; set('internationalExperiences', arr);
@@ -805,7 +803,7 @@ export default function ProfileBuilderPage() {
   const addAcademicCourse = () => {
     set('academicResponsibilities', (academic: Profile['academicResponsibilities']) => ({
       ...academic,
-      courses: [...academic.courses, { course: '', year: '', programme: '', subject: '' }],
+      courses: [{ course: '', year: '', programme: '', subject: '' }, ...academic.courses],
     }));
   };
 

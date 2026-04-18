@@ -91,11 +91,31 @@ export default function AcademicResponsibilitiesSection({ profile, onAddCourse, 
   };
 
   const addCourse = () => {
-    const nextIndex = academic.courses.length;
     onAddCourse();
-    setEditingCourseIndex(nextIndex);
+
+    setExpandedCards((current) => {
+      const next: Record<string, boolean> = {};
+
+      Object.entries(current).forEach(([key, value]) => {
+        if (!key.startsWith('academic-course-')) {
+          next[key] = value;
+          return;
+        }
+
+        const currentIndex = Number(key.replace('academic-course-', ''));
+        if (Number.isNaN(currentIndex)) {
+          return;
+        }
+
+        next[getCourseCardKey(currentIndex + 1)] = value;
+      });
+
+      next[getCourseCardKey(0)] = true;
+      return next;
+    });
+
+    setEditingCourseIndex(0);
     setCourseDraft(createCourseDraft());
-    openCard(getCourseCardKey(nextIndex));
   };
 
   const removeCourse = (index: number) => {
