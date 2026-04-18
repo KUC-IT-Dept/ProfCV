@@ -749,23 +749,27 @@ export default function ProfileBuilderPage() {
   };
   const removeQual = (i: number) => set('qualifications', profile.qualifications.filter((_, idx) => idx !== i));
 
-  const addPub = (type: Publication['publicationType'] = 'Journal Articles') => {
-    const nextIndex = profile.publications.length;
-    set('publications', [...profile.publications, {
-      publicationType: type,
-      title: '',
-      authors: '',
-      journal: '',
-      organisation: '',
-      year: '',
-      volume: '',
-      issue: '',
-      month: '',
-      pages: '',
-      doi: '',
-      url: ''
-    }]);
-    openSection(`publications-${nextIndex}`);
+  const addPub = (payload: any = 'Journal Articles') => {
+    if (typeof payload === 'object' && payload !== null) {
+      set('publications', [...profile.publications, payload]);
+    } else {
+      const nextIndex = profile.publications.length;
+      set('publications', [...profile.publications, {
+        publicationType: payload,
+        title: '',
+        authors: '',
+        journal: '',
+        organisation: '',
+        year: '',
+        volume: '',
+        issue: '',
+        month: '',
+        pages: '',
+        doi: '',
+        url: ''
+      }]);
+      openSection(`publications-${nextIndex}`);
+    }
   };
   const updatePub = (i: number, f: keyof Publication, v: any) => {
     const arr = [...profile.publications]; arr[i] = { ...arr[i], [f]: v }; set('publications', arr);
