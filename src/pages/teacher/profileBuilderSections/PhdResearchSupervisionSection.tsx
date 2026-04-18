@@ -97,6 +97,58 @@ const shiftDetailKeysAfterRowRemoval = (source: Set<string>, entryIndex: number,
   return next;
 };
 
+const shiftIndexSetAfterInsertion = (source: Set<number>, insertedIndex: number, addInserted = false) => {
+  const next = new Set<number>();
+  source.forEach((value) => {
+    if (value >= insertedIndex) {
+      next.add(value + 1);
+    } else {
+      next.add(value);
+    }
+  });
+  if (addInserted) {
+    next.add(insertedIndex);
+  }
+  return next;
+};
+
+const shiftDetailKeysAfterEntryInsertion = (source: Set<string>, insertedEntryIndex: number) => {
+  const next = new Set<string>();
+  source.forEach((key) => {
+    const [entryText, detailText] = key.split(':');
+    const entryIndex = Number(entryText);
+    const detailIndex = Number(detailText);
+
+    if (entryIndex >= insertedEntryIndex) {
+      next.add(buildDetailKey(entryIndex + 1, detailIndex));
+    } else {
+      next.add(key);
+    }
+  });
+  return next;
+};
+
+const shiftDetailKeysAfterDetailInsertion = (source: Set<string>, targetEntryIndex: number, insertedDetailIndex: number, addInserted = false) => {
+  const next = new Set<string>();
+  source.forEach((key) => {
+    const [entryText, detailText] = key.split(':');
+    const entryIndex = Number(entryText);
+    const detailIndex = Number(detailText);
+
+    if (entryIndex === targetEntryIndex && detailIndex >= insertedDetailIndex) {
+      next.add(buildDetailKey(entryIndex, detailIndex + 1));
+    } else {
+      next.add(key);
+    }
+  });
+
+  if (addInserted) {
+    next.add(buildDetailKey(targetEntryIndex, insertedDetailIndex));
+  }
+  
+  return next;
+};
+
 function PreviewField({ label, value, fallback = 'Not provided' }: { label: string; value: string; fallback?: string }) {
   return (
     <div>
@@ -202,10 +254,12 @@ export default function PhdResearchSupervisionSection(_props: Props) {
   };
 
   const addEntry = () => {
-    const nextIndex = entries.length;
-
-    setEntries((current) => [...current, createEmptyEntry()]);
-    setEntryEditing(nextIndex, true);
+    setEntries((current) => [createEmptyEntry(), ...current]);
+    
+    setExpandedEntries((current) => shiftIndexSetAfterInsertion(current, 0, true));
+    setEditingEntries((current) => shiftIndexSetAfterInsertion(current, 0, true));
+    setExpandedDetails((current) => shiftDetailKeysAfterEntryInsertion(current, 0));
+    setEditingDetails((current) => shiftDetailKeysAfterEntryInsertion(current, 0));
   };
 
   const removeEntry = (entryIndex: number) => {
@@ -229,21 +283,21 @@ export default function PhdResearchSupervisionSection(_props: Props) {
   };
 
   const addDetail = (entryIndex: number) => {
-    let nextDetailIndex = 0;
-
     setEntries((current) =>
       current.map((entry, index) => {
         if (index !== entryIndex) {
           return entry;
         }
 
-        nextDetailIndex = entry.details.length;
-        return { ...entry, details: [...entry.details, createEmptyDetail()] };
+        return { ...entry, details: [createEmptyDetail(), ...entry.details] };
       })
     );
 
     setEntryEditing(entryIndex, true);
-    setDetailEditing(entryIndex, nextDetailIndex, true);
+    setDetailEditing(entryIndex, 0, true);
+    
+    setExpandedDetails((current) => shiftDetailKeysAfterDetailInsertion(current, entryIndex, 0));
+    setEditingDetails((current) => shiftDetailKeysAfterDetailInsertion(current, entryIndex, 0, true));
   };
 
   const removeDetail = (entryIndex: number, detailIndex: number) => {
