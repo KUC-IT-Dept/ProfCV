@@ -1,4 +1,4 @@
-import { Pencil, Plus, Save, Trash2 } from 'lucide-react';
+import { Pencil, Plus, Save, Trash2, Search } from 'lucide-react';
 import { useState } from 'react';
 import { Profile } from './profileBuilderTypes';
 import ProfileBuilderSectionCard from './ProfileBuilderSectionCard';
@@ -26,6 +26,7 @@ export default function AwardsHonoursSection(_props: Props) {
   const [expandedCardKey, setExpandedCardKey] = useState<string | null>('award-0');
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [draftAward, setDraftAward] = useState<AwardHonour | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const startEditAward = (index: number) => {
     setEditingIndex(index);
@@ -129,13 +130,38 @@ export default function AwardsHonoursSection(_props: Props) {
   return ( 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button className="btn btn-secondary" type="button" onClick={addAward}>
-            <Plus size={14} />
-            Add Award / Honour
-          </button>
+          <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary, #2563eb)' }}>Awards & Honours</h3>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative' }}>
+              <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
+              <input
+                className="form-input"
+                style={{ paddingLeft: '2.5rem', width: '250px' }}
+                placeholder="Search awards..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button className="btn btn-secondary" type="button" onClick={addAward}>
+              <Plus size={14} />
+              Add Award / Honour
+            </button>
+          </div>
         </div>
 
-        {awards.map((award, index) => {
+        {awards
+          .map((award, index) => ({ award, index }))
+          .filter(({ award }) => {
+            if (!searchTerm) return true;
+            const term = searchTerm.toLowerCase();
+            return (
+              (award.awardName || '').toLowerCase().includes(term) ||
+              (award.awardingBody || '').toLowerCase().includes(term) ||
+              (award.description || '').toLowerCase().includes(term) ||
+              (award.yearReceived || '').toLowerCase().includes(term)
+            );
+          })
+          .map(({ award, index }) => {
           const cardKey = `award-${index}`;
           const isEditing = editingIndex === index;
           const viewAward = isEditing && draftAward ? draftAward : award;
