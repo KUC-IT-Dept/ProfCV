@@ -16,7 +16,7 @@ type EducationalQualificationsSectionProps = {
 };
 
 const YEAR_OPTIONS = Array.from({ length: 100 }, (_, index) => `${new Date().getFullYear() - index}`);
-const DIVISION_OPTIONS = ['First ', 'Second ', 'Third ', 'Pass'];
+const DIVISION_OPTIONS = ['First', 'Second', 'Third', 'Pass'];
 const MODE_OPTIONS = ['regular', 'distance'];
 const COUNTRY_OPTIONS = ['India', 'USA', 'UK', 'Germany', 'France', 'Australia', 'Other'];
 const INDIAN_STATES = [
@@ -93,7 +93,8 @@ export default function EducationalQualificationsSection({
   return (
     <div className="space-y-4">
       {/* ── Add button at top ── */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.5rem' }}>
+        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: 'var(--color-primary, #2563eb)' }}>Educational Qualifications</h3>
         <button
           className="btn btn-primary"
           onClick={handleAdd}
@@ -337,7 +338,7 @@ export default function EducationalQualificationsSection({
                           <FileField
                             label={`Upload ${certInfo.label}`}
                             name={`${certInfo.field}file`}
-                            selectedFile={null}
+                            selectedFile={qualification[certInfo.field] ? ({ name: qualification[certInfo.field].split('/').pop() } as any) : null}
                             onFileSelect={(_, file) => onUploadCertificate(index, certInfo.field, file)}
                           />
                           {qualification[certInfo.field] && (
@@ -361,25 +362,7 @@ export default function EducationalQualificationsSection({
                       )}
                     </div>
 
-                    {/* Save / Remove row at bottom of edit form */}
-                    <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <button
-                        type="button"
-                        className="btn btn-ghost"
-                        onClick={() => onRemove(index)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--color-danger)', fontSize: '0.8125rem' }}
-                      >
-                        <Trash2 size={14} /> Remove
-                      </button>
-                      <button
-                        type="button"
-                        className="btn btn-primary"
-                        onClick={() => handleSave(index)}
-                        style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8125rem' }}
-                      >
-                        <Save size={14} /> Save Qualification
-                      </button>
-                    </div>
+
                   </>
                 )}
               </div>
