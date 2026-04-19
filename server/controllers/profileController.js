@@ -5,10 +5,17 @@ const { v4: uuidv4 } = require('uuid');
 const Profile = require('../models/Profile');
 const User = require('../models/User');
 
+// ── Ensure Uploads Directory Exists ─────────────────────────────────────────
+const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+  console.log('Created uploads directory:', uploadsDir);
+}
+
 // ── Multer Configuration ─────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: function (_req, _file, cb) {
-    cb(null, path.join(__dirname, '..', 'public', 'uploads'));
+    cb(null, uploadsDir);
   },
   filename: function (_req, file, cb) {
     const ext = path.extname(file.originalname);
@@ -138,15 +145,29 @@ const uploadPhoto = [
   upload.single('file'),
   async (req, res) => {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded.' });
+    
     const fileUrl = `/uploads/${req.file.filename}`;
+    const filePath = path.join(uploadsDir, req.file.filename);
+    
+    // Verify file was actually saved to disk
+    if (!fs.existsSync(filePath)) {
+      console.error('[profileController.uploadPhoto] File not saved to disk:', filePath);
+      return res.status(500).json({ message: 'File was not saved successfully.' });
+    }
+    
     try {
+      // Update User document with photo URL
       await User.findByIdAndUpdate(req.user.id, { photo: fileUrl });
+      
+      // Update Profile document with photo URL
       const profile = await Profile.findOneAndUpdate(
         { user: req.user.id },
         { $set: { photo: fileUrl } },
         { new: true, upsert: true }
       );
 
+      console.log('[profileController.uploadPhoto] Photo saved successfully:', fileUrl);
+      
       return res.status(200).json({
         message: 'Photo uploaded and URL stored in database successfully.',
         photoUrl: fileUrl,
@@ -154,6 +175,11 @@ const uploadPhoto = [
       });
     } catch (err) {
       console.error('[profileController.uploadPhoto]', err);
+      // Clean up file if database update fails
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        console.log('[profileController.uploadPhoto] Cleaned up file due to database error:', filePath);
+      }
       return res.status(500).json({ message: 'Server error during photo upload.' });
     }
   },

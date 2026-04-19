@@ -32,23 +32,13 @@ export type EntranceTests = {
 };
 
 export type Visibility = {
-  bio: boolean;
-  qualifications: boolean;
-  publications: boolean;
-  projects: boolean;
-  subjects: boolean;
-  customDetails: boolean;
-  media: boolean;
-  interests: boolean;
-  professionalDetails: boolean;
-  professionalMemberships: boolean;
-  entranceTests: boolean;
-  workExperiences: boolean;
-  photo: boolean;
-  dob: boolean;
-  gender: boolean;
-  phoneNumber: boolean;
-  address: boolean;
+  personalInfo: boolean; qualifications: boolean; entranceTests: boolean;
+  professionalDetails: boolean; workExperiences: boolean; publications: boolean;
+  awards: boolean; projects: boolean; researchSupervision: boolean;
+  academicResponsibilities: boolean; professionalMemberships: boolean;
+  trainingAndFdp: boolean; onlineCertification: boolean;
+  internationalExperiences: boolean; documents: boolean; customDetails: boolean;
+  photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
 export type Qualification = {
@@ -271,23 +261,13 @@ export const EMPTY_PROFILE: Profile = {
     panCard: '',
   },
   visibility: {
-    bio: true,
-    qualifications: true,
-    publications: true,
-    projects: true,
-    subjects: true,
-    customDetails: true,
-    media: false,
-    interests: true,
-    professionalDetails: true,
-    professionalMemberships: true,
-    entranceTests: true,
-    workExperiences: true,
-    photo: true,
-    dob: false,
-    gender: false,
-    phoneNumber: false,
-    address: false,
+    personalInfo: false, qualifications: true, entranceTests: true,
+    professionalDetails: true, workExperiences: true, publications: true,
+    awards: true, projects: true, researchSupervision: true,
+    academicResponsibilities: true, professionalMemberships: true,
+    trainingAndFdp: true, onlineCertification: true,
+    internationalExperiences: true, documents: false, customDetails: true,
+    photo: false, dob: false, gender: false, phoneNumber: false, address: false,
   },
   professionalDetails: {
     employeeId: '',
@@ -329,16 +309,20 @@ export const EMPTY_PROFILE: Profile = {
 };
 
 export const VISIBILITY_SECTIONS = [
-  { key: 'bio', label: 'Biography & Headline' },
-  { key: 'subjects', label: 'Subjects Taught' },
-  { key: 'interests', label: 'Interests' },
-  { key: 'workExperiences', label: 'Work Experience' },
-  { key: 'qualifications', label: 'Qualifications' },
+  { key: 'personalInfo', label: 'Personal Info' },
+  { key: 'qualifications', label: 'Qualification' },
+  { key: 'entranceTests', label: 'Entrance / Eligibility Test' },
   { key: 'professionalDetails', label: 'Professional Details' },
-  { key: 'professionalMemberships', label: 'Professional Memberships' },
-  { key: 'entranceTests', label: 'Entrance / Eligibility Tests' },
-  { key: 'publications', label: 'Publications' },
+  { key: 'workExperiences', label: 'Work Experience' },
+  { key: 'publications', label: 'Research & Publications' },
+  { key: 'awards', label: 'Awards & Honours' },
   { key: 'projects', label: 'Research Projects' },
-  { key: 'customDetails', label: 'Custom Sections' },
-  { key: 'media', label: 'Attachments & Media' },
+  { key: 'researchSupervision', label: 'Research Supervision' },
+  { key: 'academicResponsibilities', label: 'Academics Responsibility' },
+  { key: 'professionalMemberships', label: 'Professional Membership' },
+  { key: 'trainingAndFdp', label: 'Training, FDP & Workshops' },
+  { key: 'onlineCertification', label: 'Online Certification' },
+  { key: 'internationalExperiences', label: 'International Experience' },
+  { key: 'documents', label: 'Documents Upload' },
+  { key: 'customDetails', label: 'Custom Section' },
 ] as const;

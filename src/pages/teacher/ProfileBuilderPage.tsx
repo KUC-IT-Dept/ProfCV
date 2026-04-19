@@ -107,9 +107,12 @@ type Profile = {
 };
 
 type Visibility = {
-  bio: boolean; qualifications: boolean; publications: boolean;
-  projects: boolean; subjects: boolean; customDetails: boolean; media: boolean; interests: boolean;
-  professionalDetails: boolean; professionalMemberships: boolean; entranceTests: boolean; workExperiences: boolean;
+  personalInfo: boolean; qualifications: boolean; entranceTests: boolean;
+  professionalDetails: boolean; workExperiences: boolean; publications: boolean;
+  awards: boolean; projects: boolean; researchSupervision: boolean;
+  academicResponsibilities: boolean; professionalMemberships: boolean;
+  trainingAndFdp: boolean; onlineCertification: boolean;
+  internationalExperiences: boolean; documents: boolean; customDetails: boolean;
   photo: boolean; dob: boolean; gender: boolean; phoneNumber: boolean; address: boolean;
 };
 
@@ -193,10 +196,13 @@ const EMPTY_PROFILE: Profile = {
   media: { attachments: [], videoEmbeds: [] },
   documents: { passportPhoto: '', signature: '', dobProof: '', categoryCertificate: '', degreeCertificates: '', netSetJrfCertificate: '', experienceCertificates: '', appointmentOrders: '', awardCertificates: '', publicationProofs: '', aadhaarCard: '', panCard: '' },
   visibility: {
-    bio: true, qualifications: true, publications: true,
-    projects: true, subjects: true, customDetails: true, media: false, interests: true,
-    professionalDetails: true, professionalMemberships: true, entranceTests: true, workExperiences: true,
-    photo: true, dob: false, gender: false, phoneNumber: false, address: false,
+    personalInfo: false, qualifications: true, entranceTests: true,
+    professionalDetails: true, workExperiences: true, publications: true,
+    awards: true, projects: true, researchSupervision: true,
+    academicResponsibilities: true, professionalMemberships: true,
+    trainingAndFdp: true, onlineCertification: true,
+    internationalExperiences: true, documents: false, customDetails: true,
+    photo: false, dob: false, gender: false, phoneNumber: false, address: false,
   },
   professionalDetails: {
     employeeId: '', designation: '', department: '', institutionName: '',
@@ -225,18 +231,22 @@ const EMPTY_PROFILE: Profile = {
 };
 
 const VISIBILITY_SECTIONS = [
-  { key: 'bio', label: 'Biography & Headline' },
-  { key: 'subjects', label: 'Subjects Taught' },
-  { key: 'interests', label: 'Interests' },
-  { key: 'workExperiences', label: 'Work Experience' },
-  { key: 'qualifications', label: 'Qualifications' },
+  { key: 'personalInfo', label: 'Personal Info' },
+  { key: 'qualifications', label: 'Qualification' },
+  { key: 'entranceTests', label: 'Entrance/Eligibility Test' },
   { key: 'professionalDetails', label: 'Professional Details' },
-  { key: 'professionalMemberships', label: 'Professional Memberships' },
-  { key: 'entranceTests', label: 'Entrance / Eligibility Tests' },
-  { key: 'publications', label: 'Publications' },
+  { key: 'workExperiences', label: 'Work Experience' },
+  { key: 'publications', label: 'Research & Publications' },
+  { key: 'awards', label: 'Awards & Honours' },
   { key: 'projects', label: 'Research Projects' },
-  { key: 'customDetails', label: 'Custom Sections' },
-  { key: 'media', label: 'Attachments & Media' },
+  { key: 'researchSupervision', label: 'Research Supervision' },
+  { key: 'academicResponsibilities', label: 'Academics Responsibility' },
+  { key: 'professionalMemberships', label: 'Professional Membership' },
+  { key: 'trainingAndFdp', label: 'Training, FDP & Workshops' },
+  { key: 'onlineCertification', label: 'Online Certification' },
+  { key: 'internationalExperiences', label: 'International Experience' },
+  { key: 'documents', label: 'Documents Upload' },
+  { key: 'customDetails', label: 'Custom Section' },
 ] as const;
 
 
@@ -395,50 +405,53 @@ function VisibilityPanel({
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.625rem' }}>
         {VISIBILITY_SECTIONS.map((s) => {
           const isOn = visibility[s.key as keyof Visibility];
+          const isPersonalInfo = s.key === 'personalInfo';
           return (
-            <label key={s.key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', background: isOn ? 'var(--color-primary-light)' : 'var(--color-bg)', border: `1px solid ${isOn ? '#BFDBFE' : 'var(--color-border)'}`, transition: 'all 0.15s', gap: '0.5rem' }}>
-              <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>{s.label}</span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
-                {isOn ? <Eye size={13} color="var(--color-primary)" /> : <EyeOff size={13} color="var(--color-text-light)" />}
-                <input
-                  type="checkbox"
-                  checked={isOn}
-                  onChange={() => onToggle(s.key as keyof Visibility)}
-                  id={`vis-${s.key}`}
-                />
-              </div>
-            </label>
+            <div key={s.key}>
+              <label 
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.5rem 0.75rem', borderRadius: 'var(--radius-sm)', background: isOn ? 'var(--color-primary-light)' : 'var(--color-bg)', border: `1px solid ${isOn ? '#BFDBFE' : 'var(--color-border)'}`, transition: 'all 0.15s', gap: '0.5rem' }}
+                onClick={isPersonalInfo ? () => setPersonalOpen(!personalOpen) : undefined}
+              >
+                <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>{s.label}</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.375rem' }}>
+                  {isPersonalInfo ? (
+                    personalOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />
+                  ) : (
+                    isOn ? <Eye size={13} color="var(--color-primary)" /> : <EyeOff size={13} color="var(--color-text-light)" />
+                  )}
+                  {!isPersonalInfo && (
+                    <input
+                      type="checkbox"
+                      checked={isOn}
+                      onChange={() => onToggle(s.key as keyof Visibility)}
+                      id={`vis-${s.key}`}
+                    />
+                  )}
+                </div>
+              </label>
+            </div>
           );
         })}
 
         {/* Personal Info Dropdown */}
-        <div style={{ border: '1px solid var(--color-border)', borderRadius: 'var(--radius-sm)', overflow: 'hidden' }}>
-          <button
-            onClick={() => setPersonalOpen(!personalOpen)}
-            style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 0.75rem', background: 'var(--color-bg)', border: 'none', cursor: 'pointer' }}
-          >
-            <span style={{ fontSize: '0.8125rem', fontWeight: 500, color: 'var(--color-text)' }}>Personal Info</span>
-            {personalOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-          </button>
-          {personalOpen && (
-            <div style={{ padding: '0.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)' }}>
-              {personalKeys.map((key) => {
-                const isOn = visibility[key];
-                return (
-                  <label key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.375rem 0.5rem', borderRadius: 'var(--radius-sm)', transition: 'all 0.15s' }}>
-                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text)' }}>{personalLabels[key]}</span>
-                    <input
-                      type="checkbox"
-                      checked={isOn}
-                      onChange={() => onToggle(key)}
-                      style={{ width: 14, height: 14 }}
-                    />
-                  </label>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {personalOpen && (
+          <div style={{ padding: '0.5rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', background: 'var(--color-surface)', borderTop: '1px solid var(--color-border)', marginLeft: '0.75rem', marginRight: '0.75rem', borderRadius: '0 0 var(--radius-sm) var(--radius-sm)' }}>
+            {personalKeys.map((key) => {
+              const isOn = visibility[key];
+              return (
+                <label key={key} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', padding: '0.375rem 0.5rem', borderRadius: 'var(--radius-sm)', transition: 'all 0.15s' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--color-text)' }}>{personalLabels[key]}</span>
+                  <input
+                    type="checkbox"
+                    checked={isOn}
+                    onChange={() => onToggle(key)}
+                    style={{ width: 14, height: 14 }}
+                  />
+                </label>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -944,15 +957,11 @@ openSection('internationalExperiences-0');
     form.append('file', file);
     try {
       const res = await api.post('/profile/me/photo', form, { headers: { 'Content-Type': 'multipart/form-data' } });
-      const photoUrl =
-        res.data?.photoUrl ||
-        res.data?.fileUrl ||
-        res.data?.profile?.photo ||
-        '';
+      const photoUrl = res.data?.photoUrl || res.data?.profile?.photo || '';
       const updatedProfile = { ...profile, photo: photoUrl };
       setProfile(updatedProfile);
       updateUser({ photo: photoUrl });
-      setPhotoPreviewUrl(photoUrl ? null : previewUrl);
+      setPhotoPreviewUrl(null);
       if (!photoUrl) {
         setUploadError('Photo uploaded, but server did not return a persistent photo URL. Please try again.');
       }
